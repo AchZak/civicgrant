@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: civicgrant
+
+  flyway:
+    schemas: civicgrant
+    default-schema: civicgrant
+    create-schemas: true
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: civicgrant
+
+# Contract-first: springdoc only shows the hand-written contract, it doesn't generate one
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    url: /openapi.yaml

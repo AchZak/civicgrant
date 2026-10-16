@@ -1,0 +1,103 @@
+openapi: 3.0.3
+info:
+  title: CivicGrant API
+  version: 0.1.0
+  description: >
+    Grant applications for a fictional Belgian public administration.
+    This file is the source of truth: the Spring interfaces and the
+    Angular client are both generated from it.
+
+servers:
+  - url: /api/v1
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: FundingCalls
+    description: Calls for projects that organisations can apply to
+
+paths:
+  /funding-calls:
+    get:
+      tags: [FundingCalls]
+      operationId: listOpenFundingCalls
+      summary: List the funding calls that are currently open for submissions
+      responses:
+        '200':
+          description: The open funding calls, closing soonest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FundingCall'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid access token
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+  schemas:
+    FundingCall:
+      type: object
+      required: [id, reference, title, opensAt, closesAt, maxAmountPerApplication, remainingBudget]
+      properties:
+        id:
+          type: string
+          format: uuid
+        reference:
+          type: string
+          example: CALL-2026-01
+        title:
+          $ref: '#/components/schemas/LocalizedText'
+        opensAt:
+          type: string
+          format: date-time
+        closesAt:
+          type: string
+          format: date-time
+        maxAmountPerApplication:
+          type: number
+          example: 15000.00
+        remainingBudget:
+          type: number
+          example: 20000.00
+
+    LocalizedText:
+      type: object
+      required: [nl, fr]
+      properties:
+        nl:
+          type: string
+          example: Buurtprojecten 2026
+        fr:
+          type: string
+          example: Projets de quartier 2026
+
+    Problem:
+      description: Error details as defined by RFC 9457
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
