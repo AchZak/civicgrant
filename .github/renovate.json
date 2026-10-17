@@ -1,0 +1,38 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "schedule:weekly",
+    ":semanticCommits",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "baseBranchPatterns": ["develop"],
+  "timezone": "Europe/Brussels",
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "description": "Use the build commit type for Maven updates",
+      "matchManagers": ["maven", "maven-wrapper"],
+      "semanticCommitType": "build"
+    },
+    {
+      "description": "Group minor and patch Maven updates, keep majors separate",
+      "matchManagers": ["maven"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "maven non-major"
+    },
+    {
+      "description": "Group GitHub Actions updates under the ci commit type",
+      "matchManagers": ["github-actions"],
+      "semanticCommitType": "ci",
+      "groupName": "github actions"
+    },
+    {
+      "description": "PostgreSQL majors must match Testcontainers and Azure, so they are upgraded by hand",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
+  ]
+}
