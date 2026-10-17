@@ -12,6 +12,10 @@
     <artifactId>civicgrant-starter</artifactId>
     <name>CivicGrant :: Starter</name>
 
+    <properties>
+        <sonar.coverage.exclusions>**/*</sonar.coverage.exclusions>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>be.achzak</groupId>
@@ -64,7 +68,6 @@
 
     <build>
         <plugins>
-            <!-- Only this module produces a runnable jar -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

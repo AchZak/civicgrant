@@ -9,7 +9,6 @@ import org.testcontainers.utility.DockerImageName;
 @TestConfiguration(proxyBeanMethods = false)
 class TestcontainersConfiguration {
 
-	// Pinned to the major version used on Azure, so tests don't change underneath us
 	@Bean
 	@ServiceConnection
 	PostgreSQLContainer postgresContainer() {

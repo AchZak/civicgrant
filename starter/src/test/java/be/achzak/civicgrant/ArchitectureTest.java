@@ -7,11 +7,6 @@ import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-/**
- * Maven already prevents modules from depending on each other in the wrong
- * direction. These rules guard what Maven can't: frameworks leaking into
- * the domain, and adapters reaching into each other.
- */
 @AnalyzeClasses(packages = "be.achzak.civicgrant", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
 

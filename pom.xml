@@ -28,15 +28,19 @@
     <properties>
         <java.version>25</java.version>
 
-        <!-- Versions not managed by Spring Boot -->
         <springdoc.version>3.1.1</springdoc.version>
         <openapi-generator.version>7.25.0</openapi-generator.version>
         <archunit.version>1.4.2</archunit.version>
+        <jacoco.version>0.8.14</jacoco.version>
+        <sonar-maven-plugin.version>5.8.0.7211</sonar-maven-plugin.version>
+
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.organization>achzak</sonar.organization>
+        <sonar.projectKey>AchZak_civicgrant</sonar.projectKey>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-            <!-- Internal modules -->
             <dependency>
                 <groupId>be.achzak</groupId>
                 <artifactId>civicgrant-domain</artifactId>
@@ -53,7 +57,6 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Third party -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -75,11 +78,20 @@
                     <artifactId>openapi-generator-maven-plugin</artifactId>
                     <version>${openapi-generator.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>${sonar-maven-plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
         <plugins>
-            <!-- Lombok annotation processing for every module that declares Lombok -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

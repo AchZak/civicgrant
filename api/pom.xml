@@ -12,6 +12,11 @@
     <artifactId>civicgrant-api</artifactId>
     <name>CivicGrant :: API</name>
 
+    <properties>
+        <sonar.coverage.exclusions>**/*</sonar.coverage.exclusions>
+        <sonar.exclusions>**/generated/**</sonar.exclusions>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>be.achzak</groupId>
@@ -62,7 +67,6 @@
 
     <build>
         <plugins>
-            <!-- Generates Spring interfaces and DTOs from the OpenAPI contract -->
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
