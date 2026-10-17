@@ -30,7 +30,7 @@
 
         <!-- Versions not managed by Spring Boot -->
         <springdoc.version>3.1.1</springdoc.version>
-        <openapi-generator.version>7.25.0</openapi-generator.version>
+        <openapi-generator.version>7.26.0</openapi-generator.version>
         <archunit.version>1.4.2</archunit.version>
     </properties>
 
