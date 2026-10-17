@@ -12,6 +12,10 @@
     <artifactId>civicgrant-persistence</artifactId>
     <name>CivicGrant :: Persistence</name>
 
+    <properties>
+        <sonar.coverage.exclusions>**/*</sonar.coverage.exclusions>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>be.achzak</groupId>

@@ -28,15 +28,20 @@
     <properties>
         <java.version>25</java.version>
 
-        <!-- Versions not managed by Spring Boot -->
-        <springdoc.version>3.1.1</springdoc.version>
         <openapi-generator.version>7.26.0</openapi-generator.version>
         <archunit.version>1.4.2</archunit.version>
+        <jacoco.version>0.8.14</jacoco.version>
+        <sonar-maven-plugin.version>5.8.0.7211</sonar-maven-plugin.version>
+        <spotless.version>3.10.4</spotless.version>
+        <palantir-java-format.version>2.102.0</palantir-java-format.version>
+
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.organization>achzak</sonar.organization>
+        <sonar.projectKey>AchZak_civicgrant</sonar.projectKey>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-            <!-- Internal modules -->
             <dependency>
                 <groupId>be.achzak</groupId>
                 <artifactId>civicgrant-domain</artifactId>
@@ -53,12 +58,6 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Third party -->
-            <dependency>
-                <groupId>org.springdoc</groupId>
-                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-                <version>${springdoc.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.tngtech.archunit</groupId>
                 <artifactId>archunit-junit5</artifactId>
@@ -75,11 +74,32 @@
                     <artifactId>openapi-generator-maven-plugin</artifactId>
                     <version>${openapi-generator.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>${sonar-maven-plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
         <plugins>
-            <!-- Lombok annotation processing for every module that declares Lombok -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.version}</version>
+                <configuration>
+                    <java>
+                        <palantirJavaFormat>
+                            <version>${palantir-java-format.version}</version>
+                        </palantirJavaFormat>
+                    </java>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
