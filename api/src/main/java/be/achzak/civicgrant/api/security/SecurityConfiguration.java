@@ -12,11 +12,11 @@ class SecurityConfiguration {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/actuator/health", "/actuator/health/**")
-                        .permitAll()
-                        .anyRequest()
-                        .authenticated())
+        return http.authorizeHttpRequests(
+                        requests -> requests.requestMatchers("/actuator/health", "/actuator/health/**")
+                                .permitAll()
+                                .anyRequest()
+                                .authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
