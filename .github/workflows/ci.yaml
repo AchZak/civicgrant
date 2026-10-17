@@ -35,6 +35,11 @@ jobs:
           java-version: '25'
           cache: maven
 
+      - name: Lint API contract
+        uses: docker://redocly/cli:2.64.1
+        with:
+          args: lint
+
       - name: Check formatting
         run: ./mvnw spotless:check
 
