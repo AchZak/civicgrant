@@ -93,14 +93,14 @@ All infrastructure is defined in Bicep and deployed by GitHub Actions to three e
 
 ## Running it locally
 
-Requirements: JDK 25 and Docker (for Testcontainers).
+Requirements: JDK 25 and Docker.
 
 ```bash
 ./mvnw clean install
-./mvnw -pl starter spring-boot:test-run
+./mvnw -pl starter spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-The first command builds and tests every module. The second starts the application with a PostgreSQL container and runs the Flyway migrations. From IntelliJ, running `TestCivicgrantApplication` in the starter module does the same.
+The `local` profile starts PostgreSQL through `compose.yaml`, keeps its data between runs and loads demo data from `db/seed`. Tests don't use it: they run against a throwaway PostgreSQL started by Testcontainers.
 
 ## Status
 

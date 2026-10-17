@@ -2,6 +2,10 @@ spring:
   application:
     name: civicgrant
 
+  docker:
+    compose:
+      enabled: false
+
   flyway:
     schemas: civicgrant
     default-schema: civicgrant

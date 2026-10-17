@@ -1,0 +1,8 @@
+spring:
+  docker:
+    compose:
+      enabled: true
+      lifecycle-management: start-only
+
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
