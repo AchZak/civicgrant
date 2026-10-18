@@ -28,7 +28,7 @@
     <properties>
         <java.version>25</java.version>
 
-        <openapi-generator.version>7.25.0</openapi-generator.version>
+        <openapi-generator.version>7.26.0</openapi-generator.version>
         <archunit.version>1.5.1</archunit.version>
         <jacoco.version>0.8.14</jacoco.version>
         <sonar-maven-plugin.version>5.8.0.7211</sonar-maven-plugin.version>
