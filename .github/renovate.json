@@ -11,6 +11,11 @@
   "labels": ["dependencies"],
   "packageRules": [
     {
+      "description": "Our own modules are built here, not downloaded",
+      "matchPackageNames": ["be.achzak:*"],
+      "enabled": false
+    },
+    {
       "description": "Use the build commit type for Maven updates",
       "matchManagers": ["maven", "maven-wrapper"],
       "semanticCommitType": "build"
