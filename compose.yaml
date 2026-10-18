@@ -1,0 +1,21 @@
+name: civicgrant
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: civicgrant
+      POSTGRES_USER: civicgrant_app
+      POSTGRES_PASSWORD: civicgrant_password
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U civicgrant_app -d civicgrant"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:

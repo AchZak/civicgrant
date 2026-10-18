@@ -1,0 +1,10 @@
+extends:
+  - recommended
+
+apis:
+  civicgrant:
+    root: api/src/main/openapi/openapi.yaml
+
+rules:
+  info-license: off
+  operation-4xx-response: error
