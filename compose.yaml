@@ -2,7 +2,7 @@ name: civicgrant
 
 services:
   postgres:
-    image: postgres:17
+    image: postgres:18
     environment:
       POSTGRES_DB: civicgrant
       POSTGRES_USER: civicgrant_app
@@ -10,7 +10,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U civicgrant_app -d civicgrant"]
       interval: 5s
