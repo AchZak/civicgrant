@@ -36,7 +36,7 @@ jobs:
           cache: maven
 
       - name: Lint API contract
-        uses: docker://redocly/cli:2.64.1
+        uses: docker://redocly/cli:2.71.2
         with:
           args: lint
 
