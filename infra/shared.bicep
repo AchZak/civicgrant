@@ -3,8 +3,8 @@ targetScope = 'subscription'
 @description('Azure region for the shared resources.')
 param location string
 
-@description('GitHub repository allowed to push images, as owner/name.')
-param githubRepository string
+@description('GitHub OIDC subject prefix of the repository, as shown under Settings > Actions > OIDC: repo:owner/name, or repo:owner@id/name@id for repositories created or renamed since July 2026.')
+param githubSubjectPrefix string
 
 @description('Branches whose workflow runs may push images.')
 param publishBranches array = [
@@ -18,7 +18,7 @@ var tags = {
   managedBy: 'bicep'
 }
 
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: 'rg-civicgrant-shared'
   location: location
   tags: tags
@@ -30,7 +30,7 @@ module pipelineIdentity 'modules/pipeline-identity.bicep' = {
     name: 'id-civicgrant-pipeline'
     location: location
     tags: tags
-    githubRepository: githubRepository
+    githubSubjectPrefix: githubSubjectPrefix
     branches: publishBranches
   }
 }
