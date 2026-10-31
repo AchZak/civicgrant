@@ -1,5 +1,6 @@
 package be.achzak.civicgrant;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -11,17 +12,21 @@ import com.tngtech.archunit.lang.ArchRule;
 class ArchitectureTest {
 
     @ArchTest
-    static final ArchRule domain_is_framework_free = noClasses()
+    static final ArchRule domain_depends_only_on_the_jdk = classes()
             .that()
             .resideInAPackage("..civicgrant.domain..")
             .should()
-            .dependOnClassesThat()
-            .resideInAnyPackage(
-                    "org.springframework..",
-                    "jakarta.persistence..",
-                    "org.hibernate..",
-                    "..civicgrant.api..",
-                    "..civicgrant.persistence..")
+            .onlyDependOnClassesThat()
+            .resideInAnyPackage("java..", "..civicgrant.domain..")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule shared_kernel_depends_on_no_aggregate = classes()
+            .that()
+            .resideInAPackage("..civicgrant.domain.shared..")
+            .should()
+            .onlyDependOnClassesThat()
+            .resideInAnyPackage("java..", "..civicgrant.domain.shared..")
             .allowEmptyShould(true);
 
     @ArchTest
