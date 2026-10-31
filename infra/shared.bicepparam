@@ -1,4 +1,4 @@
 using 'shared.bicep'
 
-param location = 'westeurope'
+param location = 'belgiumcentral'
 param githubSubjectPrefix = 'repo:AchZak/civicgrant'
