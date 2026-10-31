@@ -7,6 +7,9 @@ param location string
 @description('Tags applied to the registry.')
 param tags object
 
+@description('Registry SKU: Basic or Standard.')
+param sku string
+
 @description('Principals allowed to push images.')
 param pushPrincipalIds array = []
 
@@ -18,7 +21,7 @@ resource registry 'Microsoft.ContainerRegistry/registries@2025-11-01' = {
   location: location
   tags: tags
   sku: {
-    name: 'Basic'
+    name: sku
   }
   properties: {
     adminUserEnabled: false

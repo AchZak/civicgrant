@@ -12,6 +12,13 @@ param publishBranches array = [
   'main'
 ]
 
+@description('Container registry SKU.')
+@allowed([
+  'Basic'
+  'Standard'
+])
+param registrySku string
+
 var tags = {
   project: 'civicgrant'
   environment: 'shared'
@@ -41,6 +48,7 @@ module registry 'modules/container-registry.bicep' = {
     name: 'crcivicgrant${uniqueString(subscription().subscriptionId)}'
     location: location
     tags: tags
+    sku: registrySku
     pushPrincipalIds: [
       pipelineIdentity.outputs.principalId
     ]
