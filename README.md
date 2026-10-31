@@ -105,6 +105,8 @@ The pipeline authenticates to Azure with workload identity federation, so there 
 
 **Shared resources are bootstrapped by hand, once.** The registry and the pipeline's identity are deployed from a developer machine, because the pipeline can't create the identity it logs in with. Everything else is deployed by the pipeline.
 
+**Hosted in Belgium Central.** A Belgian administration's data stays at rest in Belgium, at the same price as West Europe. The region has no paired region, which only matters for geo-redundant backups, and this project doesn't use them.
+
 **A schema, not tablespaces.** Azure Database for PostgreSQL doesn't support custom tablespaces, and physical storage isn't a migration's concern anyway. Everything lives in the `civicgrant` schema.
 
 ## Running it locally
