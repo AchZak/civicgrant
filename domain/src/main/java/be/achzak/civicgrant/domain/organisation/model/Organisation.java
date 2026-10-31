@@ -32,8 +32,7 @@ public final class Organisation {
         Objects.requireNonNull(registeredBy, "registeredBy");
         Organisation organisation =
                 new Organisation(OrganisationId.generate(), enterpriseNumber, validName(name), legalForm, now);
-        organisation.events.add(
-                new OrganisationRegistered(organisation.id, enterpriseNumber, registeredBy.id(), now));
+        organisation.events.add(new OrganisationRegistered(organisation.id, enterpriseNumber, registeredBy.id(), now));
         return organisation;
     }
 
