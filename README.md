@@ -129,7 +129,7 @@ The `local` profile starts PostgreSQL through `compose.yaml`, keeps its data bet
 - [ ] Applicant flow
 - [ ] Assessment and decision flow
 - [ ] Angular frontend
-- [x] CI pipeline: formatting, tests and SonarQube analysis
+- [x] CI pipeline: formatting, tests, SonarQube analysis and image publishing
 - [x] Container image
 - [x] Shared Azure infrastructure: registry and pipeline identity
 - [ ] Test environment
