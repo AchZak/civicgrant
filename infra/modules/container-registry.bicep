@@ -2,8 +2,8 @@
 // MODULE: CONTAINER REGISTRY
 // ============================================================
 //
-// Creates the registry that stores the application image, and gives the
-// listed principals the right to push to it.
+// Creates the registry that stores the application image, gives the listed
+// principals the right to push to it, and lets the listed users look inside it.
 //
 // One registry serves every environment: the image that passed acceptance
 // is exactly the one that goes to production.
@@ -29,14 +29,20 @@ param sku string
 @description('Principals allowed to push images.')
 param pushPrincipalIds array = []
 
+@description('Entra user object ids allowed to list repositories and read images, without changing anything.')
+param viewerUserIds array = []
+
 
 // ------------------------------------------------------------
 // VARIABLES
 // ------------------------------------------------------------
 
 // Ids of built-in Azure roles. They're the same in every tenant.
+// To look one up: az role definition list --query "[?roleName=='<role name>'].name" --output tsv
 var repositoryWriterRoleId = '2a1e307c-b015-4ebd-883e-5b7698a07328' // Container Registry Repository Writer
-var readerRoleId = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'           // Reader
+var repositoryReaderRoleId = 'b93aa761-3e63-49ed-ac28-beffa264f7ac' // Container Registry Repository Reader
+var catalogListerRoleId = 'bfdb9389-c9a5-478a-bb2f-ba9ca092c3c7'    // Container Registry Repository Catalog Lister
+var readerRoleId = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'           // Reader (the general one, for the registry resource)
 
 
 // ------------------------------------------------------------
@@ -97,6 +103,36 @@ resource readRoleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01
       roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', readerRoleId)
       principalId: principalId
       principalType: 'ServicePrincipal'
+    }
+  }
+]
+
+// 4. Image read rights for viewers: Container Registry Repository Reader.
+//    In ABAC mode, Owner and Contributor manage the registry resource but can't see
+//    inside it. This role shows tags and manifests and allows pulling. No push, no delete.
+resource viewerReadRoleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
+  for userId in viewerUserIds: {
+    name: guid(registry.id, userId, repositoryReaderRoleId)
+    scope: registry
+    properties: {
+      roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', repositoryReaderRoleId)
+      principalId: userId
+      principalType: 'User'  // A person, not an identity: the type must match.
+    }
+  }
+]
+
+// 5. Repository list rights for viewers: Container Registry Repository Catalog Lister.
+//    The Repository roles let you read a repository you already know the name of,
+//    but not list which repositories exist. The portal's Repositories page needs this one.
+resource viewerListRoleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
+  for userId in viewerUserIds: {
+    name: guid(registry.id, userId, catalogListerRoleId)
+    scope: registry
+    properties: {
+      roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', catalogListerRoleId)
+      principalId: userId
+      principalType: 'User'
     }
   }
 ]

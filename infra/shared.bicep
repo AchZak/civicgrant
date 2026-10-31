@@ -10,6 +10,7 @@
 //       github-branch-main       federated credential: runs on main may log in
 //     crcivicgrant<suffix>       container registry for the application image
 //       2 role assignments       the pipeline identity may push images
+//       2 role assignments       the person deploying may list and read images
 //
 // Deployed by hand, once, from the project root:
 //
@@ -94,7 +95,8 @@ module pipelineIdentity 'modules/pipeline-identity.bicep' = {
   }
 }
 
-// 3. The container registry, with push rights for the identity from step 2.
+// 3. The container registry, with push rights for the identity from step 2
+//    and read rights for the person deploying this file.
 module registry 'modules/container-registry.bicep' = {
   scope: resourceGroup
   params: {
@@ -110,6 +112,13 @@ module registry 'modules/container-registry.bicep' = {
     // No explicit dependsOn is needed.
     pushPrincipalIds: [
       pipelineIdentity.outputs.principalId
+    ]
+
+    // deployer() is the identity running this deployment: you, from your machine.
+    // Its object id comes from your az login, so no personal id is stored in this
+    // public repository.
+    viewerUserIds: [
+      deployer().objectId
     ]
   }
 }
