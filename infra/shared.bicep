@@ -135,6 +135,8 @@ module budget 'modules/budget.bicep' = {
   params: {
     name: 'budget-civicgrant-monthly'
     amount: 5
+    startDate: '2026-11-01T00:00:00Z' // Created in November 2026. Never change it.
+    endDate: '2036-11-01T00:00:00Z'
     contactEmails: [
       budgetAlertEmail
     ]

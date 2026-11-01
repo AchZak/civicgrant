@@ -15,7 +15,7 @@ targetScope = 'subscription'
 
 // ------------------------------------------------------------
 // PARAMETERS
-// Values are passed by shared.bicep, except startDate.
+// Values are passed by shared.bicep.
 // ------------------------------------------------------------
 
 @description('Name of the budget, unique within the subscription.')
@@ -27,12 +27,16 @@ param amount int
 @description('Email addresses that receive the alerts.')
 param contactEmails array
 
-// The first day of the current month, computed when the deployment runs.
-// Azure requires a start date on the first of a month, and a past start date must
-// fall within the current month. A fixed date would make every redeploy fail from
-// the next month on. utcNow() is only allowed as a parameter default.
-@description('Start of the budget, the first day of a month.')
-param startDate string = '${utcNow('yyyy-MM')}-01T00:00:00Z'
+// The start date is fixed once the budget exists: keep passing the date it was
+// created with. A new budget needs the first day of the current month, since Azure
+// rejects a past start date outside the current month when creating one.
+@description('Start of the budget, the first day of a month, as yyyy-MM-ddT00:00:00Z.')
+param startDate string
+
+// Without an end date, Azure sets one 10 years after the start. Writing it down
+// keeps what-if clean.
+@description('End of the budget, as yyyy-MM-ddT00:00:00Z.')
+param endDate string
 
 
 // ------------------------------------------------------------
@@ -48,6 +52,7 @@ resource budget 'Microsoft.Consumption/budgets@2026-06-01' = {
     timeGrain: 'Monthly' // The tracked amount resets on the first of each month.
     timePeriod: {
       startDate: startDate
+      endDate: endDate
     }
 
     // Up to five alerts. Each threshold is a percentage of the amount.
