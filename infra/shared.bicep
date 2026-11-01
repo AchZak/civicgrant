@@ -12,8 +12,13 @@
 //       2 role assignments       the pipeline identity may push images
 //       2 role assignments       the person deploying may list and read images
 //
-// Deployed by hand, once, from the project root:
+//   subscription
+//     budget-civicgrant-monthly  emails when spending approaches or passes €5 a month
 //
+// Deployed by hand, from the project root. BUDGET_ALERT_EMAIL must be set, because
+// shared.bicepparam reads the alert address from it:
+//
+//   export BUDGET_ALERT_EMAIL=you@example.com
 //   az bicep lint --file infra/shared.bicep
 //   az deployment sub what-if --location belgiumcentral --name civicgrant-shared --parameters infra/shared.bicepparam
 //   az deployment sub create  --location belgiumcentral --name civicgrant-shared --parameters infra/shared.bicepparam
@@ -43,10 +48,7 @@ param location string
 param githubSubjectPrefix string
 
 @description('Branches whose workflow runs may push images.')
-param publishBranches array = [
-  'develop'
-  'main'
-]
+param publishBranches array
 
 // Premium is left out on purpose: it costs about $50 a month.
 @description('Container registry SKU.')
@@ -55,6 +57,9 @@ param publishBranches array = [
   'Standard'
 ])
 param registrySku string
+
+@description('Email address that receives the budget alerts.')
+param budgetAlertEmail string
 
 
 // ------------------------------------------------------------
@@ -119,6 +124,19 @@ module registry 'modules/container-registry.bicep' = {
     // public repository.
     viewerUserIds: [
       deployer().objectId
+    ]
+  }
+}
+
+// 4. The monthly budget. It watches the whole subscription, so every environment
+//    deployed later is covered too. No scope line: a module defaults to the scope
+//    of the file calling it, here the subscription.
+module budget 'modules/budget.bicep' = {
+  params: {
+    name: 'budget-civicgrant-monthly'
+    amount: 5
+    contactEmails: [
+      budgetAlertEmail
     ]
   }
 }

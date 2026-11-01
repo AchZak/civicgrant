@@ -15,6 +15,18 @@ param location = 'belgiumcentral'
 // The ids keep the subject valid if the owner or the repository is ever renamed.
 param githubSubjectPrefix = 'repo:AchZak@140258958/civicgrant@1422522301'
 
+// One federated credential per branch: pushes to these branches may log in and
+// push images. Pull requests never can.
+param publishBranches = [
+  'develop'
+  'main'
+]
+
 // Standard is in the 12-month free services, Basic isn't.
 // Switch to Basic before the free services end.
 param registrySku = 'Standard'
+
+// Read from your shell when you deploy, so the address never lands in this public
+// repository. If the variable isn't set, the deployment stops with an error
+// instead of creating alerts that go nowhere.
+param budgetAlertEmail = readEnvironmentVariable('BUDGET_ALERT_EMAIL')
