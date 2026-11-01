@@ -66,6 +66,23 @@ resource registry 'Microsoft.ContainerRegistry/registries@2025-11-01' = {
     // which can be limited to single repositories.
     // AcrPull and AcrPush have no effect in this mode.
     roleAssignmentMode: 'AbacRepositoryPermissions'
+
+    // The next three are the values Azure uses when they're left out. They're
+    // written down so what-if compares like with like and stays clean.
+
+    // Dedicated data endpoints (a Premium feature, for firewall rules). Off: image
+    // layers are served from the registry's shared endpoint.
+    dataEndpointEnabled: false
+
+    // Customer-managed key encryption (Premium). Disabled doesn't mean unencrypted:
+    // images are always encrypted at rest, here with keys Microsoft manages.
+    encryption: {
+      status: 'disabled'
+    }
+
+    // Whether ACR Tasks may bypass network rules. No tasks and no network rules
+    // here, so the secure default.
+    networkRuleBypassAllowedForTasks: false
   }
 }
 

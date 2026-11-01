@@ -45,6 +45,12 @@ resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' 
   name: name
   location: location
   tags: tags
+  properties: {
+    // Regional would only allow attaching this identity to resources in its own
+    // region. It's never attached to a resource (GitHub uses it from outside
+    // Azure), so None, the value Azure uses when it's left out.
+    isolationScope: 'None'
+  }
 }
 
 // 2. One federated credential per branch.
