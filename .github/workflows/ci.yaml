@@ -83,7 +83,7 @@ jobs:
       #    redocly.yaml at the repository root says which file to lint and with which rules.
       #    The image tag must match the lint command in CLAUDE.md.
       - name: Lint API contract
-        uses: docker://redocly/cli:2.71.2
+        uses: docker://redocly/cli:2.72.1
         with:
           args: lint
 
