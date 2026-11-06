@@ -40,6 +40,19 @@ param endDate string
 
 
 // ------------------------------------------------------------
+// VARIABLES
+// ------------------------------------------------------------
+
+// Every alert also goes to whoever holds the Owner role on the subscription, with
+// the address from their Entra account. The recipients follow the role assignments,
+// so the alerts still reach someone if the address passed in is ever wrong. Azure
+// still requires at least one address at subscription scope, hence contactEmails too.
+var contactRoles = [
+  'Owner'
+]
+
+
+// ------------------------------------------------------------
 // RESOURCES
 // ------------------------------------------------------------
 
@@ -69,6 +82,7 @@ resource budget 'Microsoft.Consumption/budgets@2026-06-01' = {
         operator: 'GreaterThan'
         threshold: 20 // 20% of 5 = 1
         contactEmails: contactEmails
+        contactRoles: contactRoles
         locale: 'en-us'
       }
 
@@ -79,6 +93,7 @@ resource budget 'Microsoft.Consumption/budgets@2026-06-01' = {
         operator: 'GreaterThan'
         threshold: 100
         contactEmails: contactEmails
+        contactRoles: contactRoles
         locale: 'en-us'
       }
 
@@ -89,6 +104,7 @@ resource budget 'Microsoft.Consumption/budgets@2026-06-01' = {
         operator: 'GreaterThan'
         threshold: 100
         contactEmails: contactEmails
+        contactRoles: contactRoles
         locale: 'en-us'
       }
     }
