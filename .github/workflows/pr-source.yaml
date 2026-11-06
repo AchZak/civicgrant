@@ -1,0 +1,71 @@
+# ============================================================
+# PR SOURCE: ONLY DEVELOP MAY BE MERGED INTO MAIN
+# ============================================================
+#
+# Pull request to main:  fail unless it comes from develop, in this repository.
+#
+# The main ruleset requires a pull request, but GitHub rulesets can't say which
+# branch that pull request must come from. This workflow fills the gap: the main
+# ruleset lists "Source branch" as a required check, so a pull request from any
+# other branch can't be merged.
+
+name: PR source  # Name shown in the Actions tab of the repository.
+
+
+# ------------------------------------------------------------
+# TRIGGERS
+# ------------------------------------------------------------
+
+on:
+  pull_request:
+    branches: [ main ]  # Only pull requests that target main.
+
+    # The default types are opened, synchronize and reopened. "edited" is added
+    # because changing a pull request's target branch is an edit: without it, a pull
+    # request opened against develop and then retargeted to main would never be checked.
+    types: [ opened, synchronize, reopened, edited ]
+
+
+# ------------------------------------------------------------
+# DEFAULTS FOR EVERY JOB
+# ------------------------------------------------------------
+
+# No rights at all for the GITHUB_TOKEN. The check only reads the event that
+# triggered it, so it doesn't even need to check out the code.
+permissions: {}
+
+# A newer event for the same pull request cancels the run still going.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+
+  # ============================================================
+  # JOB 1: SOURCE BRANCH
+  # Compare the pull request's source branch with develop.
+  # ============================================================
+
+  source-branch:
+    name: Source branch     # The check name the main ruleset requires. Renaming it breaks the ruleset.
+    runs-on: ubuntu-latest  # Linux virtual machine hosted by GitHub.
+    timeout-minutes: 2      # The check takes seconds; anything longer is a hang.
+
+    steps:
+
+      # 1. Fail unless the source is develop in this repository.
+      #    The repository check matters: a fork can also have a branch called develop.
+      #    Branch names are chosen by whoever opens the pull request, so they're passed
+      #    as environment variables, never pasted into the script with ${{ }}: a branch
+      #    named like a shell command would otherwise run as one (script injection).
+      - name: Check source branch
+        env:
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}  # owner/name of the source repository.
+          HEAD_BRANCH: ${{ github.head_ref }}                              # The source branch.
+        run: |
+          if [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ] || [ "$HEAD_BRANCH" != "develop" ]; then
+            echo "::error::Only develop may be merged into main. This pull request comes from $HEAD_REPO:$HEAD_BRANCH."
+            exit 1
+          fi
+          echo "Source is $HEAD_REPO:$HEAD_BRANCH."
