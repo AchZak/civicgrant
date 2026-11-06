@@ -1,21 +1,63 @@
+# ============================================================
+# LOCAL DEVELOPMENT DATABASE
+# ============================================================
+#
+# Starts PostgreSQL 18 in Docker for development on your machine. Nothing here
+# is used in Azure, where the application uses Azure Database for PostgreSQL.
+#
+# Started automatically: the "local" profile (application-local.yaml) turns on
+# Spring Boot's Docker Compose support, which runs "docker compose up" when the
+# application starts and reads this file to connect to the database. No
+# datasource URL or password is configured anywhere else for local runs.
+#
+# Started by hand:
+#   docker compose up -d       start in the background
+#   docker compose ps          check that it's running and healthy
+#   docker compose down        stop and remove the container, keep the data
+#   docker compose down -v     same, and delete the data (the volume) too
+
+
+# Project name. Docker prefixes everything it creates with it: the container
+# (civicgrant-postgres-1), the network (civicgrant_default) and the volume
+# (civicgrant_postgres_data). Another container joins this database's network
+# with --network civicgrant_default and reaches it at the hostname "postgres".
 name: civicgrant
 
 services:
+
+  # The service name, "postgres", is also its hostname on the project network.
   postgres:
+    # The official PostgreSQL image, same major version as the Azure server.
     image: postgres:18
+
+    # Read by the image on its first start only, when the volume is still empty:
+    # it creates this database and this user with this password.
+    # Local-only credentials for a database on your machine: they're not secrets.
     environment:
       POSTGRES_DB: civicgrant
       POSTGRES_USER: civicgrant_app
       POSTGRES_PASSWORD: civicgrant_password
+
+    # host:container. Bound to 127.0.0.1, so only your machine can connect,
+    # not other devices on your network. Database tools connect to localhost:5432.
     ports:
       - "127.0.0.1:5432:5432"
+
+    # Named volume: the data lives outside the container and survives restarts
+    # and "docker compose down". Only "docker compose down -v" deletes it.
+    # PostgreSQL 18 images expect the volume at /var/lib/postgresql.
     volumes:
       - postgres_data:/var/lib/postgresql
+
+    # Docker asks PostgreSQL every 5 seconds whether it accepts connections.
+    # The container counts as "healthy" once pg_isready succeeds, and Spring Boot
+    # waits for that before connecting. After 10 failed checks it's "unhealthy".
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U civicgrant_app -d civicgrant"]
       interval: 5s
       timeout: 3s
       retries: 10
 
+# Declares the named volume used above. Docker creates it on first use.
 volumes:
   postgres_data:
