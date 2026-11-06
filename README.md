@@ -101,9 +101,9 @@ The pipeline authenticates to Azure with workload identity federation, so there 
 
 **One image for every environment.** The image contains the application only. Everything that differs between environments, such as the database, the identity and the monitoring target, is set as environment variables on each Container App. The image that passed acceptance is exactly the one that goes to production.
 
-**One PostgreSQL server for all environments, to keep costs low.** Each environment has its own database and its own Managed Identity, which can only reach that database. A real deployment would give each environment its own server.
+**One PostgreSQL server for all environments, to keep costs low.** Each environment has its own database and its own Managed Identity, which can only reach that database. A real deployment would give each environment its own server. The server lives with the shared resources, not in an environment, so deleting and recreating an environment never touches the data, and a delete lock stops anyone removing the server by mistake. Sign-in is Microsoft Entra only: password authentication is off, so no database password exists anywhere. It's sized for the free services, with storage auto-grow off, because billing counts provisioned storage, not data.
 
-**Shared resources are bootstrapped by hand, once.** The registry and the pipeline's identity are deployed from a developer machine, because the pipeline can't create the identity it logs in with. Everything else is deployed by the pipeline.
+**Shared resources are bootstrapped by hand, once.** The registry, the pipeline's identity and the PostgreSQL server are deployed from a developer machine, because the pipeline can't create the identity it logs in with. Everything else is deployed by the pipeline.
 
 **Main only receives releases from develop.** I push directly to `develop`. `main` accepts only a pull request from `develop`, merged with a merge commit, once the build, the tests and the image build have passed. Squash merges would make the two branches drift apart on every release. GitHub rulesets can't say which branch a pull request must come from, so a small workflow fails any pull request into `main` that doesn't come from `develop`. No approval is required: as the only developer, I can't approve my own pull requests. Neither branch can be force-pushed or deleted.
 
@@ -111,7 +111,7 @@ The pipeline authenticates to Azure with workload identity federation, so there 
 
 **Security checks on every change.** Secret scanning blocks a push that contains a credential, CodeQL analyses the Java code and the workflows, and Dependabot alerts report vulnerable dependencies. Renovate stays the only tool that opens update pull requests, so Dependabot only reports. Vulnerabilities can be reported privately, as `SECURITY.md` explains.
 
-**Hosted in Belgium Central.** A Belgian administration's data stays at rest in Belgium, at the same price as West Europe. The region has no paired region, which only matters for geo-redundant backups, and this project doesn't use them.
+**Hosted in Belgium Central, with the database in France Central.** I chose Belgium Central so a Belgian administration's data would stay at rest in Belgium, at the same price as West Europe. When I created the database, Belgium Central had no capacity left for its size, twice. So the database runs in France Central, with each environment's application next to it, since every query crossing regions would add latency and cost. The data stays in the EU, but not in Belgium. A real administration would reserve capacity in Belgium Central instead. The region has no paired region, which only matters for geo-redundant backups, and this project doesn't use them.
 
 **A schema, not tablespaces.** Azure Database for PostgreSQL doesn't support custom tablespaces, and physical storage isn't a migration's concern anyway. Everything lives in the `civicgrant` schema.
 
@@ -138,7 +138,7 @@ The `local` profile starts PostgreSQL through `compose.yaml`, keeps its data bet
 - [x] CI pipeline: formatting, tests, SonarQube analysis and image publishing
 - [x] Branch protection and security scanning
 - [x] Container image
-- [x] Shared Azure infrastructure: registry and pipeline identity
+- [x] Shared Azure infrastructure: registry, pipeline identity and PostgreSQL server
 - [ ] Test environment
 - [ ] Acceptance and production
 
