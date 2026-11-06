@@ -11,6 +11,12 @@
 //     crcivicgrant<suffix>       container registry for the application image
 //       2 role assignments       the pipeline identity may push images
 //       2 role assignments       the person deploying may list and read images
+//     psql-civicgrant-<suffix>   PostgreSQL server shared by every environment, Entra sign-in only,
+//                                in its own region (postgresLocation)
+//       administrator            the person deploying administers it
+//       firewall rule            connections from Azure services are let in
+//       civicgrant_<env>         one database per environment
+//       delete lock              nobody can delete the server by mistake
 //
 //   subscription
 //     budget-civicgrant-monthly  emails when spending approaches or passes €5 a month
@@ -60,6 +66,17 @@ param registrySku string
 
 @description('Email address that receives the budget alerts.')
 param budgetAlertEmail string
+
+@description('Major PostgreSQL version of the shared server.')
+param postgresVersion string
+
+// Separate from location: the server may have to live in another region than the
+// other shared resources, when location has no capacity for its size.
+@description('Azure region of the PostgreSQL server. The environments\' apps run in the same region, so their queries never cross regions.')
+param postgresLocation string
+
+@description('Databases on the shared PostgreSQL server, one per environment.')
+param postgresDatabaseNames array
 
 
 // ------------------------------------------------------------
@@ -143,6 +160,32 @@ module budget 'modules/budget.bicep' = {
   }
 }
 
+// 5. The PostgreSQL server, its databases and its delete lock.
+//    It lives here, outside every environment, so deleting or recreating an
+//    environment can never touch the server or the data on it.
+module postgres 'modules/postgresql-server.bicep' = {
+  scope: resourceGroup
+  params: {
+    // Server names are global DNS names (<name>.postgres.database.azure.com),
+    // so they get a unique suffix like the registry's. The region is part of the hash:
+    // a server in another region is a different server, so it gets a different name.
+    // A failed create in Belgium Central left its name reserved there.
+    name: 'psql-civicgrant-${uniqueString(subscription().subscriptionId, postgresLocation)}'
+    location: postgresLocation
+    tags: tags
+    version: postgresVersion
+    databaseNames: postgresDatabaseNames
+
+    // You, from your az login, as with the registry viewer roles: no personal
+    // value is stored in this public repository.
+    administrator: {
+      objectId: deployer().objectId
+      principalName: deployer().userPrincipalName
+      principalType: 'User'
+    }
+  }
+}
+
 
 // ------------------------------------------------------------
 // OUTPUTS
@@ -155,3 +198,5 @@ output registryLoginServer string = registry.outputs.loginServer    // <name>.az
 output pipelineClientId string = pipelineIdentity.outputs.clientId  // AZURE_CLIENT_ID
 output tenantId string = tenant().tenantId                          // AZURE_TENANT_ID
 output subscriptionId string = subscription().subscriptionId        // AZURE_SUBSCRIPTION_ID
+output postgresServerName string = postgres.outputs.name            // For az postgres and the bootstrap runbook.
+output postgresHost string = postgres.outputs.host                  // Host of the JDBC URL.
