@@ -14,7 +14,8 @@ class AzureDatabaseSignInTest {
     @DisplayName("packages the authentication plugin the Azure datasource URL names")
     void packagesTheAuthenticationPlugin() {
         // when
-        boolean present = isPresent("com.azure.identity.extensions.jdbc.postgresql.AzurePostgresqlAuthenticationPlugin");
+        boolean present =
+                isPresent("com.azure.identity.extensions.jdbc.postgresql.AzurePostgresqlAuthenticationPlugin");
 
         // then
         assertThat(present).isTrue();
