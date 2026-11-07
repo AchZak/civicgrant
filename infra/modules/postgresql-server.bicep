@@ -82,6 +82,13 @@ resource server 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
       // the disk fills up, and billing would start without warning. If the disk ever
       // fills, the server turns read-only instead: visible, and free.
       autoGrow: 'Disabled'
+
+      // Azure's defaults for 32 GiB, declared so what-if doesn't report them as
+      // removals. P4 is the performance tier included with this size, with its
+      // 120 IOPS; a higher tier costs extra.
+      type: 'Premium_LRS'
+      tier: 'P4'
+      iops: 120
     }
 
     backup: {
@@ -90,8 +97,21 @@ resource server 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
       // 32 GB of free backup storage.
       backupRetentionDays: 7
 
-      // Copies to a paired region cost extra, and Belgium Central has no paired region.
+      // Copies to a paired region (France South, for France Central) cost extra:
+      // the free services don't cover them.
       geoRedundantBackup: 'Disabled'
+    }
+
+    // Data is encrypted at rest with keys Microsoft manages. Bring-your-own keys
+    // would need a Key Vault and an identity for the server.
+    dataEncryption: {
+      type: 'SystemManaged'
+    }
+
+    // A standalone primary: no read replicas, which would each be another billed server.
+    replicationRole: 'Primary'
+    replica: {
+      role: 'Primary'
     }
 
     // A standby server would double the compute cost. One server is enough for test.
