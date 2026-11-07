@@ -41,8 +41,9 @@ param postgresVersion = '18'
 // environment's app runs here too, next to its database.
 param postgresLocation = 'francecentral'
 
-// One database per environment on the shared server. Add civicgrant_acc and
-// civicgrant_prd when those environments are built.
-param postgresDatabaseNames = [
-  'civicgrant_tst'
+// Environments to prepare. Each one gets its database (civicgrant_<env>), its deploy
+// and app identities, and its empty resource group. Add 'acc' and 'prd' when those
+// environments are built.
+param environmentNames = [
+  'tst'
 ]

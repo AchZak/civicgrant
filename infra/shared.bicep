@@ -17,6 +17,14 @@
 //       firewall rule            connections from Azure services are let in
 //       civicgrant_<env>         one database per environment
 //       delete lock              nobody can delete the server by mistake
+//     id-civicgrant-deploy-<env> per environment: GitHub Actions deploys the environment with it
+//       github-environment-<env> federated credential: jobs in the GitHub Environment may log in
+//       role assignment          it may attach the app identity to a Container App
+//     id-civicgrant-app-<env>    per environment: the application runs with it
+//       role assignment          it may pull images, from the civicgrant repository only
+//
+//   rg-civicgrant-<env>          per environment, empty: its Deployment Stack fills it
+//     3 role assignments         the deploy identity may deploy here, and nowhere else
 //
 //   subscription
 //     budget-civicgrant-monthly  emails when spending approaches or passes €5 a month
@@ -75,8 +83,8 @@ param postgresVersion string
 @description('Azure region of the PostgreSQL server. The environments\' apps run in the same region, so their queries never cross regions.')
 param postgresLocation string
 
-@description('Databases on the shared PostgreSQL server, one per environment.')
-param postgresDatabaseNames array
+@description('Environments to prepare: each gets a database, two identities and a resource group.')
+param environmentNames array
 
 
 // ------------------------------------------------------------
@@ -89,6 +97,9 @@ var tags = {
   environment: 'shared'    // shared, tst, acc or prd.
   managedBy: 'bicep'       // Change it through Bicep, not in the portal.
 }
+
+// The registry repository holding the application image.
+var imageRepository = 'civicgrant'
 
 
 // ------------------------------------------------------------
@@ -174,7 +185,9 @@ module postgres 'modules/postgresql-server.bicep' = {
     location: postgresLocation
     tags: tags
     version: postgresVersion
-    databaseNames: postgresDatabaseNames
+
+    // One database per environment, named after it: civicgrant_tst, civicgrant_acc...
+    databaseNames: [for environmentName in environmentNames: 'civicgrant_${environmentName}']
 
     // You, from your az login, as with the registry viewer roles: no personal
     // value is stored in this public repository.
@@ -185,6 +198,23 @@ module postgres 'modules/postgresql-server.bicep' = {
     }
   }
 }
+
+// 6. Each environment's foundations: its empty resource group, its deploy and app
+//    identities, and their rights. One module per name in environmentNames.
+//    They sit next to the database, in postgresLocation.
+module environments 'modules/environment.bicep' = [
+  for environmentName in environmentNames: {
+    params: {
+      environmentName: environmentName
+      location: postgresLocation
+      tags: union(tags, { environment: environmentName })  // Same tags, with the environment's name.
+      sharedResourceGroupName: resourceGroup.name
+      githubSubjectPrefix: githubSubjectPrefix
+      registryName: registry.outputs.name
+      imageRepository: imageRepository
+    }
+  }
+]
 
 
 // ------------------------------------------------------------
@@ -200,3 +230,16 @@ output tenantId string = tenant().tenantId                          // AZURE_TEN
 output subscriptionId string = subscription().subscriptionId        // AZURE_SUBSCRIPTION_ID
 output postgresServerName string = postgres.outputs.name            // For az postgres and the bootstrap runbook.
 output postgresHost string = postgres.outputs.host                  // Host of the JDBC URL.
+
+// Per environment: the deploy identity's client id becomes AZURE_CLIENT_ID of the
+// GitHub Environment; the app identity's values go into the environment template.
+output environments array = [
+  for (environmentName, i) in environmentNames: {
+    name: environmentName
+    resourceGroupName: environments[i].outputs.resourceGroupName
+    deployClientId: environments[i].outputs.deployClientId
+    appClientId: environments[i].outputs.appClientId
+    appPrincipalId: environments[i].outputs.appPrincipalId
+    appIdentityId: environments[i].outputs.appIdentityId
+  }
+]
