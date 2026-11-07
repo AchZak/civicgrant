@@ -28,6 +28,7 @@
     <properties>
         <java.version>25</java.version>
 
+        <azure-sdk-bom.version>1.3.9</azure-sdk-bom.version>
         <openapi-generator.version>7.26.0</openapi-generator.version>
         <archunit.version>1.5.1</archunit.version>
         <jacoco.version>0.8.16</jacoco.version>
@@ -56,6 +57,14 @@
                 <groupId>be.achzak</groupId>
                 <artifactId>civicgrant-persistence</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-sdk-bom</artifactId>
+                <version>${azure-sdk-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <dependency>
