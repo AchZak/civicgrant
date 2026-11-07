@@ -1,0 +1,6 @@
+# Branches whose workflow runs may deploy to the tst environment, one name or
+# pattern per line. Applied by .github/apply-settings.sh.
+#
+# develop only: main's runs deploy to acc, and pull request runs never deploy
+# (their ref is refs/pull/..., which no line here matches).
+develop
