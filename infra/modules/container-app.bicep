@@ -202,4 +202,5 @@ resource containerApp 'Microsoft.App/containerApps@2026-07-01' = {
 // OUTPUTS
 // ------------------------------------------------------------
 
+output name string = containerApp.name                                   // For checking its revisions after a deployment.
 output fqdn string = containerApp.properties.configuration.ingress.fqdn  // <name>.<unique>.<region>.azurecontainerapps.io

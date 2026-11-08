@@ -1,10 +1,11 @@
 # ============================================================
-# CI: VERIFY THE CODE, THEN BUILD AND PUBLISH THE IMAGE
+# CI: VERIFY THE CODE, PUBLISH THE IMAGE, DEPLOY TO TEST
 # ============================================================
 #
 # Pull request to develop or main:  Verify, then build the image without pushing it.
 # Push to develop or main:          Verify, then build the image and push it to
 #                                   Azure Container Registry as civicgrant:<commit SHA>.
+# Push to develop only:             then deploy that image to the test environment (tst).
 
 name: CI  # Name shown in the Actions tab of the repository.
 
@@ -191,3 +192,171 @@ jobs:
           # mode=max also stores the build stage's layers, not only the final image's.
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+
+  # ============================================================
+  # JOB 3: DEPLOY TO TEST
+  # Preview, then apply infra/main.bicep to rg-civicgrant-tst as a Deployment
+  # Stack, running the image Publish image just pushed. Then check the app.
+  # ============================================================
+
+  deploy-tst:
+    name: Deploy to test
+    needs: publish  # Only an image that was built and pushed can be deployed.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # The first deployment creates the Container Apps environment, which takes a while.
+
+    # The GitHub Environment tst (.github/environments/tst.json) only accepts jobs
+    # from develop. The job's OIDC token then says "environment:tst", which is what
+    # the deploy identity's federated credential trusts. Its variables are
+    # available to this job, and replace repository variables of the same name.
+    # url is shown on the deployment in GitHub, linking to the running app.
+    environment:
+      name: tst
+      url: ${{ steps.deploy.outputs.appUrl }}
+
+    # Never two deployments to tst at the same time. A deployment that's waiting is
+    # replaced by a newer one, but one that's running is never cancelled halfway.
+    concurrency:
+      group: deploy-tst
+      cancel-in-progress: false
+
+    permissions:
+      contents: read   # Check out the Bicep templates.
+      id-token: write  # Request GitHub's OIDC token for the Azure login.
+
+    # Read by every step. The last six are the values infra/tst.bicepparam reads
+    # with readEnvironmentVariable(), so the templates get them without any file
+    # in the repository holding them.
+    env:
+      RESOURCE_GROUP: rg-civicgrant-tst
+      STACK_NAME: stack-civicgrant-tst
+      IMAGE_TAG: ${{ github.sha }}                                     # The image Publish image just pushed.
+      REGISTRY_LOGIN_SERVER: ${{ vars.REGISTRY_LOGIN_SERVER }}         # Repository variable: shared.
+      POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}                         # Repository variable: shared.
+      APP_IDENTITY_ID: ${{ vars.APP_IDENTITY_ID }}                     # GitHub Environment variable of tst.
+      APP_IDENTITY_CLIENT_ID: ${{ vars.APP_IDENTITY_CLIENT_ID }}       # GitHub Environment variable of tst.
+      APP_IDENTITY_PRINCIPAL_ID: ${{ vars.APP_IDENTITY_PRINCIPAL_ID }} # GitHub Environment variable of tst.
+
+    steps:
+
+      # 1. Download the repository: the Bicep templates.
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # 2. Log in to Azure as id-civicgrant-deploy-tst, without any password.
+      #    AZURE_CLIENT_ID is the GitHub Environment's variable here, not the
+      #    repository's: the deploy identity, which may only change rg-civicgrant-tst.
+      - name: Log in to Azure
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # 3. Use the same Bicep version as on the developer's machine.
+      #    The runner image has its own Bicep, whichever version GitHub last
+      #    installed, and az uses it in CI by default. Installing a version makes
+      #    az use that one instead, so a new Bicep release never changes a
+      #    deployment by surprise. Keep it in step with infra/CLAUDE.md.
+      - name: Install Bicep
+        run: az bicep install --version v0.48.1
+
+      # 4. Preview the changes: what the stack would create, modify or delete.
+      #    The result is written to the job summary, the run's front page in the
+      #    Actions tab, so every deployment leaves a readable record of what it
+      #    changed. Azure stores the result as a resource and deletes it after an
+      #    hour (retention interval).
+      #    The flags must match step 5, or the preview describes another deployment.
+      - name: Preview changes
+        run: |
+          stack_id="/subscriptions/$(az account show --query id --output tsv)/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Resources/deploymentStacks/$STACK_NAME"
+
+          az stack-whatif group create \
+            --name "whatif-$GITHUB_RUN_ID" \
+            --resource-group "$RESOURCE_GROUP" \
+            --stack-id "$stack_id" \
+            --parameters infra/tst.bicepparam \
+            --action-on-unmanage deleteAll \
+            --deny-settings-mode denyDelete \
+            --retention-interval PT1H \
+            --no-color | tee whatif.txt
+
+          {
+            echo '### Changes to tst'
+            echo '```text'
+            cat whatif.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # 5. Deploy: create the stack, or update it, and the resources it manages.
+      #    --action-on-unmanage deleteAll: a resource removed from the templates is
+      #      deleted from Azure, so tst always matches the templates exactly.
+      #    --deny-settings-mode denyDelete: nobody can delete the stack's resources
+      #      directly, Owners included. Changes go through the templates; the stack
+      #      itself can still delete what it manages.
+      #    --yes: don't ask for confirmation, nobody is there to answer.
+      #    Then the template's outputs, the app's name and URL, become this step's
+      #    outputs, for the next steps and the environment url above.
+      - name: Deploy
+        id: deploy
+        run: |
+          az stack group create \
+            --name "$STACK_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --parameters infra/tst.bicepparam \
+            --action-on-unmanage deleteAll \
+            --deny-settings-mode denyDelete \
+            --description "civicgrant tst, commit $GITHUB_SHA" \
+            --yes \
+            --output none
+
+          for output in appName appUrl; do
+            value=$(az stack group show \
+              --name "$STACK_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query "outputs.$output.value" \
+              --output tsv)
+            echo "$output=$value" >> "$GITHUB_OUTPUT"
+          done
+
+      # 6. Check the app answers, and that its database sign-in works.
+      #    /actuator/health is public and includes Spring Boot's database check, so
+      #    "UP" also proves the Entra token sign-in to PostgreSQL. The first request
+      #    may wake the app from zero replicas: curl retries for up to about five
+      #    minutes while the JVM starts and the gateway answers 503.
+      - name: Check health
+        env:
+          APP_URL: ${{ steps.deploy.outputs.appUrl }}
+        run: |
+          curl --fail --silent --show-error \
+            --retry 30 --retry-delay 10 --retry-all-errors --max-time 30 \
+            "$APP_URL/actuator/health" | tee health.json
+          echo
+          jq --exit-status '.status == "UP"' health.json
+
+      # 7. Check that the new revision is the one serving.
+      #    In single revision mode, a new revision that never becomes ready leaves
+      #    the previous one running, and step 6 would pass against the old image.
+      #    So: the latest revision must also be the latest ready one.
+      - name: Check revision
+        env:
+          APP_NAME: ${{ steps.deploy.outputs.appName }}
+        run: |
+          for attempt in $(seq 1 30); do
+            ready=$(az resource show \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "$APP_NAME" \
+              --resource-type Microsoft.App/containerApps \
+              --query "properties.latestReadyRevisionName == properties.latestRevisionName" \
+              --output tsv)
+            if [[ "$ready" == "true" ]]; then
+              echo "The latest revision is ready and serving."
+              exit 0
+            fi
+            echo "Attempt $attempt: the latest revision isn't ready yet."
+            sleep 10
+          done
+          echo "::error::The latest revision never became ready. Check its system logs."
+          exit 1

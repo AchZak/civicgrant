@@ -191,4 +191,5 @@ module containerApp 'modules/container-app.bicep' = {
 // OUTPUTS
 // ------------------------------------------------------------
 
+output appName string = containerApp.outputs.name           // The pipeline checks the new revision is ready.
 output appUrl string = 'https://${containerApp.outputs.fqdn}'  // The pipeline checks the app's health here.
