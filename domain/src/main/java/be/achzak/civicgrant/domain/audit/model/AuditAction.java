@@ -1,0 +1,12 @@
+package be.achzak.civicgrant.domain.audit.model;
+
+public enum AuditAction {
+    APPLICATION_CREATED,
+    APPLICATION_EDITED,
+    DOCUMENT_ATTACHED,
+    DOCUMENT_REMOVED,
+    APPLICATION_SUBMITTED,
+    ASSESSMENT_RECORDED,
+    APPLICATION_APPROVED,
+    APPLICATION_REJECTED
+}
