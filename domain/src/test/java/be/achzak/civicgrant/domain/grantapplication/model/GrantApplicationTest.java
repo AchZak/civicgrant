@@ -1,0 +1,512 @@
+package be.achzak.civicgrant.domain.grantapplication.model;
+
+import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.CLOSES_AT;
+import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.OPENS_AT;
+import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.aFundingCall;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.aDraftApplication;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.aSubmittedApplication;
+import static be.achzak.civicgrant.domain.grantapplication.model.ProjectProposalBuilder.aProjectProposal;
+import static be.achzak.civicgrant.domain.organisation.model.OrganisationBuilder.anOrganisation;
+import static be.achzak.civicgrant.domain.shared.Actors.aDecisionMaker;
+import static be.achzak.civicgrant.domain.shared.Actors.actor;
+import static be.achzak.civicgrant.domain.shared.Actors.anApplicant;
+import static be.achzak.civicgrant.domain.shared.Actors.anAssessor;
+import static be.achzak.civicgrant.domain.shared.Actors.anotherApplicant;
+import static be.achzak.civicgrant.domain.shared.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.domain.shared.Money.euros;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.organisation.model.LegalForm;
+import be.achzak.civicgrant.domain.organisation.model.Organisation;
+import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
+import be.achzak.civicgrant.domain.shared.Actor;
+import be.achzak.civicgrant.domain.shared.Role;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+@DisplayName("Grant application")
+class GrantApplicationTest {
+
+    private static final Instant NOW = Instant.parse("2026-04-15T10:00:00Z");
+    private static final ApplicationReference REFERENCE = new ApplicationReference("CG-2026-000042");
+
+    private final FundingCall call = aFundingCall().build();
+
+    private GrantApplication create(Organisation organisation, ProjectProposal proposal, Instant now) {
+        return GrantApplication.create(
+                REFERENCE, call, organisation, proposal, EligibilityPolicy.nonProfits(), anApplicant(), now);
+    }
+
+    private static ProjectProposal requesting(String requestedAmount) {
+        return aProjectProposal()
+                .withRequestedAmount(euros(requestedAmount))
+                .withTotalProjectBudget(euros("20000.00"))
+                .build();
+    }
+
+    @Nested
+    @DisplayName("Creating an application")
+    class Create {
+
+        @Test
+        @DisplayName("starts as a draft of its applicant in the given call")
+        void startsAsDraftOfItsApplicant() {
+            // when
+            GrantApplication application =
+                    create(anOrganisation().build(), aProjectProposal().build(), NOW);
+
+            // then
+            assertThat(application.status()).isEqualTo(ApplicationStatus.DRAFT);
+            assertThat(application.applicant()).isEqualTo(anApplicant().id());
+            assertThat(application.fundingCallId()).isEqualTo(call.id());
+            assertThat(application.submittedAt()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("records ApplicationCreated")
+        void recordsApplicationCreated() {
+            // given
+            Organisation organisation = anOrganisation().build();
+
+            // when
+            GrantApplication application =
+                    create(organisation, aProjectProposal().build(), NOW);
+
+            // then
+            assertThat(application.pullEvents())
+                    .containsExactly(new ApplicationCreated(
+                            application.id(),
+                            call.id(),
+                            organisation.id(),
+                            anApplicant().id(),
+                            NOW));
+        }
+
+        @Test
+        @DisplayName("may be prepared before the call opens")
+        void mayBePreparedBeforeTheCallOpens() {
+            // given
+            Instant aWeekBeforeOpening = OPENS_AT.minus(Duration.ofDays(7));
+
+            // when
+            GrantApplication application =
+                    create(anOrganisation().build(), aProjectProposal().build(), aWeekBeforeOpening);
+
+            // then
+            assertThat(application.status()).isEqualTo(ApplicationStatus.DRAFT);
+        }
+
+        @Test
+        @DisplayName("rejects a new draft once the call has closed")
+        void rejectsNewDraftOnceTheCallHasClosed() {
+            // when
+            Throwable thrown = catchThrowable(
+                    () -> create(anOrganisation().build(), aProjectProposal().build(), CLOSES_AT));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("FUNDING_CALL_CLOSED");
+        }
+
+        @Test
+        @DisplayName("rejects an organisation whose legal form isn't eligible")
+        void rejectsOrganisationWhoseLegalFormIsNotEligible() {
+            // given
+            Organisation company =
+                    anOrganisation().withLegalForm(LegalForm.COMPANY).build();
+
+            // when
+            Throwable thrown =
+                    catchThrowable(() -> create(company, aProjectProposal().build(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("LEGAL_FORM_NOT_ELIGIBLE");
+        }
+
+        @Test
+        @DisplayName("accepts a requested amount of exactly the call's cap")
+        void acceptsRequestedAmountOfExactlyTheCap() {
+            // given
+            ProjectProposal atTheCap = requesting("15000.00");
+
+            // when
+            GrantApplication application = create(anOrganisation().build(), atTheCap, NOW);
+
+            // then
+            assertThat(application.proposal()).isEqualTo(atTheCap);
+        }
+
+        @Test
+        @DisplayName("rejects a requested amount one cent above the call's cap")
+        void rejectsRequestedAmountOneCentAboveTheCap() {
+            // given
+            ProjectProposal aboveTheCap = requesting("15000.01");
+
+            // when
+            Throwable thrown = catchThrowable(() -> create(anOrganisation().build(), aboveTheCap, NOW));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("REQUESTED_AMOUNT_EXCEEDS_CAP");
+        }
+    }
+
+    @Nested
+    @DisplayName("Editing a draft")
+    class Edit {
+
+        @Test
+        @DisplayName("replaces the proposal")
+        void replacesTheProposal() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+            ProjectProposal newProposal = requesting("9000.00");
+
+            // when
+            application.edit(newProposal, call, anApplicant(), NOW);
+
+            // then
+            assertThat(application.proposal()).isEqualTo(newProposal);
+            assertThat(application.updatedAt()).isEqualTo(NOW);
+        }
+
+        @Test
+        @DisplayName("records ApplicationEdited")
+        void recordsApplicationEdited() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+
+            // when
+            application.edit(requesting("9000.00"), call, anApplicant(), NOW);
+
+            // then
+            assertThat(application.pullEvents())
+                    .containsExactly(new ApplicationEdited(
+                            application.id(), euros("9000.00"), anApplicant().id(), NOW));
+        }
+
+        @Test
+        @DisplayName("rejects a requested amount above the call's cap")
+        void rejectsRequestedAmountAboveTheCap() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.edit(requesting("15000.01"), call, anApplicant(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("REQUESTED_AMOUNT_EXCEEDS_CAP");
+        }
+
+        @Test
+        @DisplayName("rejects changes once the call has closed")
+        void rejectsChangesOnceTheCallHasClosed() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+
+            // when
+            Throwable thrown =
+                    catchThrowable(() -> application.edit(requesting("9000.00"), call, anApplicant(), CLOSES_AT));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("FUNDING_CALL_CLOSED");
+        }
+
+        @Test
+        @DisplayName("rejects changes to a submitted application")
+        void rejectsChangesToSubmittedApplication() {
+            // given
+            GrantApplication application = aSubmittedApplication().forCall(call).build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.edit(requesting("9000.00"), call, anApplicant(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isConflict().hasCode("APPLICATION_NOT_DRAFT");
+        }
+    }
+
+    @Nested
+    @DisplayName("Submitting a draft")
+    class Submit {
+
+        @Test
+        @DisplayName("moves the draft to submitted at the moment of submission")
+        void movesTheDraftToSubmitted() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+
+            // when
+            application.submit(call, anApplicant(), NOW);
+
+            // then
+            assertThat(application.status()).isEqualTo(ApplicationStatus.SUBMITTED);
+            assertThat(application.submittedAt()).contains(NOW);
+        }
+
+        @Test
+        @DisplayName("records ApplicationSubmitted")
+        void recordsApplicationSubmitted() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+
+            // when
+            application.submit(call, anApplicant(), NOW);
+
+            // then
+            assertThat(application.pullEvents())
+                    .containsExactly(new ApplicationSubmitted(
+                            application.id(),
+                            application.proposal().requestedAmount(),
+                            anApplicant().id(),
+                            NOW));
+        }
+
+        @Test
+        @DisplayName("rejects a submission one second before the call opens")
+        void rejectsSubmissionBeforeTheCallOpens() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+            Instant justBeforeOpening = OPENS_AT.minusSeconds(1);
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.submit(call, anApplicant(), justBeforeOpening));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("SUBMISSION_BEFORE_OPENING_DATE");
+        }
+
+        @Test
+        @DisplayName("accepts a submission at the moment the call opens")
+        void acceptsSubmissionAtTheOpeningMoment() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+
+            // when
+            application.submit(call, anApplicant(), OPENS_AT);
+
+            // then
+            assertThat(application.status()).isEqualTo(ApplicationStatus.SUBMITTED);
+        }
+
+        @Test
+        @DisplayName("accepts a submission one second before the call closes")
+        void acceptsSubmissionJustBeforeClosing() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+
+            // when
+            application.submit(call, anApplicant(), CLOSES_AT.minusSeconds(1));
+
+            // then
+            assertThat(application.status()).isEqualTo(ApplicationStatus.SUBMITTED);
+        }
+
+        @Test
+        @DisplayName("rejects a submission at the moment the call closes")
+        void rejectsSubmissionAtTheClosingMoment() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.submit(call, anApplicant(), CLOSES_AT));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("SUBMISSION_AFTER_CLOSING_DATE");
+        }
+
+        @Test
+        @DisplayName("rejects a second submission")
+        void rejectsSecondSubmission() {
+            // given
+            GrantApplication application = aSubmittedApplication().forCall(call).build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.submit(call, anApplicant(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isConflict().hasCode("APPLICATION_NOT_DRAFT");
+        }
+
+        @Test
+        @DisplayName("checks the call's cap again")
+        void checksTheCapAgain() {
+            // given
+            GrantApplication application = aDraftApplication()
+                    .forCall(call)
+                    .withProposal(requesting("15000.01"))
+                    .build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.submit(call, anApplicant(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("REQUESTED_AMOUNT_EXCEEDS_CAP");
+        }
+
+        @Test
+        @DisplayName("refuses a funding call that isn't the application's own")
+        void refusesFundingCallThatIsNotItsOwn() {
+            // given
+            GrantApplication application = aDraftApplication().build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.submit(call, anApplicant(), NOW));
+
+            // then
+            assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("Visibility")
+    class Visibility {
+
+        @Test
+        @DisplayName("shows a draft to its applicant")
+        void showsDraftToItsApplicant() {
+            // given
+            GrantApplication application = aDraftApplication().build();
+
+            // when
+            boolean visible = application.isVisibleTo(anApplicant());
+
+            // then
+            assertThat(visible).isTrue();
+        }
+
+        @Test
+        @DisplayName("hides a draft from staff")
+        void hidesDraftFromStaff() {
+            // given
+            GrantApplication application = aDraftApplication().build();
+
+            // when
+            boolean visibleToAssessor = application.isVisibleTo(anAssessor());
+            boolean visibleToDecisionMaker = application.isVisibleTo(aDecisionMaker());
+
+            // then
+            assertThat(visibleToAssessor).isFalse();
+            assertThat(visibleToDecisionMaker).isFalse();
+        }
+
+        @Test
+        @DisplayName("shows a submitted application to staff")
+        void showsSubmittedApplicationToStaff() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            boolean visibleToAssessor = application.isVisibleTo(anAssessor());
+            boolean visibleToDecisionMaker = application.isVisibleTo(aDecisionMaker());
+
+            // then
+            assertThat(visibleToAssessor).isTrue();
+            assertThat(visibleToDecisionMaker).isTrue();
+        }
+
+        @Test
+        @DisplayName("hides an application from other applicants")
+        void hidesApplicationFromOtherApplicants() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            boolean visible = application.isVisibleTo(anotherApplicant());
+
+            // then
+            assertThat(visible).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("Acting on someone else's application")
+    class SomeoneElse {
+
+        @Test
+        @DisplayName("answers not found to another applicant, so ids can't be probed")
+        void answersNotFoundToAnotherApplicant() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.submit(call, anotherApplicant(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isNotFound().hasCode("APPLICATION_NOT_FOUND");
+        }
+
+        @Test
+        @DisplayName("forbids a staff member to change an application they can see")
+        void forbidsStaffMemberToChangeApplicationTheyCanSee() {
+            // given
+            GrantApplication application = aSubmittedApplication().forCall(call).build();
+            Actor assessorWhoAlsoApplies = actor("assessor-2", Role.APPLICANT, Role.ASSESSOR);
+
+            // when
+            Throwable thrown =
+                    catchThrowable(() -> application.edit(requesting("9000.00"), call, assessorWhoAlsoApplies, NOW));
+
+            // then
+            assertThatDomainException(thrown).isForbidden().hasCode("NOT_THE_APPLICANT");
+        }
+    }
+
+    @Nested
+    @DisplayName("Restoring")
+    class Restore {
+
+        private GrantApplicationSnapshot snapshot(ApplicationStatus status, Instant submittedAt) {
+            return new GrantApplicationSnapshot(
+                    ApplicationId.generate(),
+                    REFERENCE,
+                    FundingCallId.generate(),
+                    OrganisationId.generate(),
+                    anApplicant().id(),
+                    aProjectProposal().build(),
+                    status,
+                    submittedAt,
+                    NOW,
+                    NOW,
+                    0);
+        }
+
+        @Test
+        @DisplayName("records no events")
+        void recordsNoEvents() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            List<GrantApplicationEvent> events = application.pullEvents();
+
+            // then
+            assertThat(events).isEmpty();
+        }
+
+        @Test
+        @DisplayName("refuses a stored draft with a submission time")
+        void refusesStoredDraftWithSubmissionTime() {
+            // when
+            Throwable thrown = catchThrowable(() -> snapshot(ApplicationStatus.DRAFT, NOW));
+
+            // then
+            assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("refuses a stored submitted application without a submission time")
+        void refusesStoredSubmittedApplicationWithoutSubmissionTime() {
+            // when
+            Throwable thrown = catchThrowable(() -> snapshot(ApplicationStatus.SUBMITTED, null));
+
+            // then
+            assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+}
