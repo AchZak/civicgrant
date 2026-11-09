@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 public abstract sealed class DomainException extends RuntimeException
-        permits NotFoundException, BusinessRuleViolationException, ConflictException {
+        permits NotFoundException, ForbiddenException, BusinessRuleViolationException, ConflictException {
 
     @Serial
     private static final long serialVersionUID = 1L;

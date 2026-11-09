@@ -16,6 +16,10 @@ public final class DomainExceptionAssert extends AbstractThrowableAssert<DomainE
         return isInstanceOf(NotFoundException.class);
     }
 
+    public DomainExceptionAssert isForbidden() {
+        return isInstanceOf(ForbiddenException.class);
+    }
+
     public DomainExceptionAssert isBusinessRuleViolation() {
         return isInstanceOf(BusinessRuleViolationException.class);
     }
