@@ -43,6 +43,14 @@ concurrency:
 env:
   MAVEN_ARGS: --batch-mode --no-transfer-progress
 
+# Every run script runs as bash --noprofile --norc -eo pipefail. Without a shell
+# named here, GitHub runs plain bash -e: in a pipeline such as az ... | tee file,
+# only the last command's exit code counts, so a failing az would leave the step
+# green. pipefail makes any failing command in a pipeline fail the step.
+defaults:
+  run:
+    shell: bash
+
 
 # Jobs run in parallel, each on its own fresh virtual machine, unless "needs" orders them.
 # Nothing is shared between jobs unless it's passed on explicitly.

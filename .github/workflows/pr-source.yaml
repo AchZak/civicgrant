@@ -39,6 +39,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Every run script runs as bash --noprofile --norc -eo pipefail, as in ci.yaml.
+# Without a shell named here, GitHub runs plain bash -e, where a failing command
+# inside a pipeline doesn't fail the step.
+defaults:
+  run:
+    shell: bash
+
 
 jobs:
 
