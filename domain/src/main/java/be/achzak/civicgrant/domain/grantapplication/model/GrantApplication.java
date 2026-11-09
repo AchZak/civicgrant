@@ -26,6 +26,7 @@ public final class GrantApplication {
     private final OrganisationId organisationId;
     private final UserId applicant;
     private ProjectProposal proposal;
+    private final List<SupportingDocument> documents;
     private ApplicationStatus status;
     private Instant submittedAt;
     private final Instant createdAt;
@@ -40,6 +41,7 @@ public final class GrantApplication {
         this.organisationId = snapshot.organisationId();
         this.applicant = snapshot.applicant();
         this.proposal = snapshot.proposal();
+        this.documents = new ArrayList<>(snapshot.documents());
         this.status = snapshot.status();
         this.submittedAt = snapshot.submittedAt();
         this.createdAt = snapshot.createdAt();
@@ -72,6 +74,7 @@ public final class GrantApplication {
                 organisation.id(),
                 applicant.id(),
                 proposal,
+                List.of(),
                 ApplicationStatus.DRAFT,
                 null,
                 now,
@@ -101,6 +104,45 @@ public final class GrantApplication {
         events.add(new ApplicationEdited(id, newProposal.requestedAmount(), actor.id(), now));
     }
 
+    public SupportingDocument attachDocument(
+            String fileName,
+            String declaredContentType,
+            long sizeInBytes,
+            FundingCall fundingCall,
+            Actor actor,
+            Instant now) {
+        Objects.requireNonNull(fileName, "fileName");
+        Objects.requireNonNull(declaredContentType, "declaredContentType");
+        Objects.requireNonNull(fundingCall, "fundingCall");
+        Objects.requireNonNull(actor, "actor");
+        Objects.requireNonNull(now, "now");
+        ensureActingApplicant(actor);
+        ensureStatus(ApplicationStatus.DRAFT, "APPLICATION_NOT_DRAFT");
+        ensureSameCall(fundingCall);
+        ensureAcceptsDrafts(fundingCall, now);
+        SupportingDocument document =
+                SupportingDocument.upload(fileName, declaredContentType, sizeInBytes, actor.id(), now);
+        documents.add(document);
+        updatedAt = now;
+        events.add(new DocumentAttached(id, document.id(), actor.id(), now));
+        return document;
+    }
+
+    public void removeDocument(DocumentId documentId, Actor actor, Instant now) {
+        Objects.requireNonNull(documentId, "documentId");
+        Objects.requireNonNull(actor, "actor");
+        Objects.requireNonNull(now, "now");
+        ensureActingApplicant(actor);
+        ensureStatus(ApplicationStatus.DRAFT, "APPLICATION_NOT_DRAFT");
+        if (!documents.removeIf(document -> document.id().equals(documentId))) {
+            throw new NotFoundException(
+                    "DOCUMENT_NOT_FOUND",
+                    "Document " + documentId.value() + " not found in application " + reference.value());
+        }
+        updatedAt = now;
+        events.add(new DocumentRemoved(id, documentId, actor.id(), now));
+    }
+
     public void submit(FundingCall fundingCall, Actor actor, Instant now) {
         Objects.requireNonNull(fundingCall, "fundingCall");
         Objects.requireNonNull(actor, "actor");
@@ -118,6 +160,11 @@ public final class GrantApplication {
             throw new BusinessRuleViolationException(
                     "SUBMISSION_AFTER_CLOSING_DATE",
                     "Funding call " + fundingCall.reference() + " closed at " + period.closesAt());
+        }
+        if (documents.isEmpty()) {
+            throw new BusinessRuleViolationException(
+                    "SUPPORTING_DOCUMENT_REQUIRED",
+                    "Application " + reference.value() + " needs at least one supporting document");
         }
         ensureWithinCap(proposal, fundingCall);
         status = ApplicationStatus.SUBMITTED;
@@ -203,6 +250,10 @@ public final class GrantApplication {
 
     public ProjectProposal proposal() {
         return proposal;
+    }
+
+    public List<SupportingDocument> documents() {
+        return List.copyOf(documents);
     }
 
     public ApplicationStatus status() {

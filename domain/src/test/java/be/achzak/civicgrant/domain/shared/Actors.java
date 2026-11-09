@@ -10,6 +10,10 @@ public final class Actors {
         return actor("applicant-1", Role.APPLICANT);
     }
 
+    public static Actor anotherApplicant() {
+        return actor("applicant-2", Role.APPLICANT);
+    }
+
     public static Actor anAssessor() {
         return actor("assessor-1", Role.ASSESSOR);
     }

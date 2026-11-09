@@ -5,6 +5,7 @@ import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.O
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.aFundingCall;
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.aDraftApplication;
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.aSubmittedApplication;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.aSupportingDocument;
 import static be.achzak.civicgrant.domain.grantapplication.model.ProjectProposalBuilder.aProjectProposal;
 import static be.achzak.civicgrant.domain.organisation.model.OrganisationBuilder.anOrganisation;
 import static be.achzak.civicgrant.domain.shared.Actors.aDecisionMaker;
@@ -67,6 +68,7 @@ class GrantApplicationTest {
             assertThat(application.applicant()).isEqualTo(anApplicant().id());
             assertThat(application.fundingCallId()).isEqualTo(call.id());
             assertThat(application.submittedAt()).isEmpty();
+            assertThat(application.documents()).isEmpty();
         }
 
         @Test
@@ -232,6 +234,156 @@ class GrantApplicationTest {
     }
 
     @Nested
+    @DisplayName("Supporting documents")
+    class SupportingDocuments {
+
+        private static final String PDF = "application/pdf";
+
+        @Test
+        @DisplayName("attaches a document to a draft")
+        void attachesDocumentToDraft() {
+            // given
+            GrantApplication application =
+                    aDraftApplication().forCall(call).withoutDocuments().build();
+
+            // when
+            SupportingDocument document =
+                    application.attachDocument("begroting.pdf", PDF, 245_760, call, anApplicant(), NOW);
+
+            // then
+            assertThat(application.documents()).containsExactly(document);
+            assertThat(document.fileName()).isEqualTo("begroting.pdf");
+            assertThat(document.uploadedBy()).isEqualTo(anApplicant().id());
+            assertThat(document.uploadedAt()).isEqualTo(NOW);
+        }
+
+        @Test
+        @DisplayName("records DocumentAttached")
+        void recordsDocumentAttached() {
+            // given
+            GrantApplication application =
+                    aDraftApplication().forCall(call).withoutDocuments().build();
+
+            // when
+            SupportingDocument document =
+                    application.attachDocument("begroting.pdf", PDF, 245_760, call, anApplicant(), NOW);
+
+            // then
+            assertThat(application.pullEvents())
+                    .containsExactly(new DocumentAttached(
+                            application.id(), document.id(), anApplicant().id(), NOW));
+        }
+
+        @Test
+        @DisplayName("leaves the draft unchanged when the document is refused")
+        void leavesTheDraftUnchangedWhenTheDocumentIsRefused() {
+            // given
+            GrantApplication application =
+                    aDraftApplication().forCall(call).withoutDocuments().build();
+
+            // when
+            Throwable thrown = catchThrowable(
+                    () -> application.attachDocument("foto.png", "image/png", 1024, call, anApplicant(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("DOCUMENT_NOT_PDF");
+            assertThat(application.documents()).isEmpty();
+            assertThat(application.pullEvents()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("rejects a document for a submitted application")
+        void rejectsDocumentForSubmittedApplication() {
+            // given
+            GrantApplication application = aSubmittedApplication().forCall(call).build();
+
+            // when
+            Throwable thrown = catchThrowable(
+                    () -> application.attachDocument("begroting.pdf", PDF, 245_760, call, anApplicant(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isConflict().hasCode("APPLICATION_NOT_DRAFT");
+        }
+
+        @Test
+        @DisplayName("rejects a new document once the call has closed")
+        void rejectsNewDocumentOnceTheCallHasClosed() {
+            // given
+            GrantApplication application = aDraftApplication().forCall(call).build();
+
+            // when
+            Throwable thrown = catchThrowable(
+                    () -> application.attachDocument("begroting.pdf", PDF, 245_760, call, anApplicant(), CLOSES_AT));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("FUNDING_CALL_CLOSED");
+        }
+
+        @Test
+        @DisplayName("removes a document from a draft")
+        void removesDocumentFromDraft() {
+            // given
+            SupportingDocument document = aSupportingDocument();
+            GrantApplication application =
+                    aDraftApplication().withDocuments(document).build();
+
+            // when
+            application.removeDocument(document.id(), anApplicant(), NOW);
+
+            // then
+            assertThat(application.documents()).isEmpty();
+            assertThat(application.updatedAt()).isEqualTo(NOW);
+        }
+
+        @Test
+        @DisplayName("records DocumentRemoved")
+        void recordsDocumentRemoved() {
+            // given
+            SupportingDocument document = aSupportingDocument();
+            GrantApplication application =
+                    aDraftApplication().withDocuments(document).build();
+
+            // when
+            application.removeDocument(document.id(), anApplicant(), NOW);
+
+            // then
+            assertThat(application.pullEvents())
+                    .containsExactly(new DocumentRemoved(
+                            application.id(), document.id(), anApplicant().id(), NOW));
+        }
+
+        @Test
+        @DisplayName("answers not found for a document the draft doesn't have")
+        void answersNotFoundForUnknownDocument() {
+            // given
+            GrantApplication application = aDraftApplication().build();
+
+            // when
+            Throwable thrown =
+                    catchThrowable(() -> application.removeDocument(DocumentId.generate(), anApplicant(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isNotFound().hasCode("DOCUMENT_NOT_FOUND");
+        }
+
+        @Test
+        @DisplayName("keeps the documents of a submitted application")
+        void keepsTheDocumentsOfSubmittedApplication() {
+            // given
+            SupportingDocument document = aSupportingDocument();
+            GrantApplication application =
+                    aSubmittedApplication().withDocuments(document).build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.removeDocument(document.id(), anApplicant(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isConflict().hasCode("APPLICATION_NOT_DRAFT");
+            assertThat(application.documents()).containsExactly(document);
+        }
+    }
+
+    @Nested
     @DisplayName("Submitting a draft")
     class Submit {
 
@@ -318,6 +470,20 @@ class GrantApplicationTest {
 
             // then
             assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("SUBMISSION_AFTER_CLOSING_DATE");
+        }
+
+        @Test
+        @DisplayName("rejects a draft without supporting documents")
+        void rejectsDraftWithoutSupportingDocuments() {
+            // given
+            GrantApplication application =
+                    aDraftApplication().forCall(call).withoutDocuments().build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.submit(call, anApplicant(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("SUPPORTING_DOCUMENT_REQUIRED");
         }
 
         @Test
@@ -469,6 +635,7 @@ class GrantApplicationTest {
                     OrganisationId.generate(),
                     anApplicant().id(),
                     aProjectProposal().build(),
+                    List.of(),
                     status,
                     submittedAt,
                     NOW,

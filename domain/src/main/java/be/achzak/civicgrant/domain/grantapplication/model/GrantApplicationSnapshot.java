@@ -4,6 +4,7 @@ import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.UserId;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 
 public record GrantApplicationSnapshot(
@@ -13,6 +14,7 @@ public record GrantApplicationSnapshot(
         OrganisationId organisationId,
         UserId applicant,
         ProjectProposal proposal,
+        List<SupportingDocument> documents,
         ApplicationStatus status,
         Instant submittedAt,
         Instant createdAt,
@@ -26,6 +28,7 @@ public record GrantApplicationSnapshot(
         Objects.requireNonNull(organisationId, "organisationId");
         Objects.requireNonNull(applicant, "applicant");
         Objects.requireNonNull(proposal, "proposal");
+        documents = List.copyOf(Objects.requireNonNull(documents, "documents"));
         Objects.requireNonNull(status, "status");
         Objects.requireNonNull(createdAt, "createdAt");
         Objects.requireNonNull(updatedAt, "updatedAt");

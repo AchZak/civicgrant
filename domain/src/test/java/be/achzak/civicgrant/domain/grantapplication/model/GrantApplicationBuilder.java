@@ -8,6 +8,7 @@ import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.UserId;
 import java.time.Instant;
+import java.util.List;
 
 public final class GrantApplicationBuilder {
 
@@ -19,6 +20,7 @@ public final class GrantApplicationBuilder {
     private FundingCallId fundingCallId = FundingCallId.generate();
     private UserId applicant = anApplicant().id();
     private ProjectProposal proposal = aProjectProposal().build();
+    private List<SupportingDocument> documents = List.of(aSupportingDocument());
 
     private GrantApplicationBuilder(ApplicationStatus status) {
         this.status = status;
@@ -30,6 +32,11 @@ public final class GrantApplicationBuilder {
 
     public static GrantApplicationBuilder aSubmittedApplication() {
         return new GrantApplicationBuilder(ApplicationStatus.SUBMITTED);
+    }
+
+    public static SupportingDocument aSupportingDocument() {
+        return new SupportingDocument(
+                DocumentId.generate(), "begroting.pdf", 245_760, anApplicant().id(), CREATED_AT);
     }
 
     public GrantApplicationBuilder withId(ApplicationId id) {
@@ -52,6 +59,16 @@ public final class GrantApplicationBuilder {
         return this;
     }
 
+    public GrantApplicationBuilder withDocuments(SupportingDocument... documents) {
+        this.documents = List.of(documents);
+        return this;
+    }
+
+    public GrantApplicationBuilder withoutDocuments() {
+        this.documents = List.of();
+        return this;
+    }
+
     public GrantApplication build() {
         boolean draft = status == ApplicationStatus.DRAFT;
         return GrantApplication.restore(new GrantApplicationSnapshot(
@@ -61,6 +78,7 @@ public final class GrantApplicationBuilder {
                 OrganisationId.generate(),
                 applicant,
                 proposal,
+                documents,
                 status,
                 draft ? null : SUBMITTED_AT,
                 CREATED_AT,
