@@ -1,5 +1,7 @@
 # Bootstrap: database roles
 
+What Bicep can't do, run by hand. This page covers PostgreSQL roles; [app-roles.md](app-roles.md) covers who holds which role on the API.
+
 `database-role.sql` lets an environment's application sign in to the shared PostgreSQL server with its managed identity, and reach its own database only. It creates the role `id-civicgrant-app-<env>`, mapped to the identity's object id, and makes `civicgrant_<env>` reachable by that role alone. The application's Flyway then creates the `civicgrant` schema on its first start and owns it.
 
 Bicep can't do this: database roles live inside PostgreSQL, not in Azure Resource Manager. And the pipeline can't, because no administrator credential exists in CI on purpose. So the server's Entra administrator runs it by hand.
