@@ -20,6 +20,7 @@ public record GrantApplicationSnapshot(
         ApplicationStatus status,
         Instant submittedAt,
         Assessment assessment,
+        Decision decision,
         Instant createdAt,
         Instant updatedAt,
         long version) {
@@ -45,6 +46,15 @@ public record GrantApplicationSnapshot(
         if (ASSESSED_OR_LATER.contains(status) != (assessment != null)) {
             throw new IllegalArgumentException("Application " + reference.value() + " is " + status
                     + (assessment == null ? " without" : " with") + " an assessment");
+        }
+        boolean decisionMatchesStatus = switch (status) {
+            case DRAFT, SUBMITTED, ASSESSED -> decision == null;
+            case APPROVED -> decision instanceof Decision.Approval;
+            case REJECTED -> decision instanceof Decision.Rejection;
+        };
+        if (!decisionMatchesStatus) {
+            throw new IllegalArgumentException("Application " + reference.value() + " is " + status + " with decision "
+                    + (decision == null ? "none" : decision.getClass().getSimpleName()));
         }
     }
 }

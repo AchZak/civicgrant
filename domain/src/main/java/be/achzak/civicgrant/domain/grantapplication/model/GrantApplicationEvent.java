@@ -8,7 +8,9 @@ public sealed interface GrantApplicationEvent extends DomainEvent
                 DocumentAttached,
                 DocumentRemoved,
                 ApplicationSubmitted,
-                AssessmentRecorded {
+                AssessmentRecorded,
+                ApplicationApproved,
+                ApplicationRejected {
 
     ApplicationId applicationId();
 }

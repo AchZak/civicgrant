@@ -21,6 +21,8 @@ import java.util.Optional;
 
 public final class GrantApplication {
 
+    public static final int MAX_MOTIVATION_LENGTH = 4_000;
+
     private final ApplicationId id;
     private final ApplicationReference reference;
     private final FundingCallId fundingCallId;
@@ -31,6 +33,7 @@ public final class GrantApplication {
     private ApplicationStatus status;
     private Instant submittedAt;
     private Assessment assessment;
+    private Decision decision;
     private final Instant createdAt;
     private Instant updatedAt;
     private final long version;
@@ -47,6 +50,7 @@ public final class GrantApplication {
         this.status = snapshot.status();
         this.submittedAt = snapshot.submittedAt();
         this.assessment = snapshot.assessment();
+        this.decision = snapshot.decision();
         this.createdAt = snapshot.createdAt();
         this.updatedAt = snapshot.updatedAt();
         this.version = snapshot.version();
@@ -79,6 +83,7 @@ public final class GrantApplication {
                 proposal,
                 List.of(),
                 ApplicationStatus.DRAFT,
+                null,
                 null,
                 null,
                 now,
@@ -215,6 +220,62 @@ public final class GrantApplication {
         }
     }
 
+    public void approve(Money grantedAmount, String motivation, Actor decisionMaker, Instant now) {
+        Objects.requireNonNull(grantedAmount, "grantedAmount");
+        Objects.requireNonNull(motivation, "motivation");
+        Objects.requireNonNull(decisionMaker, "decisionMaker");
+        Objects.requireNonNull(now, "now");
+        Assessment recorded = ensureDecidableBy(decisionMaker);
+        String validMotivation = validMotivation(motivation);
+        if (!recorded.eligible()) {
+            throw new BusinessRuleViolationException(
+                    "INELIGIBLE_APPLICATION_CANNOT_BE_APPROVED",
+                    "Application " + reference.value() + " was assessed as ineligible");
+        }
+        if (!grantedAmount.isPositive()) {
+            throw new BusinessRuleViolationException(
+                    "GRANTED_AMOUNT_NOT_POSITIVE", "A granted amount is greater than zero");
+        }
+        if (grantedAmount.isGreaterThan(proposal.requestedAmount())) {
+            throw new BusinessRuleViolationException(
+                    "GRANTED_AMOUNT_EXCEEDS_REQUESTED",
+                    "Granted amount " + grantedAmount.amount() + " exceeds the requested amount of "
+                            + proposal.requestedAmount().amount());
+        }
+        decision = new Decision.Approval(grantedAmount, decisionMaker.id(), validMotivation, now);
+        status = ApplicationStatus.APPROVED;
+        updatedAt = now;
+        events.add(new ApplicationApproved(id, grantedAmount, decisionMaker.id(), now));
+    }
+
+    public void reject(RejectionGround ground, String motivation, Actor decisionMaker, Instant now) {
+        Objects.requireNonNull(ground, "ground");
+        Objects.requireNonNull(motivation, "motivation");
+        Objects.requireNonNull(decisionMaker, "decisionMaker");
+        Objects.requireNonNull(now, "now");
+        ensureDecidableBy(decisionMaker);
+        String validMotivation = validMotivation(motivation);
+        decision = new Decision.Rejection(ground, decisionMaker.id(), validMotivation, now);
+        status = ApplicationStatus.REJECTED;
+        updatedAt = now;
+        events.add(new ApplicationRejected(id, ground, decisionMaker.id(), now));
+    }
+
+    private Assessment ensureDecidableBy(Actor decisionMaker) {
+        ensureVisibleTo(decisionMaker);
+        ensureNotTheApplicant(decisionMaker);
+        ensureStatus(ApplicationStatus.ASSESSED, "APPLICATION_NOT_ASSESSED");
+        if (assessment.assessor().equals(decisionMaker.id())) {
+            throw new ForbiddenException(
+                    "SEPARATION_OF_DUTIES", "The assessor of application " + reference.value() + " can't decide on it");
+        }
+        return assessment;
+    }
+
+    private static String validMotivation(String motivation) {
+        return RequiredText.strip(motivation, MAX_MOTIVATION_LENGTH, "MOTIVATION_REQUIRED", "MOTIVATION_TOO_LONG");
+    }
+
     public boolean isVisibleTo(Actor actor) {
         Objects.requireNonNull(actor, "actor");
         boolean staff = actor.hasRole(Role.ASSESSOR) || actor.hasRole(Role.DECISION_MAKER);
@@ -326,6 +387,10 @@ public final class GrantApplication {
 
     public Optional<Assessment> assessment() {
         return Optional.ofNullable(assessment);
+    }
+
+    public Optional<Decision> decision() {
+        return Optional.ofNullable(decision);
     }
 
     public Instant createdAt() {
