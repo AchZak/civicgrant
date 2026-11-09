@@ -46,4 +46,12 @@ class ArchitectureTest {
             .dependOnClassesThat()
             .resideInAPackage("..civicgrant.api..")
             .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule only_api_security_reads_the_security_context = noClasses()
+            .that()
+            .resideOutsideOfPackage("..civicgrant.api.security..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage("org.springframework.security.core.context..");
 }

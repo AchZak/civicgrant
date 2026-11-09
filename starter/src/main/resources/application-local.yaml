@@ -6,3 +6,12 @@ spring:
 
   flyway:
     locations: classpath:db/migration,classpath:db/seed
+
+  # The tst app registration: a token requested for tst is accepted locally too.
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://login.microsoftonline.com/4ea66288-ed96-43a0-b1f9-08ac9b6b6aa4/v2.0
+          audiences:
+            - 043afaed-01cc-4c6a-a36f-7d3ce49e868d
