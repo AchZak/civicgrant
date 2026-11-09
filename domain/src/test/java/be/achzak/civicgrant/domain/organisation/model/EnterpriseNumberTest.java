@@ -1,9 +1,9 @@
 package be.achzak.civicgrant.domain.organisation.model;
 
+import static be.achzak.civicgrant.domain.shared.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -52,9 +52,7 @@ class EnterpriseNumberTest {
             Throwable thrown = catchThrowable(() -> new EnterpriseNumber("2123456749"));
 
             // then
-            assertThat(thrown)
-                    .isInstanceOf(BusinessRuleViolationException.class)
-                    .hasFieldOrPropertyWithValue("code", "ENTERPRISE_NUMBER_INVALID_FORMAT");
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("ENTERPRISE_NUMBER_INVALID_FORMAT");
         }
 
         @Test
@@ -64,9 +62,7 @@ class EnterpriseNumberTest {
             Throwable thrown = catchThrowable(() -> new EnterpriseNumber("012345674"));
 
             // then
-            assertThat(thrown)
-                    .isInstanceOf(BusinessRuleViolationException.class)
-                    .hasFieldOrPropertyWithValue("code", "ENTERPRISE_NUMBER_INVALID_FORMAT");
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("ENTERPRISE_NUMBER_INVALID_FORMAT");
         }
 
         @Test
@@ -76,9 +72,7 @@ class EnterpriseNumberTest {
             Throwable thrown = catchThrowable(() -> new EnterpriseNumber("01234567A9"));
 
             // then
-            assertThat(thrown)
-                    .isInstanceOf(BusinessRuleViolationException.class)
-                    .hasFieldOrPropertyWithValue("code", "ENTERPRISE_NUMBER_INVALID_FORMAT");
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("ENTERPRISE_NUMBER_INVALID_FORMAT");
         }
 
         @Test
@@ -88,9 +82,7 @@ class EnterpriseNumberTest {
             Throwable thrown = catchThrowable(() -> new EnterpriseNumber("0123456748"));
 
             // then
-            assertThat(thrown)
-                    .isInstanceOf(BusinessRuleViolationException.class)
-                    .hasFieldOrPropertyWithValue("code", "ENTERPRISE_NUMBER_INVALID_CHECKSUM");
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("ENTERPRISE_NUMBER_INVALID_CHECKSUM");
         }
     }
 

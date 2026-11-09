@@ -1,5 +1,6 @@
 package be.achzak.civicgrant.domain.shared;
 
+import static be.achzak.civicgrant.domain.shared.DomainExceptionAssert.assertThatDomainException;
 import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -23,9 +24,7 @@ class MoneyTest {
             Throwable thrown = catchThrowable(() -> euros("-0.01"));
 
             // then
-            assertThat(thrown)
-                    .isInstanceOf(BusinessRuleViolationException.class)
-                    .hasFieldOrPropertyWithValue("code", "AMOUNT_NEGATIVE");
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("AMOUNT_NEGATIVE");
         }
 
         @Test
@@ -35,9 +34,7 @@ class MoneyTest {
             Throwable thrown = catchThrowable(() -> euros("10.001"));
 
             // then
-            assertThat(thrown)
-                    .isInstanceOf(BusinessRuleViolationException.class)
-                    .hasFieldOrPropertyWithValue("code", "AMOUNT_TOO_PRECISE");
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("AMOUNT_TOO_PRECISE");
         }
 
         @Test
@@ -88,9 +85,7 @@ class MoneyTest {
             Throwable thrown = catchThrowable(() -> five.minus(euros("5.01")));
 
             // then
-            assertThat(thrown)
-                    .isInstanceOf(BusinessRuleViolationException.class)
-                    .hasFieldOrPropertyWithValue("code", "AMOUNT_NEGATIVE");
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("AMOUNT_NEGATIVE");
         }
     }
 }

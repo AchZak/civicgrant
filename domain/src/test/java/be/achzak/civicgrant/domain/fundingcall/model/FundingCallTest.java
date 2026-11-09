@@ -2,11 +2,11 @@ package be.achzak.civicgrant.domain.fundingcall.model;
 
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.aFundingCall;
 import static be.achzak.civicgrant.domain.shared.Actors.aDecisionMaker;
+import static be.achzak.civicgrant.domain.shared.DomainExceptionAssert.assertThatDomainException;
 import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import be.achzak.civicgrant.domain.shared.Money;
 import java.time.Instant;
 import java.util.List;
@@ -68,9 +68,7 @@ class FundingCallTest {
             Throwable thrown = catchThrowable(() -> call.commitGrant(euros("10000.01"), aDecisionMaker(), NOW));
 
             // then
-            assertThat(thrown)
-                    .isInstanceOf(BusinessRuleViolationException.class)
-                    .hasFieldOrPropertyWithValue("code", "GRANT_EXCEEDS_REMAINING_BUDGET");
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("GRANT_EXCEEDS_REMAINING_BUDGET");
             assertThat(call.remainingBudget()).isEqualTo(euros("10000.00"));
         }
 
@@ -84,9 +82,7 @@ class FundingCallTest {
             Throwable thrown = catchThrowable(() -> call.commitGrant(euros("0.00"), aDecisionMaker(), NOW));
 
             // then
-            assertThat(thrown)
-                    .isInstanceOf(BusinessRuleViolationException.class)
-                    .hasFieldOrPropertyWithValue("code", "GRANTED_AMOUNT_NOT_POSITIVE");
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("GRANTED_AMOUNT_NOT_POSITIVE");
         }
 
         @Test

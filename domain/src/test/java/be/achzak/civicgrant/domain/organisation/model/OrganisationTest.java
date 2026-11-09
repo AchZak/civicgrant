@@ -1,10 +1,10 @@
 package be.achzak.civicgrant.domain.organisation.model;
 
 import static be.achzak.civicgrant.domain.shared.Actors.anApplicant;
+import static be.achzak.civicgrant.domain.shared.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -54,9 +54,7 @@ class OrganisationTest {
             Throwable thrown = catchThrowable(() -> register("   "));
 
             // then
-            assertThat(thrown)
-                    .isInstanceOf(BusinessRuleViolationException.class)
-                    .hasFieldOrPropertyWithValue("code", "ORGANISATION_NAME_REQUIRED");
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("ORGANISATION_NAME_REQUIRED");
         }
 
         @Test
@@ -82,9 +80,7 @@ class OrganisationTest {
             Throwable thrown = catchThrowable(() -> register(tooLongName));
 
             // then
-            assertThat(thrown)
-                    .isInstanceOf(BusinessRuleViolationException.class)
-                    .hasFieldOrPropertyWithValue("code", "ORGANISATION_NAME_TOO_LONG");
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("ORGANISATION_NAME_TOO_LONG");
         }
     }
 

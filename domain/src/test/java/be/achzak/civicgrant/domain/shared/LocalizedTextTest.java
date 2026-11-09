@@ -1,6 +1,6 @@
 package be.achzak.civicgrant.domain.shared;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static be.achzak.civicgrant.domain.shared.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import org.junit.jupiter.api.DisplayName;
@@ -16,9 +16,7 @@ class LocalizedTextTest {
         Throwable thrown = catchThrowable(() -> new LocalizedText(" ", "Projets de quartier"));
 
         // then
-        assertThat(thrown)
-                .isInstanceOf(BusinessRuleViolationException.class)
-                .hasFieldOrPropertyWithValue("code", "TRANSLATION_MISSING");
+        assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("TRANSLATION_MISSING");
     }
 
     @Test
@@ -28,8 +26,6 @@ class LocalizedTextTest {
         Throwable thrown = catchThrowable(() -> new LocalizedText("Buurtprojecten", ""));
 
         // then
-        assertThat(thrown)
-                .isInstanceOf(BusinessRuleViolationException.class)
-                .hasFieldOrPropertyWithValue("code", "TRANSLATION_MISSING");
+        assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("TRANSLATION_MISSING");
     }
 }
