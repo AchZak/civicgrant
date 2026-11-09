@@ -6,6 +6,7 @@ import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.a
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.aDraftApplication;
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.aSubmittedApplication;
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.aSupportingDocument;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.anAssessedApplication;
 import static be.achzak.civicgrant.domain.grantapplication.model.ProjectProposalBuilder.aProjectProposal;
 import static be.achzak.civicgrant.domain.organisation.model.OrganisationBuilder.anOrganisation;
 import static be.achzak.civicgrant.domain.shared.Actors.aDecisionMaker;
@@ -530,6 +531,193 @@ class GrantApplicationTest {
     }
 
     @Nested
+    @DisplayName("Recording the assessment")
+    class Assess {
+
+        private static final String COMMENT = "Sterk buurtproject met een realistische begroting.";
+
+        private static Recommendation proposing(String amount) {
+            return new Recommendation.Approve(euros(amount));
+        }
+
+        @Test
+        @DisplayName("moves the submitted application to assessed")
+        void movesTheSubmittedApplicationToAssessed() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            application.recordAssessment(true, proposing("8000.00"), COMMENT, anAssessor(), NOW);
+
+            // then
+            assertThat(application.status()).isEqualTo(ApplicationStatus.ASSESSED);
+            assertThat(application.assessment())
+                    .contains(new Assessment(anAssessor().id(), true, proposing("8000.00"), COMMENT, NOW));
+        }
+
+        @Test
+        @DisplayName("records AssessmentRecorded")
+        void recordsAssessmentRecorded() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            application.recordAssessment(true, proposing("8000.00"), COMMENT, anAssessor(), NOW);
+
+            // then
+            assertThat(application.pullEvents())
+                    .containsExactly(new AssessmentRecorded(
+                            application.id(),
+                            true,
+                            proposing("8000.00"),
+                            anAssessor().id(),
+                            NOW));
+        }
+
+        @Test
+        @DisplayName("accepts a rejection recommendation for an ineligible application")
+        void acceptsRejectionRecommendationForIneligibleApplication() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            application.recordAssessment(false, new Recommendation.Reject(), COMMENT, anAssessor(), NOW);
+
+            // then
+            assertThat(application.status()).isEqualTo(ApplicationStatus.ASSESSED);
+        }
+
+        @Test
+        @DisplayName("rejects recommending an ineligible application for approval")
+        void rejectsRecommendingIneligibleApplicationForApproval() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            Throwable thrown = catchThrowable(
+                    () -> application.recordAssessment(false, proposing("8000.00"), COMMENT, anAssessor(), NOW));
+
+            // then
+            assertThatDomainException(thrown)
+                    .isBusinessRuleViolation()
+                    .hasCode("APPROVAL_RECOMMENDATION_REQUIRES_ELIGIBILITY");
+        }
+
+        @Test
+        @DisplayName("rejects proposing one cent more than the requested amount")
+        void rejectsProposingOneCentMoreThanRequested() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            Throwable thrown = catchThrowable(
+                    () -> application.recordAssessment(true, proposing("8000.01"), COMMENT, anAssessor(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("PROPOSED_AMOUNT_EXCEEDS_REQUESTED");
+        }
+
+        @Test
+        @DisplayName("rejects proposing zero")
+        void rejectsProposingZero() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            Throwable thrown = catchThrowable(
+                    () -> application.recordAssessment(true, proposing("0.00"), COMMENT, anAssessor(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("PROPOSED_AMOUNT_NOT_POSITIVE");
+        }
+
+        @Test
+        @DisplayName("strips whitespace around the comment")
+        void stripsWhitespaceAroundTheComment() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            application.recordAssessment(false, new Recommendation.Reject(), "  " + COMMENT + "\n", anAssessor(), NOW);
+
+            // then
+            assertThat(application.assessment()).map(Assessment::comment).contains(COMMENT);
+        }
+
+        @Test
+        @DisplayName("rejects a blank comment")
+        void rejectsBlankComment() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            Throwable thrown = catchThrowable(
+                    () -> application.recordAssessment(false, new Recommendation.Reject(), " ", anAssessor(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("ASSESSMENT_COMMENT_REQUIRED");
+        }
+
+        @Test
+        @DisplayName("rejects a comment longer than 4,000 characters")
+        void rejectsCommentLongerThan4000Characters() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+            String tooLong = "a".repeat(4_001);
+
+            // when
+            Throwable thrown = catchThrowable(
+                    () -> application.recordAssessment(false, new Recommendation.Reject(), tooLong, anAssessor(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("ASSESSMENT_COMMENT_TOO_LONG");
+        }
+
+        @Test
+        @DisplayName("answers not found for a draft, which staff can't see")
+        void answersNotFoundForDraft() {
+            // given
+            GrantApplication application = aDraftApplication().build();
+
+            // when
+            Throwable thrown = catchThrowable(
+                    () -> application.recordAssessment(false, new Recommendation.Reject(), COMMENT, anAssessor(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isNotFound().hasCode("APPLICATION_NOT_FOUND");
+        }
+
+        @Test
+        @DisplayName("rejects a second assessment")
+        void rejectsSecondAssessment() {
+            // given
+            GrantApplication application = anAssessedApplication().build();
+
+            // when
+            Throwable thrown = catchThrowable(
+                    () -> application.recordAssessment(false, new Recommendation.Reject(), COMMENT, anAssessor(), NOW));
+
+            // then
+            assertThatDomainException(thrown).isConflict().hasCode("APPLICATION_NOT_SUBMITTED");
+        }
+
+        @Test
+        @DisplayName("forbids the applicant to assess their own application")
+        void forbidsTheApplicantToAssessTheirOwnApplication() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+            Actor applicantWhoAlsoAssesses = actor("applicant-1", Role.APPLICANT, Role.ASSESSOR);
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.recordAssessment(
+                    false, new Recommendation.Reject(), COMMENT, applicantWhoAlsoAssesses, NOW));
+
+            // then
+            assertThatDomainException(thrown).isForbidden().hasCode("CONFLICT_OF_INTEREST");
+        }
+    }
+
+    @Nested
     @DisplayName("Visibility")
     class Visibility {
 
@@ -627,7 +815,8 @@ class GrantApplicationTest {
     @DisplayName("Restoring")
     class Restore {
 
-        private GrantApplicationSnapshot snapshot(ApplicationStatus status, Instant submittedAt) {
+        private GrantApplicationSnapshot snapshot(
+                ApplicationStatus status, Instant submittedAt, Assessment assessment) {
             return new GrantApplicationSnapshot(
                     ApplicationId.generate(),
                     REFERENCE,
@@ -638,6 +827,7 @@ class GrantApplicationTest {
                     List.of(),
                     status,
                     submittedAt,
+                    assessment,
                     NOW,
                     NOW,
                     0);
@@ -660,7 +850,7 @@ class GrantApplicationTest {
         @DisplayName("refuses a stored draft with a submission time")
         void refusesStoredDraftWithSubmissionTime() {
             // when
-            Throwable thrown = catchThrowable(() -> snapshot(ApplicationStatus.DRAFT, NOW));
+            Throwable thrown = catchThrowable(() -> snapshot(ApplicationStatus.DRAFT, NOW, null));
 
             // then
             assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
@@ -670,7 +860,31 @@ class GrantApplicationTest {
         @DisplayName("refuses a stored submitted application without a submission time")
         void refusesStoredSubmittedApplicationWithoutSubmissionTime() {
             // when
-            Throwable thrown = catchThrowable(() -> snapshot(ApplicationStatus.SUBMITTED, null));
+            Throwable thrown = catchThrowable(() -> snapshot(ApplicationStatus.SUBMITTED, null, null));
+
+            // then
+            assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("refuses a stored assessed application without an assessment")
+        void refusesStoredAssessedApplicationWithoutAssessment() {
+            // when
+            Throwable thrown = catchThrowable(() -> snapshot(ApplicationStatus.ASSESSED, NOW, null));
+
+            // then
+            assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("refuses a stored submitted application with an assessment")
+        void refusesStoredSubmittedApplicationWithAssessment() {
+            // given
+            Assessment assessment =
+                    new Assessment(anAssessor().id(), false, new Recommendation.Reject(), "Onvolledig.", NOW);
+
+            // when
+            Throwable thrown = catchThrowable(() -> snapshot(ApplicationStatus.SUBMITTED, NOW, assessment));
 
             // then
             assertThat(thrown).isInstanceOf(IllegalArgumentException.class);

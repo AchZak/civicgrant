@@ -2,6 +2,7 @@ package be.achzak.civicgrant.domain.grantapplication.model;
 
 import static be.achzak.civicgrant.domain.grantapplication.model.ProjectProposalBuilder.aProjectProposal;
 import static be.achzak.civicgrant.domain.shared.Actors.anApplicant;
+import static be.achzak.civicgrant.domain.shared.Actors.anAssessor;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
@@ -14,6 +15,7 @@ public final class GrantApplicationBuilder {
 
     public static final Instant CREATED_AT = Instant.parse("2026-03-10T09:00:00Z");
     public static final Instant SUBMITTED_AT = Instant.parse("2026-04-01T10:00:00Z");
+    public static final Instant ASSESSED_AT = Instant.parse("2026-05-04T14:00:00Z");
 
     private final ApplicationStatus status;
     private ApplicationId id = ApplicationId.generate();
@@ -21,6 +23,7 @@ public final class GrantApplicationBuilder {
     private UserId applicant = anApplicant().id();
     private ProjectProposal proposal = aProjectProposal().build();
     private List<SupportingDocument> documents = List.of(aSupportingDocument());
+    private Assessment assessment;
 
     private GrantApplicationBuilder(ApplicationStatus status) {
         this.status = status;
@@ -32,6 +35,17 @@ public final class GrantApplicationBuilder {
 
     public static GrantApplicationBuilder aSubmittedApplication() {
         return new GrantApplicationBuilder(ApplicationStatus.SUBMITTED);
+    }
+
+    public static GrantApplicationBuilder anAssessedApplication() {
+        GrantApplicationBuilder builder = new GrantApplicationBuilder(ApplicationStatus.ASSESSED);
+        builder.assessment = new Assessment(
+                anAssessor().id(),
+                true,
+                new Recommendation.Approve(builder.proposal.requestedAmount()),
+                "Sterk buurtproject met een realistische begroting.",
+                ASSESSED_AT);
+        return builder;
     }
 
     public static SupportingDocument aSupportingDocument() {
@@ -69,6 +83,11 @@ public final class GrantApplicationBuilder {
         return this;
     }
 
+    public GrantApplicationBuilder withAssessment(Assessment assessment) {
+        this.assessment = assessment;
+        return this;
+    }
+
     public GrantApplication build() {
         boolean draft = status == ApplicationStatus.DRAFT;
         return GrantApplication.restore(new GrantApplicationSnapshot(
@@ -81,8 +100,17 @@ public final class GrantApplicationBuilder {
                 documents,
                 status,
                 draft ? null : SUBMITTED_AT,
+                assessment,
                 CREATED_AT,
-                draft ? CREATED_AT : SUBMITTED_AT,
+                lastChange(),
                 0));
+    }
+
+    private Instant lastChange() {
+        return switch (status) {
+            case DRAFT -> CREATED_AT;
+            case SUBMITTED -> SUBMITTED_AT;
+            case ASSESSED, APPROVED, REJECTED -> ASSESSED_AT;
+        };
     }
 }

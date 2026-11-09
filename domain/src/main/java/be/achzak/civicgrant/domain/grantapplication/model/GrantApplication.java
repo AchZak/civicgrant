@@ -9,6 +9,7 @@ import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import be.achzak.civicgrant.domain.shared.ConflictException;
 import be.achzak.civicgrant.domain.shared.ForbiddenException;
+import be.achzak.civicgrant.domain.shared.Money;
 import be.achzak.civicgrant.domain.shared.NotFoundException;
 import be.achzak.civicgrant.domain.shared.Role;
 import be.achzak.civicgrant.domain.shared.UserId;
@@ -29,6 +30,7 @@ public final class GrantApplication {
     private final List<SupportingDocument> documents;
     private ApplicationStatus status;
     private Instant submittedAt;
+    private Assessment assessment;
     private final Instant createdAt;
     private Instant updatedAt;
     private final long version;
@@ -44,6 +46,7 @@ public final class GrantApplication {
         this.documents = new ArrayList<>(snapshot.documents());
         this.status = snapshot.status();
         this.submittedAt = snapshot.submittedAt();
+        this.assessment = snapshot.assessment();
         this.createdAt = snapshot.createdAt();
         this.updatedAt = snapshot.updatedAt();
         this.version = snapshot.version();
@@ -76,6 +79,7 @@ public final class GrantApplication {
                 proposal,
                 List.of(),
                 ApplicationStatus.DRAFT,
+                null,
                 null,
                 now,
                 now,
@@ -173,6 +177,44 @@ public final class GrantApplication {
         events.add(new ApplicationSubmitted(id, proposal.requestedAmount(), actor.id(), now));
     }
 
+    public void recordAssessment(
+            boolean eligible, Recommendation recommendation, String comment, Actor assessor, Instant now) {
+        Objects.requireNonNull(recommendation, "recommendation");
+        Objects.requireNonNull(comment, "comment");
+        Objects.requireNonNull(assessor, "assessor");
+        Objects.requireNonNull(now, "now");
+        ensureVisibleTo(assessor);
+        ensureNotTheApplicant(assessor);
+        ensureStatus(ApplicationStatus.SUBMITTED, "APPLICATION_NOT_SUBMITTED");
+        String validComment = RequiredText.strip(
+                comment, Assessment.MAX_COMMENT_LENGTH, "ASSESSMENT_COMMENT_REQUIRED", "ASSESSMENT_COMMENT_TOO_LONG");
+        if (recommendation instanceof Recommendation.Approve(Money proposedAmount)) {
+            ensureApprovalCanBeRecommended(eligible, proposedAmount);
+        }
+        assessment = new Assessment(assessor.id(), eligible, recommendation, validComment, now);
+        status = ApplicationStatus.ASSESSED;
+        updatedAt = now;
+        events.add(new AssessmentRecorded(id, eligible, recommendation, assessor.id(), now));
+    }
+
+    private void ensureApprovalCanBeRecommended(boolean eligible, Money proposedAmount) {
+        if (!eligible) {
+            throw new BusinessRuleViolationException(
+                    "APPROVAL_RECOMMENDATION_REQUIRES_ELIGIBILITY",
+                    "Application " + reference.value() + " can't be recommended for approval when ineligible");
+        }
+        if (!proposedAmount.isPositive()) {
+            throw new BusinessRuleViolationException(
+                    "PROPOSED_AMOUNT_NOT_POSITIVE", "A proposed amount is greater than zero");
+        }
+        if (proposedAmount.isGreaterThan(proposal.requestedAmount())) {
+            throw new BusinessRuleViolationException(
+                    "PROPOSED_AMOUNT_EXCEEDS_REQUESTED",
+                    "Proposed amount " + proposedAmount.amount() + " exceeds the requested amount of "
+                            + proposal.requestedAmount().amount());
+        }
+    }
+
     public boolean isVisibleTo(Actor actor) {
         Objects.requireNonNull(actor, "actor");
         boolean staff = actor.hasRole(Role.ASSESSOR) || actor.hasRole(Role.DECISION_MAKER);
@@ -187,7 +229,25 @@ public final class GrantApplication {
             throw new ForbiddenException(
                     "NOT_THE_APPLICANT", "Only the applicant may change application " + reference.value());
         }
-        throw new NotFoundException("APPLICATION_NOT_FOUND", "Application " + id.value() + " not found");
+        throw notFound();
+    }
+
+    private void ensureVisibleTo(Actor actor) {
+        if (!isVisibleTo(actor)) {
+            throw notFound();
+        }
+    }
+
+    private void ensureNotTheApplicant(Actor actor) {
+        if (applicant.equals(actor.id())) {
+            throw new ForbiddenException(
+                    "CONFLICT_OF_INTEREST",
+                    "The applicant of application " + reference.value() + " can't assess or decide on it");
+        }
+    }
+
+    private NotFoundException notFound() {
+        return new NotFoundException("APPLICATION_NOT_FOUND", "Application " + id.value() + " not found");
     }
 
     private void ensureStatus(ApplicationStatus expected, String code) {
@@ -262,6 +322,10 @@ public final class GrantApplication {
 
     public Optional<Instant> submittedAt() {
         return Optional.ofNullable(submittedAt);
+    }
+
+    public Optional<Assessment> assessment() {
+        return Optional.ofNullable(assessment);
     }
 
     public Instant createdAt() {
