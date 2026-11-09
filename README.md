@@ -23,7 +23,7 @@ Applications are evaluated one by one as they come in (rolling evaluation). Good
 | Assessor | See submitted applications, record an assessment |
 | Decision maker | Approve or reject assessed applications |
 
-Staff sign in with Microsoft Entra ID and get their role through app roles.
+Everyone signs in with Microsoft Entra ID, which is the only user store. CivicGrant keeps no accounts and no passwords, only each user's Entra object id next to the data they own, so there's no registration step. Staff get an account in the administration's tenant and a role from an administrator, which is how workforce applications usually work, and a user without a role gets no token at all. Applicants are a deliberate simplification: here they're users of the same tenant, given the Applicant role by an administrator. A real portal would let citizens sign in on their own, through the Federal Authentication Service (eID, itsme) or a Microsoft Entra External ID tenant with self-service sign-up, where every signed-in citizen is an applicant and only staff need a role.
 
 ## Business rules
 
