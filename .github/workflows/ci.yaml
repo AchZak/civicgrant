@@ -226,7 +226,7 @@ jobs:
       contents: read   # Check out the Bicep templates.
       id-token: write  # Request GitHub's OIDC token for the Azure login.
 
-    # Read by every step. The last six are the values infra/tst.bicepparam reads
+    # Read by every step. The last seven are the values infra/tst.bicepparam reads
     # with readEnvironmentVariable(), so the templates get them without any file
     # in the repository holding them.
     env:
@@ -238,6 +238,7 @@ jobs:
       APP_IDENTITY_ID: ${{ vars.APP_IDENTITY_ID }}                     # GitHub Environment variable of tst.
       APP_IDENTITY_CLIENT_ID: ${{ vars.APP_IDENTITY_CLIENT_ID }}       # GitHub Environment variable of tst.
       APP_IDENTITY_PRINCIPAL_ID: ${{ vars.APP_IDENTITY_PRINCIPAL_ID }} # GitHub Environment variable of tst.
+      API_CLIENT_ID: ${{ vars.API_CLIENT_ID }}                         # GitHub Environment variable of tst: the token audience.
 
     steps:
 

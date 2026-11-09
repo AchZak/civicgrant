@@ -64,6 +64,13 @@ param appIdentityPrincipalId string
 @description('Load the demo data after the schema migrations. Never in production.')
 param loadDemoData bool
 
+// Exactly a GUID's length. An empty value would leave the token audience
+// unchecked, so the deployment stops instead.
+@description('Client id of the environment\'s API registration (infra/entra.bicep): the audience every access token must carry.')
+@minLength(36)
+@maxLength(36)
+param apiClientId string
+
 
 // ------------------------------------------------------------
 // VARIABLES
@@ -82,6 +89,12 @@ var databaseName = 'civicgrant_${environmentName}'
 // The database role has the identity's name (see infra/bootstrap). The name is the
 // last segment of the identity's resource id.
 var databaseRole = last(split(appIdentityId, '/'))
+
+// Where valid access tokens come from: Microsoft Entra's v2 endpoint for this
+// tenant. environment() gives the sign-in host of the cloud being deployed to,
+// with a trailing slash, and tenant() the tenant the deployment runs in. The
+// result must match the iss claim of the tokens character for character.
+var tokenIssuer = '${environment().authentication.loginEndpoint}${tenant().tenantId}/v2.0'
 
 // Options of the JDBC URL, one per line.
 var jdbcOptions = [
@@ -142,6 +155,21 @@ var appSettings = [
     // How the agent authenticates: an Entra token from the same managed identity.
     name: 'APPLICATIONINSIGHTS_AUTHENTICATION_STRING'
     value: 'Authorization=AAD;ClientId=${appIdentityClientId}'
+  }
+  {
+    // Who issues valid access tokens: spring.security.oauth2.resourceserver.jwt.issuer-uri.
+    // In environment variable names Spring drops the dashes: issuer-uri is ISSUERURI.
+    // Nothing is fetched at startup. On the first request, Spring reads
+    // <issuer>/.well-known/openid-configuration to find Entra's signing keys, and
+    // from then on rejects tokens whose iss claim is anything else.
+    name: 'SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUERURI'
+    value: tokenIssuer
+  }
+  {
+    // Who tokens must be meant for: this environment's API. A token the same tenant
+    // issued for any other application, or for another environment, is rejected.
+    name: 'SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_AUDIENCES'
+    value: apiClientId
   }
 ]
 

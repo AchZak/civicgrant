@@ -30,3 +30,7 @@ param postgresHost = readEnvironmentVariable('POSTGRES_HOST')
 param appIdentityId = readEnvironmentVariable('APP_IDENTITY_ID')
 param appIdentityClientId = readEnvironmentVariable('APP_IDENTITY_CLIENT_ID')
 param appIdentityPrincipalId = readEnvironmentVariable('APP_IDENTITY_PRINCIPAL_ID')
+
+// The client id of civicgrant-api-tst, from the outputs of infra/entra.bicep
+// (az deployment group show --resource-group rg-civicgrant-shared --name civicgrant-entra).
+param apiClientId = readEnvironmentVariable('API_CLIENT_ID')
