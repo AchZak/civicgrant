@@ -30,6 +30,7 @@
 
         <azure-sdk-bom.version>1.3.9</azure-sdk-bom.version>
         <openapi-generator.version>7.26.0</openapi-generator.version>
+        <belgif-rest-problem.version>0.24.0</belgif-rest-problem.version>
         <archunit.version>1.5.1</archunit.version>
         <jacoco.version>0.8.16</jacoco.version>
         <sonar-maven-plugin.version>5.8.0.7211</sonar-maven-plugin.version>
@@ -63,6 +64,13 @@
                 <groupId>com.azure</groupId>
                 <artifactId>azure-sdk-bom</artifactId>
                 <version>${azure-sdk-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.github.belgif.rest.problem</groupId>
+                <artifactId>belgif-rest-problem-bom</artifactId>
+                <version>${belgif-rest-problem.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
