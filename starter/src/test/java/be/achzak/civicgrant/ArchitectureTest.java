@@ -2,6 +2,7 @@ package be.achzak.civicgrant;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -28,6 +29,20 @@ class ArchitectureTest {
             .onlyDependOnClassesThat()
             .resideInAnyPackage("java..", "..civicgrant.domain.shared..")
             .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule no_cycles_between_aggregate_packages =
+            slices().matching("..civicgrant.domain.(*)..").should().beFreeOfCycles();
+
+    @ArchTest
+    static final ArchRule nothing_else_in_the_domain_depends_on_audit = noClasses()
+            .that()
+            .resideInAPackage("..civicgrant.domain..")
+            .and()
+            .resideOutsideOfPackage("..civicgrant.domain.audit..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage("..civicgrant.domain.audit..");
 
     @ArchTest
     static final ArchRule api_does_not_use_persistence = noClasses()
