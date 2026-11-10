@@ -1,11 +1,26 @@
 openapi: 3.0.3
 info:
   title: CivicGrant API
-  version: 0.1.0
-  description: >
-    Grant applications for a fictional Belgian public administration.
-    This file is the source of truth: the Spring interfaces and the
-    Angular client are both generated from it.
+  version: 0.2.0
+  description: |
+    Grant applications for a fictional Belgian public administration, following the
+    Belgif REST guidelines. This file is the source of truth: the Spring interfaces
+    and the Angular client are both generated from it.
+
+    Every operation needs a Microsoft Entra ID access token carrying one of the app
+    roles APPLICANT, ASSESSOR or DECISION_MAKER. Each operation names the roles it
+    accepts; any other role gets `urn:problem-type:belgif:missingPermission` (403).
+
+    Errors are Problem Details (RFC 9457) as defined by Belgif. Standard problems are
+    `urn:problem-type:belgif:<name>`; business problems are
+    `urn:problem-type:civicgrant:<name>`, and each operation lists the names it can
+    return. The `type` is the stable identifier: clients translate it into Dutch or
+    French and never parse `title` or `detail`, which are English and meant for
+    developers.
+
+    A 404 is identical whether the item doesn't exist or the caller may not see it.
+    Any write may answer 409 `concurrentUpdate` when someone else changed the same
+    data at the same time: read it again, then retry.
 
 servers:
   - url: /api/v1
@@ -16,24 +31,589 @@ security:
 tags:
   - name: FundingCalls
     description: Calls for projects that organisations can apply to
+  - name: Organisations
+    description: Organisations that apply for grants, identified by their enterprise number
+  - name: Applications
+    description: Grant applications, from draft to submission
+  - name: SupportingDocuments
+    description: PDF documents attached to a draft application
+  - name: Assessments
+    description: The assessment of a submitted application by an assessor
+  - name: Decisions
+    description: The approval or rejection of an assessed application, with its motivation
 
 paths:
-  /funding-calls:
+  /fundingCalls:
     get:
       tags: [FundingCalls]
       operationId: listOpenFundingCalls
-      summary: List the funding calls that are currently open for submissions
+      summary: List the funding calls open for submissions
+      description: |
+        Roles: any. The calls whose submission period is open now, closing soonest first.
       responses:
         '200':
-          description: The open funding calls, closing soonest first
+          description: The open funding calls
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FundingCall'
+                $ref: '#/components/schemas/FundingCallCollection'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /fundingCalls/{fundingCallId}:
+    parameters:
+      - $ref: '#/components/parameters/FundingCallId'
+    get:
+      tags: [FundingCalls]
+      operationId: getFundingCall
+      summary: Get a funding call
+      description: 'Roles: any.'
+      responses:
+        '200':
+          description: The funding call
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundingCall'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /organisations:
+    get:
+      tags: [Organisations]
+      operationId: findOrganisations
+      summary: Find an organisation by its enterprise number
+      description: |
+        Roles: any. Returns the registered organisation with this enterprise number,
+        or an empty list when none is registered yet.
+
+        Problems: 400 `enterpriseNumberInvalidFormat`, `enterpriseNumberInvalidChecksum`.
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseNumber'
+      responses:
+        '200':
+          description: Zero or one organisation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganisationCollection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+    post:
+      tags: [Organisations]
+      operationId: registerOrganisation
+      summary: Register an organisation
+      description: |
+        Role: APPLICANT.
+
+        Problems: 400 `enterpriseNumberInvalidFormat`, `enterpriseNumberInvalidChecksum`,
+        `organisationNameRequired`, `organisationNameTooLong`;
+        409 `organisationAlreadyRegistered`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterOrganisationRequest'
+      responses:
+        '201':
+          description: The registered organisation
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organisation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /organisations/{organisationId}:
+    parameters:
+      - $ref: '#/components/parameters/OrganisationId'
+    get:
+      tags: [Organisations]
+      operationId: getOrganisation
+      summary: Get an organisation
+      description: 'Roles: any.'
+      responses:
+        '200':
+          description: The organisation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organisation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /applications:
+    get:
+      tags: [Applications]
+      operationId: listApplications
+      summary: List the applications the caller may see
+      description: |
+        Roles: any. Applicants see their own applications; assessors and decision
+        makers see every application except drafts. Most recently changed first.
+      parameters:
+        - $ref: '#/components/parameters/StatusFilter'
+        - $ref: '#/components/parameters/FundingCallFilter'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: One page of applications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+    post:
+      tags: [Applications]
+      operationId: createApplication
+      summary: Create a draft application
+      description: |
+        Role: APPLICANT. The caller becomes the application's applicant.
+
+        Problems: 400 `urn:problem-type:belgif:badRequest` with a
+        `referencedResourceNotFound` issue when the funding call or the organisation
+        doesn't exist, `fundingCallClosed`, `legalFormNotEligible`,
+        `requestedAmountExceedsCap`, and the proposal problems listed on
+        `ProjectProposal`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApplicationRequest'
+      responses:
+        '201':
+          description: The new draft
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /applications/{applicationId}:
+    parameters:
+      - $ref: '#/components/parameters/ApplicationId'
+    get:
+      tags: [Applications]
+      operationId: getApplication
+      summary: Get an application
+      description: 'Roles: any, for an application the caller may see.'
+      responses:
+        '200':
+          description: The application
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /applications/{applicationId}/proposal:
+    parameters:
+      - $ref: '#/components/parameters/ApplicationId'
+    put:
+      tags: [Applications]
+      operationId: editApplication
+      summary: Replace the project proposal of a draft
+      description: |
+        Role: APPLICANT, the application's own applicant.
+
+        Problems: 400 `fundingCallClosed`, `requestedAmountExceedsCap`, and the
+        proposal problems listed on `ProjectProposal`; 403 `notTheApplicant`;
+        409 `applicationNotDraft`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectProposal'
+      responses:
+        '200':
+          description: The application with its new proposal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /applications/{applicationId}/submission:
+    parameters:
+      - $ref: '#/components/parameters/ApplicationId'
+    post:
+      tags: [Applications]
+      operationId: submitApplication
+      summary: Submit a draft
+      description: |
+        Role: APPLICANT, the application's own applicant. A submitted application
+        can no longer be changed.
+
+        Problems: 400 `submissionBeforeOpeningDate`, `submissionAfterClosingDate`,
+        `supportingDocumentRequired`, `requestedAmountExceedsCap`;
+        403 `notTheApplicant`; 409 `applicationNotDraft`.
+      responses:
+        '201':
+          description: The submission
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+    get:
+      tags: [Applications]
+      operationId: getSubmission
+      summary: Get the submission of an application
+      description: 'Roles: any, for an application the caller may see. 404 while it''s a draft.'
+      responses:
+        '200':
+          description: The submission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /applications/{applicationId}/documents:
+    parameters:
+      - $ref: '#/components/parameters/ApplicationId'
+    post:
+      tags: [SupportingDocuments]
+      operationId: attachDocument
+      summary: Attach a PDF document to a draft
+      description: |
+        Role: APPLICANT, the application's own applicant. One PDF file of at most
+        10 MiB per request.
+
+        Problems: 400 `documentNotPdf`, `documentEmpty`, `documentTooLarge`,
+        `documentNameInvalid`, `fundingCallClosed`; 403 `notTheApplicant`;
+        409 `applicationNotDraft`; 413 `urn:problem-type:belgif:payloadTooLarge`
+        when the request exceeds the upload limit.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AttachDocumentRequest'
+            encoding:
+              file:
+                contentType: application/pdf
+      responses:
+        '201':
+          description: The attached document
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportingDocument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /applications/{applicationId}/documents/{documentId}:
+    parameters:
+      - $ref: '#/components/parameters/ApplicationId'
+      - $ref: '#/components/parameters/DocumentId'
+    get:
+      tags: [SupportingDocuments]
+      operationId: getDocument
+      summary: Get the details of an attached document
+      description: 'Roles: any, for an application the caller may see.'
+      responses:
+        '200':
+          description: The document's details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportingDocument'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+    delete:
+      tags: [SupportingDocuments]
+      operationId: removeDocument
+      summary: Remove a document from a draft
+      description: |
+        Role: APPLICANT, the application's own applicant.
+
+        Problems: 403 `notTheApplicant`; 409 `applicationNotDraft`.
+      responses:
+        '204':
+          description: The document was removed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /applications/{applicationId}/documents/{documentId}/content:
+    parameters:
+      - $ref: '#/components/parameters/ApplicationId'
+      - $ref: '#/components/parameters/DocumentId'
+    get:
+      tags: [SupportingDocuments]
+      operationId: downloadDocument
+      summary: Download an attached document
+      description: 'Roles: any, for an application the caller may see.'
+      responses:
+        '200':
+          description: The PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /applications/{applicationId}/assessment:
+    parameters:
+      - $ref: '#/components/parameters/ApplicationId'
+    post:
+      tags: [Assessments]
+      operationId: recordAssessment
+      summary: Assess a submitted application
+      description: |
+        Role: ASSESSOR, who may not be the application's applicant.
+
+        Problems: 400 `assessmentCommentRequired`, `assessmentCommentTooLong`,
+        `approvalRecommendationRequiresEligibility`, `proposedAmountNotPositive`,
+        `proposedAmountExceedsRequested`, and `urn:problem-type:belgif:badRequest`
+        when `proposedAmount` is missing for APPROVE or present for REJECT;
+        403 `conflictOfInterest`; 409 `applicationNotSubmitted`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentRequest'
+      responses:
+        '201':
+          description: The recorded assessment
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+    get:
+      tags: [Assessments]
+      operationId: getAssessment
+      summary: Get the assessment of an application
+      description: |
+        Roles: ASSESSOR, DECISION_MAKER. Applicants never see the assessment.
+        404 until the application is assessed.
+      responses:
+        '200':
+          description: The assessment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
+  /applications/{applicationId}/decision:
+    parameters:
+      - $ref: '#/components/parameters/ApplicationId'
+    post:
+      tags: [Decisions]
+      operationId: decideApplication
+      summary: Approve or reject an assessed application
+      description: |
+        Role: DECISION_MAKER, who may be neither the applicant nor the assessor.
+        An approval commits the granted amount to the funding call's budget.
+
+        Problems: 400 `motivationRequired`, `motivationTooLong`,
+        `ineligibleApplicationCannotBeApproved`, `grantedAmountNotPositive`,
+        `grantedAmountExceedsRequested`, `grantExceedsRemainingBudget`, and
+        `urn:problem-type:belgif:badRequest` when `grantedAmount` or
+        `rejectionGround` doesn't match the outcome; 403 `conflictOfInterest`,
+        `separationOfDuties`; 409 `applicationNotAssessed`, `concurrentUpdate`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionRequest'
+      responses:
+        '201':
+          description: The decision
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Decision'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+    get:
+      tags: [Decisions]
+      operationId: getDecision
+      summary: Get the decision on an application
+      description: |
+        Roles: any, for an application the caller may see. 404 until it's decided.
+      responses:
+        '200':
+          description: The decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Decision'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
 
 components:
   securitySchemes:
@@ -42,16 +622,162 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
+  parameters:
+    FundingCallId:
+      name: fundingCallId
+      in: path
+      required: true
+      description: The funding call's id
+      schema:
+        type: string
+        format: uuid
+    OrganisationId:
+      name: organisationId
+      in: path
+      required: true
+      description: The organisation's id
+      schema:
+        type: string
+        format: uuid
+    ApplicationId:
+      name: applicationId
+      in: path
+      required: true
+      description: The application's id
+      schema:
+        type: string
+        format: uuid
+    DocumentId:
+      name: documentId
+      in: path
+      required: true
+      description: The document's id
+      schema:
+        type: string
+        format: uuid
+    EnterpriseNumber:
+      name: enterpriseNumber
+      in: query
+      required: true
+      description: |
+        The Belgian enterprise number (KBO/BCE). Dots, spaces and a leading BE
+        are accepted.
+      schema:
+        type: string
+        maxLength: 20
+        example: '0123.456.749'
+    StatusFilter:
+      name: status
+      in: query
+      required: false
+      description: Only applications in this status
+      schema:
+        $ref: '#/components/schemas/ApplicationStatus'
+    FundingCallFilter:
+      name: fundingCallId
+      in: query
+      required: false
+      description: Only applications to this funding call
+      schema:
+        type: string
+        format: uuid
+    Page:
+      name: page
+      in: query
+      required: false
+      description: The page to return, starting at 1
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: The maximum number of items per page
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  headers:
+    Location:
+      description: The URI of the created resource
+      schema:
+        type: string
+        format: uri
+
   responses:
-    Unauthorized:
-      description: Missing or invalid access token
+    BadRequest:
+      description: |
+        The request is invalid: `urn:problem-type:belgif:badRequest` with an
+        `issues` entry per invalid input, or a business problem listed on the operation
       content:
         application/problem+json:
           schema:
-            $ref: '#/components/schemas/Problem'
+            $ref: './belgif/problem/v1/problem-v1.yaml#/components/schemas/InputValidationProblem'
+    Unauthorized:
+      description: |
+        No valid access token: `urn:problem-type:belgif:noAccessToken` or
+        `urn:problem-type:belgif:invalidAccessToken`
+      content:
+        application/problem+json:
+          schema:
+            $ref: './belgif/problem/v1/problem-v1.yaml#/components/schemas/Problem'
+    Forbidden:
+      description: |
+        The caller lacks the role (`urn:problem-type:belgif:missingPermission`), or a
+        business problem listed on the operation
+      content:
+        application/problem+json:
+          schema:
+            $ref: './belgif/problem/v1/problem-v1.yaml#/components/schemas/Problem'
+    NotFound:
+      description: |
+        `urn:problem-type:belgif:resourceNotFound`: it doesn't exist, or the caller
+        may not see it
+      content:
+        application/problem+json:
+          schema:
+            $ref: './belgif/problem/v1/problem-v1.yaml#/components/schemas/Problem'
+    Conflict:
+      description: Not allowed in the current state, see the business problems listed on the operation
+      content:
+        application/problem+json:
+          schema:
+            $ref: './belgif/problem/v1/problem-v1.yaml#/components/schemas/Problem'
+    PayloadTooLarge:
+      description: '`urn:problem-type:belgif:payloadTooLarge`: the request is too large'
+      content:
+        application/problem+json:
+          schema:
+            $ref: './belgif/problem/v1/problem-v1.yaml#/components/schemas/Problem'
+    DefaultProblem:
+      $ref: './belgif/problem/v1/problem-v1.yaml#/components/responses/ProblemResponse'
 
   schemas:
+    Amount:
+      description: An amount in euros, with at most two decimals
+      type: number
+      example: 8000.00
+
+    LocalizedText:
+      description: A text in Dutch and French
+      type: object
+      required: [nl, fr]
+      properties:
+        nl:
+          type: string
+          example: Buurtprojecten 2026
+        fr:
+          type: string
+          example: Projets de quartier 2026
+
     FundingCall:
+      description: A time-boxed call for projects with a fixed budget
       type: object
       required: [id, reference, title, opensAt, closesAt, maxAmountPerApplication, remainingBudget]
       properties:
@@ -70,34 +796,351 @@ components:
           type: string
           format: date-time
         maxAmountPerApplication:
-          type: number
-          example: 15000.00
+          $ref: '#/components/schemas/Amount'
         remainingBudget:
-          type: number
-          example: 20000.00
+          $ref: '#/components/schemas/Amount'
 
-    LocalizedText:
+    FundingCallCollection:
+      description: A list of funding calls
       type: object
-      required: [nl, fr]
+      required: [items]
       properties:
-        nl:
-          type: string
-          example: Buurtprojecten 2026
-        fr:
-          type: string
-          example: Projets de quartier 2026
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FundingCall'
 
-    Problem:
-      description: Error details as defined by RFC 9457
+    LegalForm:
+      description: The legal form of an organisation
+      type: string
+      enum: [VZW_ASBL, IVZW_AISBL, FOUNDATION, COMPANY, PUBLIC_BODY]
+
+    Organisation:
+      description: An organisation that can apply for grants
       type: object
+      required: [id, enterpriseNumber, name, legalForm]
       properties:
-        type:
+        id:
           type: string
+          format: uuid
+        enterpriseNumber:
+          description: The enterprise number, as 10 digits
+          type: string
+          example: '0123456749'
+        name:
+          type: string
+          example: Buurtwerk vzw
+        legalForm:
+          $ref: '#/components/schemas/LegalForm'
+
+    OrganisationCollection:
+      description: A list of organisations
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Organisation'
+
+    RegisterOrganisationRequest:
+      description: The organisation to register
+      type: object
+      required: [enterpriseNumber, name, legalForm]
+      properties:
+        enterpriseNumber:
+          description: The enterprise number. Dots, spaces and a leading BE are accepted.
+          type: string
+          maxLength: 20
+          example: '0123.456.749'
+        name:
+          description: At most 200 characters, leading and trailing spaces removed
+          type: string
+          maxLength: 200
+          example: Buurtwerk vzw
+        legalForm:
+          $ref: '#/components/schemas/LegalForm'
+
+    Language:
+      description: The language the project is described in
+      type: string
+      enum: [NL, FR]
+
+    ProjectProposal:
+      description: |
+        What the organisation proposes to do and how much it asks. Text is measured
+        after removing leading and trailing spaces.
+
+        Problems: 400 `projectTitleRequired`, `projectTitleTooLong`,
+        `projectDescriptionRequired`, `projectDescriptionTooLong`,
+        `requestedAmountNotPositive`, `requestedAmountExceedsProjectBudget`.
+      type: object
+      required: [title, description, requestedAmount, totalProjectBudget, language]
+      properties:
         title:
           type: string
-        status:
+          maxLength: 200
+          example: Samen tuinieren in de wijk
+        description:
+          type: string
+          maxLength: 10000
+          example: Een gedeelde moestuin voor de buurtbewoners.
+        requestedAmount:
+          $ref: '#/components/schemas/Amount'
+        totalProjectBudget:
+          $ref: '#/components/schemas/Amount'
+        language:
+          $ref: '#/components/schemas/Language'
+
+    CreateApplicationRequest:
+      description: The draft to create
+      type: object
+      required: [fundingCallId, organisationId, proposal]
+      properties:
+        fundingCallId:
+          type: string
+          format: uuid
+        organisationId:
+          type: string
+          format: uuid
+        proposal:
+          $ref: '#/components/schemas/ProjectProposal'
+
+    ApplicationStatus:
+      description: Where an application is in its lifecycle
+      type: string
+      enum: [DRAFT, SUBMITTED, ASSESSED, APPROVED, REJECTED]
+
+    SupportingDocument:
+      description: A PDF document attached to an application
+      type: object
+      required: [id, fileName, sizeInBytes, uploadedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+          example: begroting.pdf
+        sizeInBytes:
           type: integer
-        detail:
+          format: int64
+          example: 245760
+        uploadedAt:
           type: string
-        instance:
+          format: date-time
+
+    AttachDocumentRequest:
+      description: The document to attach, as a multipart upload
+      type: object
+      required: [file]
+      properties:
+        file:
+          description: A PDF file of at most 10 MiB
           type: string
+          format: binary
+
+    Application:
+      description: A grant application
+      type: object
+      required: [id, reference, fundingCallId, organisationId, status, proposal, documents, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        reference:
+          description: The human-readable reference
+          type: string
+          example: CG-2026-000042
+        fundingCallId:
+          type: string
+          format: uuid
+        organisationId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/ApplicationStatus'
+        proposal:
+          $ref: '#/components/schemas/ProjectProposal'
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportingDocument'
+        submittedAt:
+          description: Absent while the application is a draft
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ApplicationSummary:
+      description: The main facts of an application, for lists
+      type: object
+      required: [id, reference, fundingCallId, organisationId, status, projectTitle, requestedAmount, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        reference:
+          type: string
+          example: CG-2026-000042
+        fundingCallId:
+          type: string
+          format: uuid
+        organisationId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/ApplicationStatus'
+        projectTitle:
+          type: string
+          example: Samen tuinieren in de wijk
+        requestedAmount:
+          $ref: '#/components/schemas/Amount'
+        submittedAt:
+          description: Absent while the application is a draft
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ApplicationPage:
+      description: One page of applications
+      type: object
+      required: [items, page, pageSize, total, self]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationSummary'
+        page:
+          description: The index of this page, starting at 1
+          type: integer
+          format: int32
+          example: 1
+        pageSize:
+          description: The maximum number of items per page
+          type: integer
+          format: int32
+          example: 20
+        total:
+          description: The number of matching applications, across all pages
+          type: integer
+          format: int64
+          example: 42
+        self:
+          description: This page
+          type: string
+          format: uri
+        next:
+          description: The next page, absent on the last page
+          type: string
+          format: uri
+        prev:
+          description: The previous page, absent on the first page
+          type: string
+          format: uri
+
+    Submission:
+      description: The submission of an application
+      type: object
+      required: [submittedAt]
+      properties:
+        submittedAt:
+          type: string
+          format: date-time
+
+    Recommendation:
+      description: The assessor's recommendation
+      type: string
+      enum: [APPROVE, REJECT]
+
+    AssessmentRequest:
+      description: |
+        The assessment to record. `proposedAmount` is required when recommending
+        APPROVE and must be absent for REJECT.
+      type: object
+      required: [eligible, recommendation, comment]
+      properties:
+        eligible:
+          description: Whether the application meets the call's eligibility criteria
+          type: boolean
+        recommendation:
+          $ref: '#/components/schemas/Recommendation'
+        proposedAmount:
+          $ref: '#/components/schemas/Amount'
+        comment:
+          description: At most 4000 characters
+          type: string
+          maxLength: 4000
+          example: Sterk buurtproject met een realistische begroting.
+
+    Assessment:
+      description: The assessment of an application. `proposedAmount` is present when the recommendation is APPROVE.
+      type: object
+      required: [eligible, recommendation, comment, assessedAt]
+      properties:
+        eligible:
+          type: boolean
+        recommendation:
+          $ref: '#/components/schemas/Recommendation'
+        proposedAmount:
+          $ref: '#/components/schemas/Amount'
+        comment:
+          type: string
+        assessedAt:
+          type: string
+          format: date-time
+
+    DecisionOutcome:
+      description: The outcome of a decision
+      type: string
+      enum: [APPROVED, REJECTED]
+
+    RejectionGround:
+      description: The formal ground of a rejection
+      type: string
+      enum: [INELIGIBLE, BUDGET_EXHAUSTED, INCOMPLETE, INSUFFICIENT_QUALITY]
+
+    DecisionRequest:
+      description: |
+        The decision to take. `grantedAmount` is required for APPROVED and
+        `rejectionGround` for REJECTED; the other one must be absent.
+      type: object
+      required: [outcome, motivation]
+      properties:
+        outcome:
+          $ref: '#/components/schemas/DecisionOutcome'
+        grantedAmount:
+          $ref: '#/components/schemas/Amount'
+        rejectionGround:
+          $ref: '#/components/schemas/RejectionGround'
+        motivation:
+          description: The written motivation Belgian administrative law requires, at most 4000 characters
+          type: string
+          maxLength: 4000
+          example: Het project versterkt de buurt en de begroting is onderbouwd.
+
+    Decision:
+      description: |
+        The decision on an application. `grantedAmount` is present when APPROVED,
+        `rejectionGround` when REJECTED.
+      type: object
+      required: [outcome, motivation, decidedAt]
+      properties:
+        outcome:
+          $ref: '#/components/schemas/DecisionOutcome'
+        grantedAmount:
+          $ref: '#/components/schemas/Amount'
+        rejectionGround:
+          $ref: '#/components/schemas/RejectionGround'
+        motivation:
+          type: string
+        decidedAt:
+          type: string
+          format: date-time
