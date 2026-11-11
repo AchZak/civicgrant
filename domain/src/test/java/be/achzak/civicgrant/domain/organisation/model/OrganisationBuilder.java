@@ -5,6 +5,7 @@ import java.time.Instant;
 public final class OrganisationBuilder {
 
     private OrganisationId id = OrganisationId.generate();
+    private EnterpriseNumber enterpriseNumber = new EnterpriseNumber("0123456749");
     private LegalForm legalForm = LegalForm.VZW_ASBL;
 
     private OrganisationBuilder() {}
@@ -18,6 +19,11 @@ public final class OrganisationBuilder {
         return this;
     }
 
+    public OrganisationBuilder withEnterpriseNumber(EnterpriseNumber enterpriseNumber) {
+        this.enterpriseNumber = enterpriseNumber;
+        return this;
+    }
+
     public OrganisationBuilder withLegalForm(LegalForm legalForm) {
         this.legalForm = legalForm;
         return this;
@@ -25,10 +31,6 @@ public final class OrganisationBuilder {
 
     public Organisation build() {
         return Organisation.restore(
-                id,
-                new EnterpriseNumber("0123456749"),
-                "Buurthuis De Linde",
-                legalForm,
-                Instant.parse("2026-01-15T09:00:00Z"));
+                id, enterpriseNumber, "Buurthuis De Linde", legalForm, Instant.parse("2026-01-15T09:00:00Z"));
     }
 }
