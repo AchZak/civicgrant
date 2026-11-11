@@ -1,0 +1,14 @@
+# Same schema settings as starter's application.yaml, which isn't on this module's classpath.
+# validate makes every test fail if an entity doesn't match the Flyway migrations.
+spring:
+  flyway:
+    schemas: civicgrant
+    default-schema: civicgrant
+    create-schemas: true
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: civicgrant
