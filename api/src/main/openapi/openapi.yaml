@@ -9,7 +9,7 @@ info:
 
     Every operation needs a Microsoft Entra ID access token carrying one of the app
     roles APPLICANT, ASSESSOR or DECISION_MAKER. Each operation names the roles it
-    accepts; any other role gets `urn:problem-type:belgif:missingPermission` (403).
+    accepts; any other role gets `urn:problem-type:civicgrant:roleRequired` (403).
 
     Errors are Problem Details (RFC 9457) as defined by Belgif. Standard problems are
     `urn:problem-type:belgif:<name>`; business problems are
@@ -729,7 +729,7 @@ components:
             $ref: './belgif/problem/v1/problem-v1.yaml#/components/schemas/Problem'
     Forbidden:
       description: |
-        The caller lacks the role (`urn:problem-type:belgif:missingPermission`), or a
+        The caller lacks the role (`urn:problem-type:civicgrant:roleRequired`), or a
         business problem listed on the operation
       content:
         application/problem+json:
