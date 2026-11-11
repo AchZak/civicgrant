@@ -22,6 +22,10 @@ public final class Actors {
         return actor("decision-maker-1", Role.DECISION_MAKER);
     }
 
+    public static Actor anActorWithoutRoles() {
+        return actor("no-role-1");
+    }
+
     public static Actor actor(String id, Role... roles) {
         return new Actor(new UserId(id), Set.of(roles));
     }
