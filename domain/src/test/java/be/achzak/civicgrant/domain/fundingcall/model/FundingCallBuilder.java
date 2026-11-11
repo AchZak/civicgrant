@@ -13,6 +13,7 @@ public final class FundingCallBuilder {
     public static final Instant CLOSES_AT = Instant.parse("2026-06-30T22:00:00Z");
 
     private FundingCallId id = FundingCallId.generate();
+    private String reference = "NBH-2026";
     private Instant opensAt = OPENS_AT;
     private Instant closesAt = CLOSES_AT;
     private Money totalBudget = euros("50000.00");
@@ -27,6 +28,11 @@ public final class FundingCallBuilder {
 
     public FundingCallBuilder withId(FundingCallId id) {
         this.id = id;
+        return this;
+    }
+
+    public FundingCallBuilder withReference(String reference) {
+        this.reference = reference;
         return this;
     }
 
@@ -54,7 +60,7 @@ public final class FundingCallBuilder {
     public FundingCall build() {
         return FundingCall.restore(
                 id,
-                "NBH-2026",
+                reference,
                 new LocalizedText("Buurtprojecten 2026", "Projets de quartier 2026"),
                 new SubmissionPeriod(opensAt, closesAt),
                 new BudgetEnvelope(totalBudget, committed, capPerApplication),
