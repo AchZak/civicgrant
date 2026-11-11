@@ -1,5 +1,6 @@
 package be.achzak.civicgrant.api.security;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
 class SecurityConfiguration {
@@ -30,14 +32,21 @@ class SecurityConfiguration {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver)
+            throws Exception {
+        ProblemAuthenticationEntryPoint entryPoint = new ProblemAuthenticationEntryPoint(handlerExceptionResolver);
         return http.authorizeHttpRequests(
                         requests -> requests.requestMatchers("/actuator/health", "/actuator/health/**")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated())
-                .oauth2ResourceServer(
-                        resourceServer -> resourceServer.jwt(jwt -> jwt.jwtAuthenticationConverter(entraConverter())))
+                .oauth2ResourceServer(resourceServer -> resourceServer
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(entraConverter()))
+                        .authenticationEntryPoint(entryPoint))
+                // The resource server's default only covers API-like requests; a browser asking for HTML would fall
+                // through.
+                .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(entryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)

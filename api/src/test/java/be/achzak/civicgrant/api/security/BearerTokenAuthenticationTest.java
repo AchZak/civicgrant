@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -41,7 +42,7 @@ class BearerTokenAuthenticationTest {
     class Rejecting {
 
         @Test
-        @DisplayName("answers 401 with a bearer challenge when the request has no token")
+        @DisplayName("answers 401 noAccessToken with a bearer challenge when the request has no token")
         void answers401WithoutAToken() {
             // when
             MvcTestResult result = mvc.get().uri(ActorProbe.PATH).exchange();
@@ -49,17 +50,37 @@ class BearerTokenAuthenticationTest {
             // then
             assertThat(result)
                     .hasStatus(HttpStatus.UNAUTHORIZED)
+                    .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                     .headers()
                     .hasHeaderSatisfying(
                             HttpHeaders.WWW_AUTHENTICATE,
-                            values -> assertThat(values)
-                                    .singleElement()
-                                    .asString()
-                                    .startsWith("Bearer "));
+                            values -> assertThat(values).singleElement().isEqualTo("Bearer"));
+            assertThat(result)
+                    .bodyJson()
+                    .extractingPath("$.type")
+                    .asString()
+                    .isEqualTo("urn:problem-type:belgif:noAccessToken");
+            assertThat(result).bodyJson().extractingPath("$.status").asNumber().isEqualTo(401);
         }
 
         @Test
-        @DisplayName("answers 401 with invalid_token when the token can't be decoded")
+        @DisplayName("answers 401 noAccessToken to a browser asking for HTML too")
+        void answers401WithoutATokenToABrowser() {
+            // when
+            MvcTestResult result =
+                    mvc.get().uri(ActorProbe.PATH).accept(MediaType.TEXT_HTML).exchange();
+
+            // then
+            assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);
+            assertThat(result)
+                    .bodyJson()
+                    .extractingPath("$.type")
+                    .asString()
+                    .isEqualTo("urn:problem-type:belgif:noAccessToken");
+        }
+
+        @Test
+        @DisplayName("answers 401 invalidAccessToken with invalid_token when the token can't be decoded")
         void answers401ForAnInvalidToken() {
             // given
             given(jwtDecoder.decode("forged")).willThrow(new BadJwtException("Signed by an unknown key"));
@@ -80,6 +101,11 @@ class BearerTokenAuthenticationTest {
                                     .singleElement()
                                     .asString()
                                     .contains("error=\"invalid_token\""));
+            assertThat(result)
+                    .bodyJson()
+                    .extractingPath("$.type")
+                    .asString()
+                    .isEqualTo("urn:problem-type:belgif:invalidAccessToken");
         }
     }
 
