@@ -84,6 +84,8 @@
                             <generateSupportingFiles>false</generateSupportingFiles>
                             <configOptions>
                                 <interfaceOnly>true</interfaceOnly>
+                                <!-- interfaceOnly generates no controller, so the contract's base path (/api/v1) goes on the interfaces -->
+                                <requestMappingMode>api_interface</requestMappingMode>
                                 <useSpringBoot4>true</useSpringBoot4>
                                 <useTags>true</useTags>
                                 <skipDefaultInterface>true</skipDefaultInterface>

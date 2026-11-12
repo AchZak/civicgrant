@@ -55,8 +55,10 @@ class FundingCallControllerTest {
                 .willReturn(List.of(fundingCall));
 
         // when
-        MvcTestResult result =
-                mvc.get().uri("/fundingCalls").with(accessToken(Role.APPLICANT)).exchange();
+        MvcTestResult result = mvc.get()
+                .uri("/api/v1/fundingCalls")
+                .with(accessToken(Role.APPLICANT))
+                .exchange();
 
         // then
         assertThat(result).hasStatusOk();
@@ -103,8 +105,10 @@ class FundingCallControllerTest {
                 .willReturn(List.of());
 
         // when
-        MvcTestResult result =
-                mvc.get().uri("/fundingCalls").with(accessToken(Role.ASSESSOR)).exchange();
+        MvcTestResult result = mvc.get()
+                .uri("/api/v1/fundingCalls")
+                .with(accessToken(Role.ASSESSOR))
+                .exchange();
 
         // then
         assertThat(result).hasStatusOk();
@@ -121,7 +125,7 @@ class FundingCallControllerTest {
 
         // when
         MvcTestResult result = mvc.get()
-                .uri("/fundingCalls/{fundingCallId}", fundingCall.id().value())
+                .uri("/api/v1/fundingCalls/{fundingCallId}", fundingCall.id().value())
                 .with(accessToken(Role.APPLICANT))
                 .exchange();
 
@@ -140,7 +144,7 @@ class FundingCallControllerTest {
 
         // when
         MvcTestResult result = mvc.get()
-                .uri("/fundingCalls/{fundingCallId}", unknown.value())
+                .uri("/api/v1/fundingCalls/{fundingCallId}", unknown.value())
                 .with(accessToken(Role.APPLICANT))
                 .exchange();
 
@@ -162,7 +166,7 @@ class FundingCallControllerTest {
 
         // when
         MvcTestResult result =
-                mvc.get().uri("/fundingCalls").with(accessToken()).exchange();
+                mvc.get().uri("/api/v1/fundingCalls").with(accessToken()).exchange();
 
         // then
         assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
@@ -177,7 +181,7 @@ class FundingCallControllerTest {
     @DisplayName("returns 401 noAccessToken without a token")
     void returns401WithoutAToken() {
         // when
-        MvcTestResult result = mvc.get().uri("/fundingCalls").exchange();
+        MvcTestResult result = mvc.get().uri("/api/v1/fundingCalls").exchange();
 
         // then
         assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);
