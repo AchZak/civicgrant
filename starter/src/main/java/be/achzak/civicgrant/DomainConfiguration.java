@@ -1,6 +1,5 @@
 package be.achzak.civicgrant;
 
-import be.achzak.civicgrant.domain.audit.service.RecordAuditEntryService;
 import java.time.Clock;
 import org.springframework.aop.Advisor;
 import org.springframework.beans.factory.BeanFactory;
@@ -18,8 +17,7 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 @ComponentScan(
         basePackages = "be.achzak.civicgrant.domain",
         useDefaultFilters = false,
-        includeFilters = @Filter(type = FilterType.REGEX, pattern = ".+\\.service\\.[^.]+Service"),
-        excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RecordAuditEntryService.class))
+        includeFilters = @Filter(type = FilterType.REGEX, pattern = ".+\\.service\\.[^.]+Service"))
 class DomainConfiguration {
 
     @Bean

@@ -11,9 +11,11 @@ import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
+import be.achzak.civicgrant.domain.organisation.model.OrganisationRegistered;
 import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationCommand;
 import be.achzak.civicgrant.domain.organisation.port.out.InMemoryOrganisationRepository;
 import be.achzak.civicgrant.domain.shared.Actor;
+import be.achzak.civicgrant.domain.shared.RecordingDomainEventPublisher;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -27,6 +29,8 @@ class RegisterOrganisationServiceTest {
     private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);
     private static final EnterpriseNumber ENTERPRISE_NUMBER = new EnterpriseNumber("0202239951");
 
+    private final RecordingDomainEventPublisher events = new RecordingDomainEventPublisher();
+
     private static RegisterOrganisationCommand registrationBy(Actor actor) {
         return new RegisterOrganisationCommand(ENTERPRISE_NUMBER, "Buurtwerk vzw", LegalForm.VZW_ASBL, actor);
     }
@@ -36,7 +40,7 @@ class RegisterOrganisationServiceTest {
     void savesTheNewOrganisationAndReturnsItsId() {
         // given
         InMemoryOrganisationRepository organisations = new InMemoryOrganisationRepository();
-        RegisterOrganisationService service = new RegisterOrganisationService(organisations, CLOCK);
+        RegisterOrganisationService service = new RegisterOrganisationService(organisations, events, CLOCK);
 
         // when
         OrganisationId id = service.register(registrationBy(anApplicant()));
@@ -53,12 +57,28 @@ class RegisterOrganisationServiceTest {
     }
 
     @Test
+    @DisplayName("publishes the registration, with the actor and the moment")
+    void publishesTheRegistration() {
+        // given
+        RegisterOrganisationService service =
+                new RegisterOrganisationService(new InMemoryOrganisationRepository(), events, CLOCK);
+
+        // when
+        OrganisationId id = service.register(registrationBy(anApplicant()));
+
+        // then
+        assertThat(events.published())
+                .containsExactly(new OrganisationRegistered(
+                        id, ENTERPRISE_NUMBER, anApplicant().id(), NOW));
+    }
+
+    @Test
     @DisplayName("refuses an enterprise number that is already registered")
     void refusesEnterpriseNumberThatIsAlreadyRegistered() {
         // given
         InMemoryOrganisationRepository organisations = new InMemoryOrganisationRepository(
                 anOrganisation().withEnterpriseNumber(ENTERPRISE_NUMBER).build());
-        RegisterOrganisationService service = new RegisterOrganisationService(organisations, CLOCK);
+        RegisterOrganisationService service = new RegisterOrganisationService(organisations, events, CLOCK);
 
         // when
         Throwable thrown = catchThrowable(() -> service.register(registrationBy(anApplicant())));
@@ -68,11 +88,11 @@ class RegisterOrganisationServiceTest {
     }
 
     @Test
-    @DisplayName("refuses an actor without the applicant role, saving nothing")
+    @DisplayName("refuses an actor without the applicant role, saving and publishing nothing")
     void refusesActorWithoutTheApplicantRole() {
         // given
         InMemoryOrganisationRepository organisations = new InMemoryOrganisationRepository();
-        RegisterOrganisationService service = new RegisterOrganisationService(organisations, CLOCK);
+        RegisterOrganisationService service = new RegisterOrganisationService(organisations, events, CLOCK);
 
         // when
         Throwable thrown = catchThrowable(() -> service.register(registrationBy(anAssessor())));
@@ -80,5 +100,6 @@ class RegisterOrganisationServiceTest {
         // then
         assertThatDomainException(thrown).isForbidden().hasCode("ROLE_REQUIRED");
         assertThat(organisations.findByEnterpriseNumber(ENTERPRISE_NUMBER)).isEmpty();
+        assertThat(events.published()).isEmpty();
     }
 }

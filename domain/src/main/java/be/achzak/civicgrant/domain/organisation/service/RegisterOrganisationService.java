@@ -6,6 +6,7 @@ import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationComm
 import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationUseCase;
 import be.achzak.civicgrant.domain.organisation.port.out.OrganisationRepository;
 import be.achzak.civicgrant.domain.shared.ConflictException;
+import be.achzak.civicgrant.domain.shared.DomainEventPublisher;
 import be.achzak.civicgrant.domain.shared.Role;
 import java.time.Clock;
 import java.util.Objects;
@@ -13,10 +14,12 @@ import java.util.Objects;
 public class RegisterOrganisationService implements RegisterOrganisationUseCase {
 
     private final OrganisationRepository organisations;
+    private final DomainEventPublisher events;
     private final Clock clock;
 
-    public RegisterOrganisationService(OrganisationRepository organisations, Clock clock) {
+    public RegisterOrganisationService(OrganisationRepository organisations, DomainEventPublisher events, Clock clock) {
         this.organisations = Objects.requireNonNull(organisations, "organisations");
+        this.events = Objects.requireNonNull(events, "events");
         this.clock = Objects.requireNonNull(clock, "clock");
     }
 
@@ -32,6 +35,7 @@ public class RegisterOrganisationService implements RegisterOrganisationUseCase 
         Organisation organisation = Organisation.create(
                 command.enterpriseNumber(), command.name(), command.legalForm(), command.actor(), clock.instant());
         organisations.save(organisation);
+        events.publish(organisation.pullEvents());
         return organisation.id();
     }
 }
