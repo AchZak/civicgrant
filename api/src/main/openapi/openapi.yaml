@@ -34,7 +34,9 @@ tags:
   - name: Organisations
     description: Organisations that apply for grants, identified by their enterprise number
   - name: Applications
-    description: Grant applications, from draft to submission
+    description: Grant applications and their project proposal
+  - name: Submissions
+    description: The submission of a draft application
   - name: SupportingDocuments
     description: PDF documents attached to a draft application
   - name: Assessments
@@ -308,7 +310,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/ApplicationId'
     post:
-      tags: [Applications]
+      tags: [Submissions]
       operationId: submitApplication
       summary: Submit a draft
       description: |
@@ -341,7 +343,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultProblem'
     get:
-      tags: [Applications]
+      tags: [Submissions]
       operationId: getSubmission
       summary: Get the submission of an application
       description: 'Roles: any, for an application the caller may see. 404 while it''s a draft.'
