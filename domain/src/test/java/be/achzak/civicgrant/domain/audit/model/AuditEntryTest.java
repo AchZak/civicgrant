@@ -19,7 +19,9 @@ import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.grantapplication.model.DocumentRemoved;
 import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
 import be.achzak.civicgrant.domain.grantapplication.model.RejectionGround;
+import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
+import be.achzak.civicgrant.domain.organisation.model.OrganisationRegistered;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
@@ -34,8 +36,8 @@ class AuditEntryTest {
     private static final Instant NOW = Instant.parse("2026-04-15T10:00:00Z");
 
     @Test
-    @DisplayName("keeps the application, the actor and the moment of the event")
-    void keepsTheApplicationTheActorAndTheMoment() {
+    @DisplayName("keeps the application as its subject, the actor and the moment of the event")
+    void keepsTheApplicationAsItsSubjectTheActorAndTheMoment() {
         // given
         ApplicationSubmitted submitted = new ApplicationSubmitted(
                 APPLICATION, euros("8000.00"), anApplicant().id(), NOW);
@@ -44,9 +46,26 @@ class AuditEntryTest {
         AuditEntry entry = AuditEntry.from(submitted);
 
         // then
-        assertThat(entry.applicationId()).isEqualTo(APPLICATION);
+        assertThat(entry.subject()).isEqualTo(new AuditSubject.Application(APPLICATION));
         assertThat(entry.actorId()).isEqualTo(anApplicant().id());
         assertThat(entry.occurredAt()).isEqualTo(NOW);
+    }
+
+    @Test
+    @DisplayName("records a registration on the organisation, with its enterprise number")
+    void recordsRegistrationOnTheOrganisation() {
+        // given
+        OrganisationId organisation = new OrganisationId(UUID.fromString("0f6e1d1c-0003-4000-8000-000000000003"));
+        OrganisationRegistered registered = new OrganisationRegistered(
+                organisation, new EnterpriseNumber("0202239951"), anApplicant().id(), NOW);
+
+        // when
+        AuditEntry entry = AuditEntry.from(registered);
+
+        // then
+        assertThat(entry.subject()).isEqualTo(new AuditSubject.Organisation(organisation));
+        assertThat(entry.action()).isEqualTo(AuditAction.ORGANISATION_REGISTERED);
+        assertThat(entry.details()).isEqualTo(Map.of("enterpriseNumber", "0202239951"));
     }
 
     @Test

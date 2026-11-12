@@ -1,6 +1,7 @@
 package be.achzak.civicgrant.domain.audit.model;
 
 public enum AuditAction {
+    ORGANISATION_REGISTERED,
     APPLICATION_CREATED,
     APPLICATION_EDITED,
     DOCUMENT_ATTACHED,
