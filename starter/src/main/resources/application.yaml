@@ -18,6 +18,9 @@ spring:
     properties:
       hibernate:
         default_schema: civicgrant
+        # Jackson 3, as Spring Boot uses: Hibernate would pick Jackson 2 if it finds both.
+        type:
+          json_format_mapper: jackson3
 
 # On Azure the ingress terminates HTTPS: trust its X-Forwarded-* headers (private addresses only), so links say https.
 server:

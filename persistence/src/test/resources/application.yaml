@@ -12,3 +12,5 @@ spring:
     properties:
       hibernate:
         default_schema: civicgrant
+        type:
+          json_format_mapper: jackson3
