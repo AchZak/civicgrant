@@ -705,10 +705,10 @@ components:
 
   headers:
     Location:
-      description: The URI of the created resource
+      description: The path of the created resource, relative to the server (e.g. `/api/v1/organisations/{id}`)
       schema:
         type: string
-        format: uri
+        format: uri-reference
 
   responses:
     BadRequest:
