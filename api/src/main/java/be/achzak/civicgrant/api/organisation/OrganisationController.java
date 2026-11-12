@@ -44,7 +44,7 @@ class OrganisationController implements OrganisationsApi {
         OrganisationId id = registerOrganisation.register(OrganisationApiMapper.toCommand(request, actor));
         Organisation registered =
                 OrganisationApiMapper.toResource(getOrganisation.get(new GetOrganisationQuery(id, actor)));
-        return ResponseEntity.created(pathOf(id)).body(registered);
+        return ResponseEntity.created(locationOf(id)).body(registered);
     }
 
     @Override
@@ -60,11 +60,10 @@ class OrganisationController implements OrganisationsApi {
         return ResponseEntity.ok(OrganisationApiMapper.toCollection(searchOrganisations.search(query)));
     }
 
-    // Relative, like Belgif's examples: an absolute URL behind the ingress could carry the wrong scheme.
-    private static URI pathOf(OrganisationId id) {
-        return URI.create(ServletUriComponentsBuilder.fromCurrentRequestUri()
+    private static URI locationOf(OrganisationId id) {
+        return ServletUriComponentsBuilder.fromCurrentRequestUri()
                 .path("/{organisationId}")
                 .buildAndExpand(id.value())
-                .getPath());
+                .toUri();
     }
 }

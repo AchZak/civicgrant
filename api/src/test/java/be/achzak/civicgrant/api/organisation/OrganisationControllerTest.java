@@ -67,7 +67,9 @@ class OrganisationControllerTest {
         assertThat(result)
                 .headers()
                 .hasValue(
-                        "Location", "/api/v1/organisations/" + organisation.id().value());
+                        "Location",
+                        "http://localhost/api/v1/organisations/"
+                                + organisation.id().value());
         assertThat(result)
                 .bodyJson()
                 .extractingPath("$.id")

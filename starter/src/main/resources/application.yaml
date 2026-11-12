@@ -18,3 +18,7 @@ spring:
     properties:
       hibernate:
         default_schema: civicgrant
+
+# On Azure the ingress terminates HTTPS: trust its X-Forwarded-* headers (private addresses only), so links say https.
+server:
+  forward-headers-strategy: native
