@@ -6,6 +6,11 @@ spring:
     compose:
       enabled: false
 
+  datasource:
+    hikari:
+      # Every connection works in the app's schema, so native SQL needs no schema prefix.
+      schema: civicgrant
+
   flyway:
     schemas: civicgrant
     default-schema: civicgrant
