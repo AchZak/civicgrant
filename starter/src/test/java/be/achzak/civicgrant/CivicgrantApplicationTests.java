@@ -9,6 +9,8 @@ import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationUseCase;
+import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationCommand;
+import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationUseCase;
 import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
@@ -55,6 +57,9 @@ class CivicgrantApplicationTests {
 
     @Autowired
     private CreateApplicationUseCase createApplication;
+
+    @Autowired
+    private EditApplicationUseCase editApplication;
 
     @Autowired
     private JdbcClient jdbc;
@@ -107,32 +112,38 @@ class CivicgrantApplicationTests {
     void createsANumberedApplicationAndWritesItsAuditEntry() {
         // given
         Actor applicant = new Actor(new UserId("applicant-1"), Set.of(Role.APPLICANT));
-        FundingCallId fundingCall = new FundingCallId(UUID.randomUUID());
-        jdbc.sql("""
-                        INSERT INTO civicgrant.funding_call (id, reference, title_nl, title_fr, opens_at, closes_at,
-                            total_budget, committed_amount, max_amount_per_application, version, created_at)
-                        VALUES (:id, 'NBH-OPEN', 'Buurtprojecten', 'Projets de quartier',
-                            now() - interval '1 day', now() + interval '30 days', 50000.00, 0.00, 15000.00, 0, now())
-                        """).param("id", fundingCall.value()).update();
-        OrganisationId organisation = registerOrganisation.register(new RegisterOrganisationCommand(
-                new EnterpriseNumber("0476543281"), "Speelpleinwerking Zonnebloem", LegalForm.VZW_ASBL, applicant));
-        ProjectProposal proposal = new ProjectProposal(
-                "Speelplein in de zomer",
-                "Vier weken speelpleinwerking voor de kinderen van de wijk.",
-                euros("8000.00"),
-                euros("12000.00"),
-                Language.NL);
+        FundingCallId fundingCall = anOpenFundingCall("NBH-CREATE");
+        OrganisationId organisation = aRegisteredOrganisation("0476543281", "Speelpleinwerking Zonnebloem", applicant);
 
         // when
-        ApplicationId id =
-                createApplication.create(new CreateApplicationCommand(fundingCall, organisation, proposal, applicant));
+        ApplicationId id = createApplication.create(new CreateApplicationCommand(
+                fundingCall, organisation, proposalTitled("Speelplein in de zomer"), applicant));
 
         // then
-        assertThat(jdbc.sql("SELECT event_type FROM civicgrant.audit_event WHERE grant_application_id = :id")
+        assertThat(auditedEventTypesOf(id)).containsExactly("APPLICATION_CREATED");
+    }
+
+    @Test
+    @DisplayName("stores an edited draft and writes its audit entry")
+    void storesAnEditedDraftAndWritesItsAuditEntry() {
+        // given
+        Actor applicant = new Actor(new UserId("applicant-1"), Set.of(Role.APPLICANT));
+        ApplicationId id = createApplication.create(new CreateApplicationCommand(
+                anOpenFundingCall("NBH-EDIT"),
+                aRegisteredOrganisation("0428123455", "Repaircafe De Schroef", applicant),
+                proposalTitled("Repaircafe in het buurthuis"),
+                applicant));
+
+        // when
+        editApplication.edit(new EditApplicationCommand(id, proposalTitled("Repaircafe met fietsherstel"), applicant));
+
+        // then
+        assertThat(jdbc.sql("SELECT project_title FROM civicgrant.grant_application WHERE id = :id")
                         .param("id", id.value())
                         .query(String.class)
-                        .list())
-                .containsExactly("APPLICATION_CREATED");
+                        .single())
+                .isEqualTo("Repaircafe met fietsherstel");
+        assertThat(auditedEventTypesOf(id)).containsExactlyInAnyOrder("APPLICATION_CREATED", "APPLICATION_EDITED");
     }
 
     @Test
@@ -153,5 +164,37 @@ class CivicgrantApplicationTests {
 
         // then
         assertThat(response.body()).contains("\"resource\":\"https://civicgrant.example\"");
+    }
+
+    private FundingCallId anOpenFundingCall(String reference) {
+        FundingCallId id = new FundingCallId(UUID.randomUUID());
+        jdbc.sql("""
+                        INSERT INTO civicgrant.funding_call (id, reference, title_nl, title_fr, opens_at, closes_at,
+                            total_budget, committed_amount, max_amount_per_application, version, created_at)
+                        VALUES (:id, :reference, 'Buurtprojecten', 'Projets de quartier',
+                            now() - interval '1 day', now() + interval '30 days', 50000.00, 0.00, 15000.00, 0, now())
+                        """).param("id", id.value()).param("reference", reference).update();
+        return id;
+    }
+
+    private OrganisationId aRegisteredOrganisation(String enterpriseNumber, String name, Actor applicant) {
+        return registerOrganisation.register(new RegisterOrganisationCommand(
+                new EnterpriseNumber(enterpriseNumber), name, LegalForm.VZW_ASBL, applicant));
+    }
+
+    private static ProjectProposal proposalTitled(String title) {
+        return new ProjectProposal(
+                title,
+                "Vier weken activiteiten voor de buurt, met vrijwilligers uit de wijk.",
+                euros("8000.00"),
+                euros("12000.00"),
+                Language.NL);
+    }
+
+    private List<String> auditedEventTypesOf(ApplicationId id) {
+        return jdbc.sql("SELECT event_type FROM civicgrant.audit_event WHERE grant_application_id = :id")
+                .param("id", id.value())
+                .query(String.class)
+                .list();
     }
 }
