@@ -95,6 +95,8 @@
                                 <annotationLibrary>none</annotationLibrary>
                                 <hideGenerationTimestamp>true</hideGenerationTimestamp>
                                 <dateLibrary>java8</dateLibrary>
+                                <!-- an optional field the contract describes as absent is left out, never written as null -->
+                                <additionalModelTypeAnnotations>@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)</additionalModelTypeAnnotations>
                             </configOptions>
                         </configuration>
                     </execution>
