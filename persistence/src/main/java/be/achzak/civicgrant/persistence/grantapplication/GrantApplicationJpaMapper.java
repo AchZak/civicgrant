@@ -3,6 +3,7 @@ package be.achzak.civicgrant.persistence.grantapplication;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationReference;
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationSnapshot;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
@@ -37,6 +38,19 @@ final class GrantApplicationJpaMapper {
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
                 entity.getVersion()));
+    }
+
+    static ApplicationSummary toSummary(GrantApplicationSummaryRow row) {
+        return new ApplicationSummary(
+                new ApplicationId(row.id()),
+                new ApplicationReference(row.reference()),
+                new FundingCallId(row.fundingCallId()),
+                new OrganisationId(row.organisationId()),
+                row.status(),
+                row.projectTitle(),
+                new Money(row.requestedAmount()),
+                row.submittedAt(),
+                row.updatedAt());
     }
 
     static GrantApplicationJpaEntity toEntity(GrantApplication application) {
