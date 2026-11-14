@@ -82,7 +82,7 @@ jobs:
       #    The cache key is a hash of the pom files: dependencies are downloaded
       #    again only when a pom changes.
       - name: Set up JDK 25
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin  # Eclipse Temurin, the same JDK as the Docker image.
           java-version: '25'
@@ -92,7 +92,7 @@ jobs:
       #    redocly.yaml at the repository root says which file to lint and with which rules.
       #    The image tag must match the lint command in CLAUDE.md.
       - name: Lint API contract
-        uses: docker://redocly/cli:2.72.1
+        uses: docker://redocly/cli:2.78.0
         with:
           args: lint
 
