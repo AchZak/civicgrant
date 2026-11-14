@@ -11,7 +11,6 @@ import be.achzak.civicgrant.domain.shared.ConflictException;
 import be.achzak.civicgrant.domain.shared.ForbiddenException;
 import be.achzak.civicgrant.domain.shared.Money;
 import be.achzak.civicgrant.domain.shared.NotFoundException;
-import be.achzak.civicgrant.domain.shared.Role;
 import be.achzak.civicgrant.domain.shared.UserId;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -277,9 +276,7 @@ public final class GrantApplication {
     }
 
     public boolean isVisibleTo(Actor actor) {
-        Objects.requireNonNull(actor, "actor");
-        boolean staff = actor.hasRole(Role.ASSESSOR) || actor.hasRole(Role.DECISION_MAKER);
-        return applicant.equals(actor.id()) || (staff && status != ApplicationStatus.DRAFT);
+        return ApplicationVisibility.of(actor).allows(applicant, status);
     }
 
     private void ensureActingApplicant(Actor actor) {
