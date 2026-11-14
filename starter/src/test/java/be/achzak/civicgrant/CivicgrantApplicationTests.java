@@ -1,7 +1,14 @@
 package be.achzak.civicgrant;
 
+import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
+import be.achzak.civicgrant.domain.grantapplication.model.Language;
+import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
+import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationCommand;
+import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationUseCase;
 import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
@@ -21,6 +28,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +52,9 @@ class CivicgrantApplicationTests {
 
     @Autowired
     private SearchOrganisationsUseCase searchOrganisations;
+
+    @Autowired
+    private CreateApplicationUseCase createApplication;
 
     @Autowired
     private JdbcClient jdbc;
@@ -89,6 +100,39 @@ class CivicgrantApplicationTests {
                         .query(String.class)
                         .list())
                 .containsExactly("ORGANISATION_REGISTERED");
+    }
+
+    @Test
+    @DisplayName("creates a numbered application and writes its audit entry")
+    void createsANumberedApplicationAndWritesItsAuditEntry() {
+        // given
+        Actor applicant = new Actor(new UserId("applicant-1"), Set.of(Role.APPLICANT));
+        FundingCallId fundingCall = new FundingCallId(UUID.randomUUID());
+        jdbc.sql("""
+                        INSERT INTO civicgrant.funding_call (id, reference, title_nl, title_fr, opens_at, closes_at,
+                            total_budget, committed_amount, max_amount_per_application, version, created_at)
+                        VALUES (:id, 'NBH-OPEN', 'Buurtprojecten', 'Projets de quartier',
+                            now() - interval '1 day', now() + interval '30 days', 50000.00, 0.00, 15000.00, 0, now())
+                        """).param("id", fundingCall.value()).update();
+        OrganisationId organisation = registerOrganisation.register(new RegisterOrganisationCommand(
+                new EnterpriseNumber("0476543281"), "Speelpleinwerking Zonnebloem", LegalForm.VZW_ASBL, applicant));
+        ProjectProposal proposal = new ProjectProposal(
+                "Speelplein in de zomer",
+                "Vier weken speelpleinwerking voor de kinderen van de wijk.",
+                euros("8000.00"),
+                euros("12000.00"),
+                Language.NL);
+
+        // when
+        ApplicationId id =
+                createApplication.create(new CreateApplicationCommand(fundingCall, organisation, proposal, applicant));
+
+        // then
+        assertThat(jdbc.sql("SELECT event_type FROM civicgrant.audit_event WHERE grant_application_id = :id")
+                        .param("id", id.value())
+                        .query(String.class)
+                        .list())
+                .containsExactly("APPLICATION_CREATED");
     }
 
     @Test
