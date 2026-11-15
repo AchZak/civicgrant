@@ -13,7 +13,7 @@
 //   ca-civicgrant-<env>      Container App: the application image, running
 //
 // Everything it builds on already exists, created by shared.bicep: the resource
-// group, the identities, the registry and the database. Their values arrive as
+// group, the identities, the registry, the database and the documents container. Their values arrive as
 // parameters, so whoever deploys this template needs no rights outside the
 // resource group.
 //
@@ -52,6 +52,9 @@ param imageTag string
 @description('Host name of the shared PostgreSQL server.')
 param postgresHost string
 
+@description('Blob endpoint of the shared documents storage account: https://<name>.blob.core.windows.net/.')
+param documentsEndpoint string
+
 @description('Resource id of the identity the application runs with, id-civicgrant-app-<env>.')
 param appIdentityId string
 
@@ -85,6 +88,9 @@ var tags = {
 
 // The environment's database on the shared server, created by shared.bicep.
 var databaseName = 'civicgrant_${environmentName}'
+
+// The environment's container in the shared documents storage, created by shared.bicep.
+var documentsContainer = 'documents-${environmentName}'
 
 // The database role has the identity's name (see infra/bootstrap). The name is the
 // last segment of the identity's resource id.
@@ -170,6 +176,22 @@ var appSettings = [
     // issued for any other application, or for another environment, is rejected.
     name: 'SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_AUDIENCES'
     value: apiClientId
+  }
+  {
+    // Where the supporting documents are stored: civicgrant.documents.endpoint.
+    name: 'CIVICGRANT_DOCUMENTS_ENDPOINT'
+    value: documentsEndpoint
+  }
+  {
+    // The environment's own container in that account: civicgrant.documents.container.
+    name: 'CIVICGRANT_DOCUMENTS_CONTAINER'
+    value: documentsContainer
+  }
+  {
+    // Which identity signs in to Blob Storage: the same managed identity, named by
+    // its client id, as for the database (civicgrant.documents.client-id).
+    name: 'CIVICGRANT_DOCUMENTS_CLIENTID'
+    value: appIdentityClientId
   }
 ]
 

@@ -17,6 +17,10 @@
 //       firewall rule            connections from Azure services are let in
 //       civicgrant_<env>         one database per environment
 //       delete lock              nobody can delete the server by mistake
+//     stcivicgrant<suffix>       storage account for the supporting documents, Entra sign-in only,
+//                                next to the server (postgresLocation)
+//       documents-<env>          one private container per environment, readable by its app only
+//       delete lock              nobody can delete the account by mistake
 //     id-civicgrant-deploy-<env> per environment: GitHub Actions deploys the environment with it
 //       github-environment-<env> federated credential: jobs in the GitHub Environment may log in
 //       role assignment          it may attach the app identity to a Container App
@@ -100,6 +104,13 @@ var tags = {
 
 // The registry repository holding the application image.
 var imageRepository = 'civicgrant'
+
+// Each environment's app identity, by resource id. Computed from the names
+// environment.bicep gives the identities, so the role assignment names seeded with
+// them are known before deployment and what-if can show them.
+var appIdentityIds = [
+  for environmentName in environmentNames: resourceId(subscription().subscriptionId, resourceGroup.name, 'Microsoft.ManagedIdentity/userAssignedIdentities', 'id-civicgrant-app-${environmentName}')
+]
 
 
 // ------------------------------------------------------------
@@ -217,6 +228,29 @@ module environments 'modules/environment.bicep' = [
 ]
 
 
+// 7. The storage account for the supporting documents, with one container per
+//    environment that only the environment's app identity may read and write.
+//    Next to the database: documents are data too, so they live with the shared
+//    resources and outlast any environment.
+module documentsStorage 'modules/documents-storage.bicep' = {
+  scope: resourceGroup
+  params: {
+    // Storage account names allow 24 lowercase letters and digits, no hyphens:
+    // 12 for stcivicgrant, 12 from the same kind of hash as the server's.
+    name: 'stcivicgrant${take(uniqueString(subscription().subscriptionId, postgresLocation), 12)}'
+    location: postgresLocation
+    tags: tags
+    containers: [
+      for (environmentName, i) in environmentNames: {
+        name: 'documents-${environmentName}'
+        writerIdentityId: appIdentityIds[i]
+        writerPrincipalId: environments[i].outputs.appPrincipalId
+      }
+    ]
+  }
+}
+
+
 // ------------------------------------------------------------
 // OUTPUTS
 // Read after deployment with az deployment sub show, and stored as
@@ -230,6 +264,7 @@ output tenantId string = tenant().tenantId                          // AZURE_TEN
 output subscriptionId string = subscription().subscriptionId        // AZURE_SUBSCRIPTION_ID
 output postgresServerName string = postgres.outputs.name            // For az postgres and the bootstrap runbook.
 output postgresHost string = postgres.outputs.host                  // Host of the JDBC URL.
+output documentsEndpoint string = documentsStorage.outputs.blobEndpoint  // DOCUMENTS_ENDPOINT
 
 // Per environment: the deploy identity's client id becomes AZURE_CLIENT_ID of the
 // GitHub Environment; the app identity's values go into the environment template.

@@ -27,6 +27,7 @@ param loadDemoData = true
 param imageTag = readEnvironmentVariable('IMAGE_TAG')
 param registryLoginServer = readEnvironmentVariable('REGISTRY_LOGIN_SERVER')
 param postgresHost = readEnvironmentVariable('POSTGRES_HOST')
+param documentsEndpoint = readEnvironmentVariable('DOCUMENTS_ENDPOINT')
 param appIdentityId = readEnvironmentVariable('APP_IDENTITY_ID')
 param appIdentityClientId = readEnvironmentVariable('APP_IDENTITY_CLIENT_ID')
 param appIdentityPrincipalId = readEnvironmentVariable('APP_IDENTITY_PRINCIPAL_ID')
