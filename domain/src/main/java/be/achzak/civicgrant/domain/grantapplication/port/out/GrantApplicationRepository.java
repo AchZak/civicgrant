@@ -6,12 +6,19 @@ import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationVisibility;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
+import be.achzak.civicgrant.domain.shared.NotFoundException;
 import java.util.Optional;
 import java.util.Set;
 
 public interface GrantApplicationRepository {
 
     Optional<GrantApplication> findById(ApplicationId id);
+
+    default GrantApplication getById(ApplicationId id) {
+        return findById(id)
+                .orElseThrow(() ->
+                        new NotFoundException("APPLICATION_NOT_FOUND", "Application " + id.value() + " not found"));
+    }
 
     void save(GrantApplication application);
 

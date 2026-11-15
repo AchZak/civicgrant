@@ -7,7 +7,6 @@ import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationComma
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.domain.shared.DomainEventPublisher;
-import be.achzak.civicgrant.domain.shared.NotFoundException;
 import be.achzak.civicgrant.domain.shared.Role;
 import java.time.Clock;
 import java.util.Objects;
@@ -34,11 +33,7 @@ public class EditApplicationService implements EditApplicationUseCase {
     public void edit(EditApplicationCommand command) {
         Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.APPLICANT);
-        GrantApplication application = applications
-                .findById(command.applicationId())
-                .orElseThrow(() -> new NotFoundException(
-                        "APPLICATION_NOT_FOUND",
-                        "Application " + command.applicationId().value() + " not found"));
+        GrantApplication application = applications.getById(command.applicationId());
         // The foreign key guarantees the call exists, so a missing one is a bug.
         FundingCall fundingCall =
                 fundingCalls.findById(application.fundingCallId()).orElseThrow();
