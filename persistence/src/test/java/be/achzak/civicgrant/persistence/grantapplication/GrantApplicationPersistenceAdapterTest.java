@@ -8,10 +8,12 @@ import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationReference;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
+import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationSnapshot;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
+import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
 import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
@@ -50,6 +52,18 @@ class GrantApplicationPersistenceAdapterTest {
             euros("8000.00"),
             euros("12000.00"),
             Language.FR);
+    private static final SupportingDocument BUDGET = new SupportingDocument(
+            new DocumentId(UUID.fromString("5a7e2c10-0004-4000-8000-000000000004")),
+            "begroting.pdf",
+            245_760,
+            new UserId("applicant-1"),
+            CREATED_AT);
+    private static final SupportingDocument STATUTES = new SupportingDocument(
+            new DocumentId(UUID.fromString("5a7e2c10-0005-4000-8000-000000000005")),
+            "statuten.pdf",
+            102_400,
+            new UserId("applicant-1"),
+            LATER);
     private static final ProjectProposal EDITED_PROPOSAL = new ProjectProposal(
             "Jardin de quartier",
             "Un potager partagé, avec un compost collectif.",
@@ -166,12 +180,83 @@ class GrantApplicationPersistenceAdapterTest {
                         conflict -> assertThat(conflict.code()).isEqualTo("CONCURRENT_UPDATE"));
     }
 
+    @Test
+    @DisplayName("saves the documents of an application and loads them back in upload order")
+    void savesTheDocumentsOfAnApplicationAndLoadsThemBack() {
+        // given
+        GrantApplication application = draftWith(List.of(STATUTES, BUDGET), 0);
+        applications.save(application);
+        entityManager.clear();
+
+        // when
+        Optional<GrantApplication> loaded = applications.findById(APPLICATION_ID);
+
+        // then
+        assertThat(loaded).get().extracting(GrantApplication::documents).isEqualTo(List.of(BUDGET, STATUTES));
+    }
+
+    @Test
+    @DisplayName("stores each document under a blob name made of ids only, as a PDF")
+    void storesEachDocumentUnderABlobNameMadeOfIdsOnlyAsAPdf() {
+        // when
+        applications.save(draftWith(List.of(BUDGET), 0));
+
+        // then
+        List<String> stored = jdbc.sql("""
+                        SELECT blob_name || ' ' || content_type FROM civicgrant.supporting_document
+                        WHERE grant_application_id = :id
+                        """)
+                .param("id", APPLICATION_ID.value())
+                .query(String.class)
+                .list();
+        assertThat(stored)
+                .containsExactly("applications/" + APPLICATION_ID.value() + "/"
+                        + BUDGET.id().value() + ".pdf application/pdf");
+    }
+
+    @Test
+    @DisplayName("deletes the row of a document removed from the application")
+    void deletesTheRowOfADocumentRemovedFromTheApplication() {
+        // given
+        applications.save(draftWith(List.of(BUDGET, STATUTES), 0));
+        entityManager.clear();
+
+        // when
+        applications.save(draftWith(List.of(BUDGET), 0));
+
+        // then
+        entityManager.clear();
+        assertThat(applications.findById(APPLICATION_ID))
+                .get()
+                .extracting(GrantApplication::documents)
+                .isEqualTo(List.of(BUDGET));
+        assertThat(jdbc.sql("SELECT count(*) FROM civicgrant.supporting_document WHERE grant_application_id = :id")
+                        .param("id", APPLICATION_ID.value())
+                        .query(Long.class)
+                        .single())
+                .isEqualTo(1L);
+    }
+
     private static GrantApplication draft(ProjectProposal proposal, Instant updatedAt, long version) {
-        return application(proposal, ApplicationStatus.DRAFT, null, updatedAt, version);
+        return application(proposal, ApplicationStatus.DRAFT, null, updatedAt, version, List.of());
+    }
+
+    private static GrantApplication draftWith(List<SupportingDocument> documents, long version) {
+        return application(PROPOSAL, ApplicationStatus.DRAFT, null, LATER, version, documents);
     }
 
     private static GrantApplication application(
             ProjectProposal proposal, ApplicationStatus status, Instant submittedAt, Instant updatedAt, long version) {
+        return application(proposal, status, submittedAt, updatedAt, version, List.of());
+    }
+
+    private static GrantApplication application(
+            ProjectProposal proposal,
+            ApplicationStatus status,
+            Instant submittedAt,
+            Instant updatedAt,
+            long version,
+            List<SupportingDocument> documents) {
         return GrantApplication.restore(new GrantApplicationSnapshot(
                 APPLICATION_ID,
                 new ApplicationReference("CG-2026-000001"),
@@ -179,7 +264,7 @@ class GrantApplicationPersistenceAdapterTest {
                 ORGANISATION_ID,
                 new UserId("applicant-1"),
                 proposal,
-                List.of(),
+                documents,
                 status,
                 submittedAt,
                 null,

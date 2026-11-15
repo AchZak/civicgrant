@@ -2,14 +2,20 @@ package be.achzak.civicgrant.persistence.grantapplication;
 
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -60,6 +66,11 @@ class GrantApplicationJpaEntity {
 
     @Setter(AccessLevel.PACKAGE)
     private Instant updatedAt;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "grant_application_id", nullable = false, updatable = false)
+    @OrderBy("uploadedAt, id")
+    private List<SupportingDocumentJpaEntity> documents = new ArrayList<>();
 
     GrantApplicationJpaEntity(
             UUID id,

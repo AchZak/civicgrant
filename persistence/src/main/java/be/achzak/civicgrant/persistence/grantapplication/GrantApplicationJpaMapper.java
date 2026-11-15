@@ -4,20 +4,24 @@ import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationReference;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
+import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationSnapshot;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
+import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.Money;
 import be.achzak.civicgrant.domain.shared.UserId;
-import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 final class GrantApplicationJpaMapper {
 
     private GrantApplicationJpaMapper() {}
 
     static GrantApplication toDomain(GrantApplicationJpaEntity entity) {
-        // Documents, the assessment and the decision live in their own tables, not mapped yet.
+        // The assessment and the decision live in their own tables, not mapped yet.
         return GrantApplication.restore(new GrantApplicationSnapshot(
                 new ApplicationId(entity.getId()),
                 new ApplicationReference(entity.getReference()),
@@ -30,7 +34,9 @@ final class GrantApplicationJpaMapper {
                         new Money(entity.getRequestedAmount()),
                         new Money(entity.getTotalProjectBudget()),
                         entity.getLanguage()),
-                List.of(),
+                entity.getDocuments().stream()
+                        .map(GrantApplicationJpaMapper::toDomain)
+                        .toList(),
                 entity.getStatus(),
                 entity.getSubmittedAt(),
                 null,
@@ -75,5 +81,40 @@ final class GrantApplicationJpaMapper {
         entity.setStatus(application.status());
         entity.setSubmittedAt(application.submittedAt().orElse(null));
         entity.setUpdatedAt(application.updatedAt());
+        updateDocuments(entity, application);
+    }
+
+    private static void updateDocuments(GrantApplicationJpaEntity entity, GrantApplication application) {
+        Set<UUID> kept = application.documents().stream()
+                .map(document -> document.id().value())
+                .collect(Collectors.toSet());
+        entity.getDocuments().removeIf(stored -> !kept.contains(stored.getId()));
+        Set<UUID> stored = entity.getDocuments().stream()
+                .map(SupportingDocumentJpaEntity::getId)
+                .collect(Collectors.toSet());
+        application.documents().stream()
+                .filter(document -> !stored.contains(document.id().value()))
+                .map(document -> toEntity(application.id(), document))
+                .forEach(entity.getDocuments()::add);
+    }
+
+    private static SupportingDocumentJpaEntity toEntity(ApplicationId applicationId, SupportingDocument document) {
+        return new SupportingDocumentJpaEntity(
+                document.id().value(),
+                DocumentBlobNames.of(applicationId, document.id()),
+                document.fileName(),
+                SupportingDocument.CONTENT_TYPE,
+                document.sizeInBytes(),
+                document.uploadedBy().value(),
+                document.uploadedAt());
+    }
+
+    private static SupportingDocument toDomain(SupportingDocumentJpaEntity entity) {
+        return new SupportingDocument(
+                new DocumentId(entity.getId()),
+                entity.getOriginalFilename(),
+                entity.getSizeBytes(),
+                new UserId(entity.getUploadedByOid()),
+                entity.getUploadedAt());
     }
 }
