@@ -1,14 +1,17 @@
 # ============================================================
-# LOCAL DEVELOPMENT DATABASE
+# LOCAL DEVELOPMENT DATABASE AND DOCUMENT STORAGE
 # ============================================================
 #
-# Starts PostgreSQL 18 in Docker for development on your machine. Nothing here
-# is used in Azure, where the application uses Azure Database for PostgreSQL.
+# Starts PostgreSQL 18 and Azurite, Microsoft's Blob Storage emulator, in Docker
+# for development on your machine. Nothing here is used in Azure, where the
+# application uses Azure Database for PostgreSQL and a Blob Storage account.
 #
 # Started automatically: the "local" profile (application-local.yaml) turns on
 # Spring Boot's Docker Compose support, which runs "docker compose up" when the
 # application starts and reads this file to connect to the database. No
 # datasource URL or password is configured anywhere else for local runs.
+# Spring Boot has no connection details for Azurite, so application-local.yaml
+# names it with the emulator's published connection string.
 #
 # Started by hand:
 #   docker compose up -d       start in the background
@@ -58,6 +61,26 @@ services:
       timeout: 3s
       retries: 10
 
-# Declares the named volume used above. Docker creates it on first use.
+  # The service name, "azurite", is also its hostname on the project network.
+  azurite:
+    # Microsoft's emulator, the same version the tests run.
+    image: mcr.microsoft.com/azure-storage/azurite:3.37.0
+
+    # Only the Blob service: the application uses no queues or tables. Listen on
+    # every interface inside the container, and keep the data in /data.
+    # --skipApiVersionCheck: the Azure SDK speaks a newer Blob API version than
+    # this Azurite release knows, and Azurite would refuse every request.
+    command: ["azurite-blob", "--blobHost", "0.0.0.0", "--location", "/data", "--skipApiVersionCheck"]
+
+    # Blob endpoint at localhost:10000, again only from your machine.
+    ports:
+      - "127.0.0.1:10000:10000"
+
+    # The uploaded documents survive restarts, like the database.
+    volumes:
+      - azurite_data:/data
+
+# Declares the named volumes used above. Docker creates them on first use.
 volumes:
   postgres_data:
+  azurite_data:
