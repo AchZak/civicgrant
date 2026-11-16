@@ -7,6 +7,7 @@ import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicatio
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.aSupportingDocument;
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.anApprovedApplication;
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.anAssessedApplication;
+import static be.achzak.civicgrant.domain.grantapplication.model.PdfFiles.aPdf;
 import static be.achzak.civicgrant.domain.grantapplication.model.ProjectProposalBuilder.aProjectProposal;
 import static be.achzak.civicgrant.domain.shared.Actors.aDecisionMaker;
 import static be.achzak.civicgrant.domain.shared.Actors.anApplicant;
@@ -44,7 +45,7 @@ class GrantApplicationLifecycleTest {
                 ApplicationStatus.DRAFT,
                 ApplicationStatus.DRAFT,
                 application -> application.attachDocument(
-                        "offerte.pdf", SupportingDocument.CONTENT_TYPE, 1024, CALL, anApplicant(), NOW)),
+                        "offerte.pdf", SupportingDocument.CONTENT_TYPE, aPdf(), CALL, anApplicant(), NOW)),
         REMOVE_DOCUMENT(
                 ApplicationStatus.DRAFT,
                 ApplicationStatus.DRAFT,

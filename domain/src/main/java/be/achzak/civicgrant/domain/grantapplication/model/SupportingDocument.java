@@ -2,7 +2,9 @@ package be.achzak.civicgrant.domain.grantapplication.model;
 
 import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import be.achzak.civicgrant.domain.shared.UserId;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Objects;
 
 public record SupportingDocument(
@@ -12,6 +14,8 @@ public record SupportingDocument(
     public static final long MAX_SIZE_IN_BYTES = 10L * 1024 * 1024;
     public static final int MAX_FILE_NAME_LENGTH = 255;
 
+    private static final byte[] PDF_SIGNATURE = "%PDF-".getBytes(StandardCharsets.US_ASCII);
+
     public SupportingDocument {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(fileName, "fileName");
@@ -20,23 +24,33 @@ public record SupportingDocument(
     }
 
     static SupportingDocument upload(
-            String fileName, String declaredContentType, long sizeInBytes, UserId uploadedBy, Instant uploadedAt) {
+            String fileName, String declaredContentType, byte[] content, UserId uploadedBy, Instant uploadedAt) {
         Objects.requireNonNull(fileName, "fileName");
         Objects.requireNonNull(declaredContentType, "declaredContentType");
+        Objects.requireNonNull(content, "content");
         String validFileName = validFileName(fileName);
         if (!CONTENT_TYPE.equalsIgnoreCase(declaredContentType.strip())) {
             throw new BusinessRuleViolationException(
                     "DOCUMENT_NOT_PDF", "Only PDF documents are accepted, not " + declaredContentType);
         }
-        if (sizeInBytes <= 0) {
+        if (content.length == 0) {
             throw new BusinessRuleViolationException("DOCUMENT_EMPTY", "Document " + validFileName + " is empty");
         }
-        if (sizeInBytes > MAX_SIZE_IN_BYTES) {
+        if (content.length > MAX_SIZE_IN_BYTES) {
             throw new BusinessRuleViolationException(
                     "DOCUMENT_TOO_LARGE",
-                    "Document " + validFileName + " has " + sizeInBytes + " bytes, more than " + MAX_SIZE_IN_BYTES);
+                    "Document " + validFileName + " has " + content.length + " bytes, more than " + MAX_SIZE_IN_BYTES);
         }
-        return new SupportingDocument(DocumentId.generate(), validFileName, sizeInBytes, uploadedBy, uploadedAt);
+        if (!startsWithPdfSignature(content)) {
+            throw new BusinessRuleViolationException(
+                    "DOCUMENT_NOT_PDF", "Document " + validFileName + " doesn't start with the PDF signature %PDF-");
+        }
+        return new SupportingDocument(DocumentId.generate(), validFileName, content.length, uploadedBy, uploadedAt);
+    }
+
+    private static boolean startsWithPdfSignature(byte[] content) {
+        return content.length >= PDF_SIGNATURE.length
+                && Arrays.equals(content, 0, PDF_SIGNATURE.length, PDF_SIGNATURE, 0, PDF_SIGNATURE.length);
     }
 
     private static String validFileName(String fileName) {

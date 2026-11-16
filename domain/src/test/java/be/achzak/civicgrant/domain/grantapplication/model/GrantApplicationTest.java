@@ -10,6 +10,7 @@ import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicatio
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.aSupportingDocument;
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.anApprovedApplication;
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationBuilder.anAssessedApplication;
+import static be.achzak.civicgrant.domain.grantapplication.model.PdfFiles.aPdf;
 import static be.achzak.civicgrant.domain.grantapplication.model.ProjectProposalBuilder.aProjectProposal;
 import static be.achzak.civicgrant.domain.organisation.model.OrganisationBuilder.anOrganisation;
 import static be.achzak.civicgrant.domain.shared.Actors.aDecisionMaker;
@@ -252,7 +253,7 @@ class GrantApplicationTest {
 
             // when
             SupportingDocument document =
-                    application.attachDocument("begroting.pdf", PDF, 245_760, call, anApplicant(), NOW);
+                    application.attachDocument("begroting.pdf", PDF, aPdf(), call, anApplicant(), NOW);
 
             // then
             assertThat(application.documents()).containsExactly(document);
@@ -270,7 +271,7 @@ class GrantApplicationTest {
 
             // when
             SupportingDocument document =
-                    application.attachDocument("begroting.pdf", PDF, 245_760, call, anApplicant(), NOW);
+                    application.attachDocument("begroting.pdf", PDF, aPdf(), call, anApplicant(), NOW);
 
             // then
             assertThat(application.pullEvents())
@@ -287,7 +288,7 @@ class GrantApplicationTest {
 
             // when
             Throwable thrown = catchThrowable(
-                    () -> application.attachDocument("foto.png", "image/png", 1024, call, anApplicant(), NOW));
+                    () -> application.attachDocument("foto.png", "image/png", aPdf(), call, anApplicant(), NOW));
 
             // then
             assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("DOCUMENT_NOT_PDF");
@@ -303,7 +304,7 @@ class GrantApplicationTest {
 
             // when
             Throwable thrown = catchThrowable(
-                    () -> application.attachDocument("begroting.pdf", PDF, 245_760, call, anApplicant(), NOW));
+                    () -> application.attachDocument("begroting.pdf", PDF, aPdf(), call, anApplicant(), NOW));
 
             // then
             assertThatDomainException(thrown).isConflict().hasCode("APPLICATION_NOT_DRAFT");
@@ -317,7 +318,7 @@ class GrantApplicationTest {
 
             // when
             Throwable thrown = catchThrowable(
-                    () -> application.attachDocument("begroting.pdf", PDF, 245_760, call, anApplicant(), CLOSES_AT));
+                    () -> application.attachDocument("begroting.pdf", PDF, aPdf(), call, anApplicant(), CLOSES_AT));
 
             // then
             assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("FUNDING_CALL_CLOSED");

@@ -115,12 +115,13 @@ public final class GrantApplication {
     public SupportingDocument attachDocument(
             String fileName,
             String declaredContentType,
-            long sizeInBytes,
+            byte[] content,
             FundingCall fundingCall,
             Actor actor,
             Instant now) {
         Objects.requireNonNull(fileName, "fileName");
         Objects.requireNonNull(declaredContentType, "declaredContentType");
+        Objects.requireNonNull(content, "content");
         Objects.requireNonNull(fundingCall, "fundingCall");
         Objects.requireNonNull(actor, "actor");
         Objects.requireNonNull(now, "now");
@@ -129,7 +130,7 @@ public final class GrantApplication {
         ensureSameCall(fundingCall);
         ensureAcceptsDrafts(fundingCall, now);
         SupportingDocument document =
-                SupportingDocument.upload(fileName, declaredContentType, sizeInBytes, actor.id(), now);
+                SupportingDocument.upload(fileName, declaredContentType, content, actor.id(), now);
         documents.add(document);
         updatedAt = now;
         events.add(new DocumentAttached(id, document.id(), actor.id(), now));

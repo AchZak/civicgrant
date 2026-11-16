@@ -2,15 +2,22 @@ package be.achzak.civicgrant;
 
 import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
+import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
+import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentCommand;
+import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationUseCase;
+import be.achzak.civicgrant.domain.grantapplication.port.in.RemoveDocumentCommand;
+import be.achzak.civicgrant.domain.grantapplication.port.in.RemoveDocumentUseCase;
+import be.achzak.civicgrant.domain.grantapplication.port.out.DocumentStorage;
 import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
@@ -22,12 +29,15 @@ import be.achzak.civicgrant.domain.organisation.port.in.SearchOrganisationsUseCa
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.Role;
 import be.achzak.civicgrant.domain.shared.UserId;
+import com.azure.storage.blob.models.BlobErrorCode;
+import com.azure.storage.blob.models.BlobStorageException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -49,6 +59,8 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 @DisplayName("CivicGrant application")
 class CivicgrantApplicationTests {
 
+    private static final byte[] PDF = "%PDF-1.7\n%%EOF\n".getBytes(StandardCharsets.US_ASCII);
+
     @Autowired
     private RegisterOrganisationUseCase registerOrganisation;
 
@@ -60,6 +72,15 @@ class CivicgrantApplicationTests {
 
     @Autowired
     private EditApplicationUseCase editApplication;
+
+    @Autowired
+    private AttachDocumentUseCase attachDocument;
+
+    @Autowired
+    private RemoveDocumentUseCase removeDocument;
+
+    @Autowired
+    private DocumentStorage documents;
 
     @Autowired
     private JdbcClient jdbc;
@@ -144,6 +165,61 @@ class CivicgrantApplicationTests {
                         .single())
                 .isEqualTo("Repaircafe met fietsherstel");
         assertThat(auditedEventTypesOf(id)).containsExactlyInAnyOrder("APPLICATION_CREATED", "APPLICATION_EDITED");
+    }
+
+    @Test
+    @DisplayName("stores an attached document with its file and writes its audit entry")
+    void storesAnAttachedDocumentWithItsFileAndWritesItsAuditEntry() {
+        // given
+        Actor applicant = new Actor(new UserId("applicant-1"), Set.of(Role.APPLICANT));
+        ApplicationId id = createApplication.create(new CreateApplicationCommand(
+                anOpenFundingCall("NBH-ATTACH"),
+                aRegisteredOrganisation("0431000001", "Buurtmoestuin De Kiem", applicant),
+                proposalTitled("Moestuin in de wijk"),
+                applicant));
+
+        // when
+        DocumentId document = attachDocument.attach(
+                new AttachDocumentCommand(id, "begroting.pdf", "application/pdf", PDF, applicant));
+
+        // then
+        assertThat(jdbc.sql("SELECT original_filename FROM civicgrant.supporting_document WHERE id = :id")
+                        .param("id", document.value())
+                        .query(String.class)
+                        .single())
+                .isEqualTo("begroting.pdf");
+        assertThat(documents.open(id, document)).hasBinaryContent(PDF);
+        assertThat(auditedEventTypesOf(id)).containsExactlyInAnyOrder("APPLICATION_CREATED", "DOCUMENT_ATTACHED");
+    }
+
+    @Test
+    @DisplayName("deletes a removed document's file once the removal is committed")
+    void deletesARemovedDocumentsFileOnceTheRemovalIsCommitted() {
+        // given
+        Actor applicant = new Actor(new UserId("applicant-1"), Set.of(Role.APPLICANT));
+        ApplicationId id = createApplication.create(new CreateApplicationCommand(
+                anOpenFundingCall("NBH-REMOVE"),
+                aRegisteredOrganisation("0432000089", "Fietsatelier De Spaak", applicant),
+                proposalTitled("Fietsatelier voor de buurt"),
+                applicant));
+        DocumentId document =
+                attachDocument.attach(new AttachDocumentCommand(id, "offerte.pdf", "application/pdf", PDF, applicant));
+
+        // when
+        removeDocument.remove(new RemoveDocumentCommand(id, document, applicant));
+
+        // then
+        assertThat(jdbc.sql("SELECT count(*) FROM civicgrant.supporting_document WHERE id = :id")
+                        .param("id", document.value())
+                        .query(Long.class)
+                        .single())
+                .isZero();
+        assertThat(catchThrowable(() -> documents.open(id, document).readAllBytes()))
+                .isInstanceOfSatisfying(
+                        BlobStorageException.class,
+                        e -> assertThat(e.getErrorCode()).isEqualTo(BlobErrorCode.BLOB_NOT_FOUND));
+        assertThat(auditedEventTypesOf(id))
+                .containsExactlyInAnyOrder("APPLICATION_CREATED", "DOCUMENT_ATTACHED", "DOCUMENT_REMOVED");
     }
 
     @Test
