@@ -389,6 +389,83 @@ class GrantApplicationTest {
     }
 
     @Nested
+    @DisplayName("Reading a document")
+    class ReadDocument {
+
+        private final SupportingDocument document = aSupportingDocument();
+
+        @Test
+        @DisplayName("gives the applicant a document of their own draft")
+        void givesTheApplicantADocumentOfTheirOwnDraft() {
+            // given
+            GrantApplication application =
+                    aDraftApplication().withDocuments(document).build();
+
+            // when
+            SupportingDocument read = application.document(document.id(), anApplicant());
+
+            // then
+            assertThat(read).isEqualTo(document);
+        }
+
+        @Test
+        @DisplayName("gives staff a document of a submitted application")
+        void givesStaffADocumentOfASubmittedApplication() {
+            // given
+            GrantApplication application =
+                    aSubmittedApplication().withDocuments(document).build();
+
+            // when
+            SupportingDocument read = application.document(document.id(), anAssessor());
+
+            // then
+            assertThat(read).isEqualTo(document);
+        }
+
+        @Test
+        @DisplayName("hides the documents of a draft from staff, as if it didn't exist")
+        void hidesTheDocumentsOfADraftFromStaff() {
+            // given
+            GrantApplication application =
+                    aDraftApplication().withDocuments(document).build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.document(document.id(), anAssessor()));
+
+            // then
+            assertThatDomainException(thrown).isNotFound().hasCode("APPLICATION_NOT_FOUND");
+        }
+
+        @Test
+        @DisplayName("hides the documents from another applicant, as if the application didn't exist")
+        void hidesTheDocumentsFromAnotherApplicant() {
+            // given
+            GrantApplication application =
+                    aSubmittedApplication().withDocuments(document).build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.document(document.id(), anotherApplicant()));
+
+            // then
+            assertThatDomainException(thrown).isNotFound().hasCode("APPLICATION_NOT_FOUND");
+        }
+
+        @Test
+        @DisplayName("answers not found for a document the application doesn't have")
+        void answersNotFoundForADocumentTheApplicationDoesNotHave() {
+            // given
+            GrantApplication application =
+                    aDraftApplication().withDocuments(document).build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.document(DocumentId.generate(), anApplicant()));
+
+            // then
+            assertThatDomainException(thrown).isNotFound().hasCode("DOCUMENT_NOT_FOUND");
+        }
+    }
+
+    @Nested
     @DisplayName("Submitting a draft")
     class Submit {
 

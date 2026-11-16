@@ -144,12 +144,26 @@ public final class GrantApplication {
         ensureActingApplicant(actor);
         ensureStatus(ApplicationStatus.DRAFT, "APPLICATION_NOT_DRAFT");
         if (!documents.removeIf(document -> document.id().equals(documentId))) {
-            throw new NotFoundException(
-                    "DOCUMENT_NOT_FOUND",
-                    "Document " + documentId.value() + " not found in application " + reference.value());
+            throw documentNotFound(documentId);
         }
         updatedAt = now;
         events.add(new DocumentRemoved(id, documentId, actor.id(), now));
+    }
+
+    public SupportingDocument document(DocumentId documentId, Actor reader) {
+        Objects.requireNonNull(documentId, "documentId");
+        Objects.requireNonNull(reader, "reader");
+        ensureVisibleTo(reader);
+        return documents.stream()
+                .filter(document -> document.id().equals(documentId))
+                .findFirst()
+                .orElseThrow(() -> documentNotFound(documentId));
+    }
+
+    private NotFoundException documentNotFound(DocumentId documentId) {
+        return new NotFoundException(
+                "DOCUMENT_NOT_FOUND",
+                "Document " + documentId.value() + " not found in application " + reference.value());
     }
 
     public void submit(FundingCall fundingCall, Actor actor, Instant now) {
