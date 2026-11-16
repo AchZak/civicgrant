@@ -17,6 +17,8 @@ import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationComma
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RemoveDocumentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RemoveDocumentUseCase;
+import be.achzak.civicgrant.domain.grantapplication.port.in.SubmitApplicationCommand;
+import be.achzak.civicgrant.domain.grantapplication.port.in.SubmitApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.out.DocumentStorage;
 import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
@@ -78,6 +80,9 @@ class CivicgrantApplicationTests {
 
     @Autowired
     private RemoveDocumentUseCase removeDocument;
+
+    @Autowired
+    private SubmitApplicationUseCase submitApplication;
 
     @Autowired
     private DocumentStorage documents;
@@ -220,6 +225,31 @@ class CivicgrantApplicationTests {
                         e -> assertThat(e.getErrorCode()).isEqualTo(BlobErrorCode.BLOB_NOT_FOUND));
         assertThat(auditedEventTypesOf(id))
                 .containsExactlyInAnyOrder("APPLICATION_CREATED", "DOCUMENT_ATTACHED", "DOCUMENT_REMOVED");
+    }
+
+    @Test
+    @DisplayName("stores a submitted application and writes its audit entry")
+    void storesASubmittedApplicationAndWritesItsAuditEntry() {
+        // given
+        Actor applicant = new Actor(new UserId("applicant-1"), Set.of(Role.APPLICANT));
+        ApplicationId id = createApplication.create(new CreateApplicationCommand(
+                anOpenFundingCall("NBH-SUBMIT"),
+                aRegisteredOrganisation("0433000080", "Buurtkeuken De Pollepel", applicant),
+                proposalTitled("Buurtkeuken voor iedereen"),
+                applicant));
+        attachDocument.attach(new AttachDocumentCommand(id, "projectplan.pdf", "application/pdf", PDF, applicant));
+
+        // when
+        submitApplication.submit(new SubmitApplicationCommand(id, applicant));
+
+        // then
+        assertThat(jdbc.sql("SELECT status FROM civicgrant.grant_application WHERE id = :id")
+                        .param("id", id.value())
+                        .query(String.class)
+                        .single())
+                .isEqualTo("SUBMITTED");
+        assertThat(auditedEventTypesOf(id))
+                .containsExactlyInAnyOrder("APPLICATION_CREATED", "DOCUMENT_ATTACHED", "APPLICATION_SUBMITTED");
     }
 
     @Test
