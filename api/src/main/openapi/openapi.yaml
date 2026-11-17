@@ -538,8 +538,11 @@ paths:
       operationId: getAssessment
       summary: Get the assessment of an application
       description: |
-        Roles: ASSESSOR, DECISION_MAKER. Applicants never see the assessment.
+        Roles: ASSESSOR, DECISION_MAKER. Applicants never see the assessment, not
+        even of their own application when they also hold a staff role.
         404 until the application is assessed.
+
+        Problems: 403 `conflictOfInterest`.
       responses:
         '200':
           description: The assessment
