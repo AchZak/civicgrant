@@ -11,6 +11,8 @@
 //                                   (environment-identities.bicep)
 //   on rg-civicgrant-<env>          the deploy identity's roles
 //                                   (environment-access.bicep)
+//   on rg-civicgrant-<env>          the guardrails, before anything is deployed
+//                                   (guardrails-assignment.bicep)
 //
 // The resource group is created here, by hand, so the pipeline never needs the
 // right to create resource groups: that right covers the whole subscription,
@@ -50,6 +52,16 @@ param registryName string
 
 @description('Repository in the registry the app may pull from.')
 param imageRepository string
+
+@description('Resource id of the guardrails initiative.')
+param guardrailsId string
+
+@description('Default enforces the guardrails; DoNotEnforce only reports on them.')
+@allowed([
+  'Default'
+  'DoNotEnforce'
+])
+param guardrailsEnforcementMode string
 
 
 // ------------------------------------------------------------
@@ -103,6 +115,17 @@ module access 'environment-access.bicep' = {
   params: {
     deployIdentityId: deployIdentityId
     deployPrincipalId: identities.outputs.deployPrincipalId
+  }
+}
+
+// 4. The guardrails on the environment's resource group, so the pipeline's first
+//    deployment into it is already checked.
+module guardrails 'guardrails-assignment.bicep' = {
+  scope: environmentGroup
+  params: {
+    policySetDefinitionId: guardrailsId
+    location: location
+    enforcementMode: guardrailsEnforcementMode
   }
 }
 

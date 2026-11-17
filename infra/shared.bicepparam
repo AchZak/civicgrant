@@ -47,3 +47,8 @@ param postgresLocation = 'francecentral'
 param environmentNames = [
   'tst'
 ]
+
+// The guardrails refuse what breaks the project's rules. Before adding a rule, deploy
+// once with --parameters guardrailsEnforcementMode=DoNotEnforce, read the compliance
+// results, and only then deploy again with this file's value.
+param guardrailsEnforcementMode = 'Default'

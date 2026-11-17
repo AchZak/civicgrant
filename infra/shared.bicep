@@ -26,12 +26,16 @@
 //       role assignment          it may attach the app identity to a Container App
 //     id-civicgrant-app-<env>    per environment: the application runs with it
 //       role assignment          it may pull images, from the civicgrant repository only
+//     civicgrant-guardrails      policy assignment: the project's rules apply in this group
+//       role assignment          its identity may add missing tags here
 //
 //   rg-civicgrant-<env>          per environment, empty: its Deployment Stack fills it
 //     3 role assignments         the deploy identity may deploy here, and nowhere else
+//     civicgrant-guardrails      policy assignment, with its tag role, as above
 //
 //   subscription
 //     budget-civicgrant-monthly  emails when spending approaches or passes €5 a month
+//     civicgrant-guardrails      policy initiative: the project's rules, defined once
 //
 // Deployed by hand, from the project root. BUDGET_ALERT_EMAIL must be set, because
 // shared.bicepparam reads the alert address from it:
@@ -89,6 +93,13 @@ param postgresLocation string
 
 @description('Environments to prepare: each gets a database, two identities and a resource group.')
 param environmentNames array
+
+@description('Default enforces the guardrails; DoNotEnforce only reports on them, to review a new rule before switching it on.')
+@allowed([
+  'Default'
+  'DoNotEnforce'
+])
+param guardrailsEnforcementMode string
 
 
 // ------------------------------------------------------------
@@ -210,9 +221,30 @@ module postgres 'modules/postgresql-server.bicep' = {
   }
 }
 
-// 6. Each environment's foundations: its empty resource group, its deploy and app
-//    identities, and their rights. One module per name in environmentNames.
-//    They sit next to the database, in postgresLocation.
+// 6. The guardrails: the project's rules as one Azure Policy initiative. Defined once
+//    for the subscription, but applied only where it's assigned (steps 7 and 8), so
+//    other resource groups in the subscription are never affected.
+module guardrails 'modules/guardrails-definition.bicep' = {
+  params: {
+    // Exactly the regions this file deploys to, so a new region is a decision made here.
+    allowedLocations: union([location], [postgresLocation])
+    inheritedTagNames: objectKeys(tags)
+  }
+}
+
+// 7. The guardrails on this resource group.
+module sharedGuardrails 'modules/guardrails-assignment.bicep' = {
+  scope: resourceGroup
+  params: {
+    policySetDefinitionId: guardrails.outputs.id
+    location: location
+    enforcementMode: guardrailsEnforcementMode
+  }
+}
+
+// 8. Each environment's foundations: its empty resource group, its deploy and app
+//    identities, their rights and the guardrails. One module per name in
+//    environmentNames. They sit next to the database, in postgresLocation.
 module environments 'modules/environment.bicep' = [
   for environmentName in environmentNames: {
     params: {
@@ -223,12 +255,14 @@ module environments 'modules/environment.bicep' = [
       githubSubjectPrefix: githubSubjectPrefix
       registryName: registry.outputs.name
       imageRepository: imageRepository
+      guardrailsId: guardrails.outputs.id
+      guardrailsEnforcementMode: guardrailsEnforcementMode
     }
   }
 ]
 
 
-// 7. The storage account for the supporting documents, with one container per
+// 9. The storage account for the supporting documents, with one container per
 //    environment that only the environment's app identity may read and write.
 //    Next to the database: documents are data too, so they live with the shared
 //    resources and outlast any environment.
