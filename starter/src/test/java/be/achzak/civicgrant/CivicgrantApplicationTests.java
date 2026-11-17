@@ -9,6 +9,7 @@ import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
+import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
 import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationCommand;
@@ -33,6 +34,7 @@ import be.achzak.civicgrant.domain.shared.Role;
 import be.achzak.civicgrant.domain.shared.UserId;
 import com.azure.storage.blob.models.BlobErrorCode;
 import com.azure.storage.blob.models.BlobStorageException;
+import jakarta.servlet.MultipartConfigElement;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -86,6 +88,9 @@ class CivicgrantApplicationTests {
 
     @Autowired
     private DocumentStorage documents;
+
+    @Autowired
+    private MultipartConfigElement multipartConfig;
 
     @Autowired
     private JdbcClient jdbc;
@@ -250,6 +255,16 @@ class CivicgrantApplicationTests {
                 .isEqualTo("SUBMITTED");
         assertThat(auditedEventTypesOf(id))
                 .containsExactlyInAnyOrder("APPLICATION_CREATED", "DOCUMENT_ATTACHED", "APPLICATION_SUBMITTED");
+    }
+
+    @Test
+    @DisplayName("accepts uploads up to the domain's 10 MiB per file and 11 MiB per request")
+    void acceptsUploadsUpToTheDomainsLimit() {
+        // when
+        long[] limits = {multipartConfig.getMaxFileSize(), multipartConfig.getMaxRequestSize()};
+
+        // then
+        assertThat(limits).containsExactly(SupportingDocument.MAX_SIZE_IN_BYTES, 11L * 1024 * 1024);
     }
 
     @Test

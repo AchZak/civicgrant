@@ -11,19 +11,24 @@ import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
 import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
+import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQuery;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.Money;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.IntFunction;
+import org.springframework.web.multipart.MultipartFile;
 
 final class GrantApplicationApiMapper {
 
@@ -40,6 +45,24 @@ final class GrantApplicationApiMapper {
     static EditApplicationCommand toCommand(
             UUID applicationId, be.achzak.civicgrant.api.generated.model.ProjectProposal proposal, Actor actor) {
         return new EditApplicationCommand(new ApplicationId(applicationId), toDomain(proposal), actor);
+    }
+
+    // A part without a file name or content type gets the domain's own refusal, not a 500.
+    static AttachDocumentCommand toCommand(UUID applicationId, MultipartFile file, Actor actor) {
+        return new AttachDocumentCommand(
+                new ApplicationId(applicationId),
+                Objects.requireNonNullElse(file.getOriginalFilename(), ""),
+                Objects.requireNonNullElse(file.getContentType(), ""),
+                contentOf(file),
+                actor);
+    }
+
+    private static byte[] contentOf(MultipartFile file) {
+        try {
+            return file.getBytes();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     static SearchApplicationsQuery toQuery(
@@ -113,7 +136,7 @@ final class GrantApplicationApiMapper {
                         proposal.language().name()));
     }
 
-    private static be.achzak.civicgrant.api.generated.model.SupportingDocument toResource(SupportingDocument document) {
+    static be.achzak.civicgrant.api.generated.model.SupportingDocument toResource(SupportingDocument document) {
         return new be.achzak.civicgrant.api.generated.model.SupportingDocument(
                 document.id().value(), document.fileName(), document.sizeInBytes(), utc(document.uploadedAt()));
     }

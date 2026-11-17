@@ -470,6 +470,12 @@ paths:
       responses:
         '200':
           description: The PDF file
+          headers:
+            Content-Disposition:
+              description: '`attachment`, with the file name given at upload'
+              schema:
+                type: string
+                example: attachment; filename="begroting.pdf"; filename*=UTF-8''begroting.pdf
           content:
             application/pdf:
               schema:

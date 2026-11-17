@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @ApiWebMvcTest(ProblemResponsesTest.FailureProbe.class)
 @Import(ProblemResponsesTest.FailureProbe.class)
@@ -178,6 +179,23 @@ class ProblemResponsesTest {
         }
 
         @Test
+        @DisplayName("answers 413 payloadTooLarge when an upload exceeds the limit")
+        void answers413WhenAnUploadExceedsTheLimit() {
+            // when
+            MvcTestResult result = get(FailureProbe.UPLOAD_TOO_LARGE);
+
+            // then
+            assertThat(result)
+                    .hasStatus(HttpStatus.CONTENT_TOO_LARGE)
+                    .hasContentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON);
+            assertThat(result)
+                    .bodyJson()
+                    .extractingPath("$.type")
+                    .asString()
+                    .isEqualTo("urn:problem-type:belgif:payloadTooLarge");
+        }
+
+        @Test
         @DisplayName("answers 500 internalServerError without leaking the exception")
         void answers500WithoutLeakingTheException() {
             // when
@@ -216,6 +234,7 @@ class ProblemResponsesTest {
         static final String NOT_FOUND = "/failure-probe/not-found";
         static final String VALIDATED_BODY = "/failure-probe/validated-body";
         static final String BUG = "/failure-probe/bug";
+        static final String UPLOAD_TOO_LARGE = "/failure-probe/upload-too-large";
         static final String BROKEN_RULE_DETAIL = "Funding call CALL-2026-01 closed at 2026-06-30T22:00:00Z";
         static final String BUG_DETAIL = "Connection to db.internal:5432 refused";
 
@@ -249,6 +268,12 @@ class ProblemResponsesTest {
         @GetMapping(BUG)
         void bug() {
             throw new IllegalStateException(BUG_DETAIL);
+        }
+
+        // MockMvc never parses multipart against a limit, so the probe throws what Tomcat's limit leads to.
+        @GetMapping(UPLOAD_TOO_LARGE)
+        void uploadTooLarge() {
+            throw new MaxUploadSizeExceededException(-1);
         }
 
         record ProbeBody(@NotBlank String name) {}

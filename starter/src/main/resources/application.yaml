@@ -11,6 +11,12 @@ spring:
       # Every connection works in the app's schema, so native SQL needs no schema prefix.
       schema: civicgrant
 
+  servlet:
+    multipart:
+      # Spring's MB is 1024 × 1024 bytes, so a file may be exactly the domain's 10 MiB; anything bigger answers 413.
+      max-file-size: 10MB
+      max-request-size: 11MB
+
   flyway:
     schemas: civicgrant
     default-schema: civicgrant
