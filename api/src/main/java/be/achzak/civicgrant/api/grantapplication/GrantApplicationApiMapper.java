@@ -2,6 +2,7 @@ package be.achzak.civicgrant.api.grantapplication;
 
 import be.achzak.civicgrant.api.generated.model.Application;
 import be.achzak.civicgrant.api.generated.model.CreateApplicationRequest;
+import be.achzak.civicgrant.api.generated.model.Submission;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
@@ -134,6 +135,10 @@ final class GrantApplicationApiMapper {
                 proposal.totalProjectBudget().amount(),
                 be.achzak.civicgrant.api.generated.model.Language.valueOf(
                         proposal.language().name()));
+    }
+
+    static Submission toSubmission(Instant submittedAt) {
+        return new Submission(utc(submittedAt));
     }
 
     static be.achzak.civicgrant.api.generated.model.SupportingDocument toResource(SupportingDocument document) {
