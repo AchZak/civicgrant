@@ -9,6 +9,7 @@ import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
+import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
 import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
 import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentUseCase;
@@ -16,6 +17,8 @@ import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationCom
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationUseCase;
+import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentCommand;
+import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RemoveDocumentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RemoveDocumentUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SubmitApplicationCommand;
@@ -85,6 +88,9 @@ class CivicgrantApplicationTests {
 
     @Autowired
     private SubmitApplicationUseCase submitApplication;
+
+    @Autowired
+    private RecordAssessmentUseCase recordAssessment;
 
     @Autowired
     private DocumentStorage documents;
@@ -258,6 +264,30 @@ class CivicgrantApplicationTests {
     }
 
     @Test
+    @DisplayName("stores an assessment and writes its audit entry")
+    void storesAnAssessmentAndWritesItsAuditEntry() {
+        // given
+        Actor applicant = new Actor(new UserId("applicant-1"), Set.of(Role.APPLICANT));
+        Actor assessor = new Actor(new UserId("assessor-1"), Set.of(Role.ASSESSOR));
+        ApplicationId id = aSubmittedApplication("NBH-ASSESS", "0433000179", applicant);
+
+        // when
+        recordAssessment.record(new RecordAssessmentCommand(
+                id, true, new Recommendation.Approve(euros("7500.00")), "Sterk buurtproject.", assessor));
+
+        // then
+        assertThat(jdbc.sql("""
+                        SELECT a.status || ' ' || s.assessor_oid || ' ' || s.recommendation || ' ' || s.proposed_amount
+                        FROM civicgrant.grant_application a JOIN civicgrant.assessment s ON s.grant_application_id = a.id
+                        WHERE a.id = :id
+                        """).param("id", id.value()).query(String.class).single())
+                .isEqualTo("ASSESSED assessor-1 APPROVE 7500.00");
+        assertThat(auditedEventTypesOf(id))
+                .containsExactlyInAnyOrder(
+                        "APPLICATION_CREATED", "DOCUMENT_ATTACHED", "APPLICATION_SUBMITTED", "ASSESSMENT_RECORDED");
+    }
+
+    @Test
     @DisplayName("accepts uploads up to the domain's 10 MiB per file and 11 MiB per request")
     void acceptsUploadsUpToTheDomainsLimit() {
         // when
@@ -295,6 +325,17 @@ class CivicgrantApplicationTests {
                         VALUES (:id, :reference, 'Buurtprojecten', 'Projets de quartier',
                             now() - interval '1 day', now() + interval '30 days', 50000.00, 0.00, 15000.00, 0, now())
                         """).param("id", id.value()).param("reference", reference).update();
+        return id;
+    }
+
+    private ApplicationId aSubmittedApplication(String callReference, String enterpriseNumber, Actor applicant) {
+        ApplicationId id = createApplication.create(new CreateApplicationCommand(
+                anOpenFundingCall(callReference),
+                aRegisteredOrganisation(enterpriseNumber, "Buurtwerk " + callReference, applicant),
+                proposalTitled("Buurtproject " + callReference),
+                applicant));
+        attachDocument.attach(new AttachDocumentCommand(id, "projectplan.pdf", "application/pdf", PDF, applicant));
+        submitApplication.submit(new SubmitApplicationCommand(id, applicant));
         return id;
     }
 
