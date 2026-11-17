@@ -8,11 +8,13 @@ import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationReference;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
+import be.achzak.civicgrant.domain.grantapplication.model.Assessment;
 import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationSnapshot;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
+import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
 import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
 import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
@@ -24,14 +26,17 @@ import be.achzak.civicgrant.domain.shared.ConflictException;
 import be.achzak.civicgrant.domain.shared.UserId;
 import be.achzak.civicgrant.persistence.PersistenceTest;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 @PersistenceTest
@@ -70,6 +75,15 @@ class GrantApplicationPersistenceAdapterTest {
             euros("9000.00"),
             euros("12000.00"),
             Language.FR);
+    private static final Instant ASSESSED_AT = Instant.parse("2026-04-20T09:15:00Z");
+    private static final Assessment APPROVAL_RECOMMENDED = new Assessment(
+            new UserId("assessor-1"),
+            true,
+            new Recommendation.Approve(euros("7500.00")),
+            "Sterk buurtproject met een realistische begroting.",
+            ASSESSED_AT);
+    private static final Assessment REJECTION_RECOMMENDED =
+            new Assessment(new UserId("assessor-1"), false, new Recommendation.Reject(), "Geen vzw.", ASSESSED_AT);
 
     @Autowired
     private GrantApplicationRepository applications;
@@ -237,17 +251,123 @@ class GrantApplicationPersistenceAdapterTest {
                 .isEqualTo(1L);
     }
 
+    @Nested
+    @DisplayName("Storing an assessment")
+    class StoringAnAssessment {
+
+        @Test
+        @DisplayName("saves an application assessed for approval and loads it back with every column")
+        void savesAnApplicationAssessedForApprovalAndLoadsItBack() {
+            // given
+            GrantApplication application = assessed(APPROVAL_RECOMMENDED, 0);
+            applications.save(application);
+            entityManager.clear();
+
+            // when
+            Optional<GrantApplication> loaded = applications.findById(APPLICATION_ID);
+
+            // then
+            assertThat(loaded).get().usingRecursiveComparison().isEqualTo(application);
+        }
+
+        @Test
+        @DisplayName("loads a recommendation to reject without a proposed amount")
+        void loadsARecommendationToRejectWithoutAProposedAmount() {
+            // given
+            applications.save(assessed(REJECTION_RECOMMENDED, 0));
+            entityManager.clear();
+
+            // when
+            Optional<GrantApplication> loaded = applications.findById(APPLICATION_ID);
+
+            // then
+            assertThat(loaded)
+                    .get()
+                    .extracting(GrantApplication::assessment)
+                    .isEqualTo(Optional.of(REJECTION_RECOMMENDED));
+        }
+
+        @Test
+        @DisplayName("adds the assessment when a stored application is assessed")
+        void addsTheAssessmentWhenAStoredApplicationIsAssessed() {
+            // given
+            applications.save(submitted());
+            entityManager.clear();
+
+            // when
+            applications.save(assessed(APPROVAL_RECOMMENDED, 0));
+
+            // then
+            entityManager.clear();
+            assertThat(applications.findById(APPLICATION_ID))
+                    .get()
+                    .extracting(GrantApplication::status, GrantApplication::assessment, GrantApplication::version)
+                    .containsExactly(ApplicationStatus.ASSESSED, Optional.of(APPROVAL_RECOMMENDED), 1L);
+        }
+
+        @Test
+        @DisplayName("refuses a blank comment")
+        void refusesABlankComment() {
+            // given
+            applications.save(submitted());
+
+            // when
+            Throwable thrown = catchThrowable(() -> insertRejectionWithComment("   "));
+
+            // then
+            assertThat(thrown)
+                    .isInstanceOf(DataIntegrityViolationException.class)
+                    .hasMessageContaining("ck_assessment_comment");
+        }
+
+        @Test
+        @DisplayName("refuses a second assessment of the same application")
+        void refusesASecondAssessmentOfTheSameApplication() {
+            // given
+            applications.save(assessed(APPROVAL_RECOMMENDED, 0));
+
+            // when
+            Throwable thrown = catchThrowable(() -> insertRejectionWithComment("Toch niet."));
+
+            // then
+            assertThat(thrown)
+                    .isInstanceOf(DataIntegrityViolationException.class)
+                    .hasMessageContaining("assessment_pkey");
+        }
+
+        private void insertRejectionWithComment(String comment) {
+            jdbc.sql("""
+                            INSERT INTO civicgrant.assessment (grant_application_id, assessor_oid, eligible,
+                                recommendation, proposed_amount, comment, assessed_at)
+                            VALUES (:id, 'assessor-2', false, 'REJECT', NULL, :comment, :assessedAt)
+                            """)
+                    .param("id", APPLICATION_ID.value())
+                    .param("comment", comment)
+                    .param("assessedAt", ASSESSED_AT.atOffset(ZoneOffset.UTC))
+                    .update();
+        }
+    }
+
     private static GrantApplication draft(ProjectProposal proposal, Instant updatedAt, long version) {
-        return application(proposal, ApplicationStatus.DRAFT, null, updatedAt, version, List.of());
+        return application(proposal, ApplicationStatus.DRAFT, null, updatedAt, version, List.of(), null);
     }
 
     private static GrantApplication draftWith(List<SupportingDocument> documents, long version) {
-        return application(PROPOSAL, ApplicationStatus.DRAFT, null, LATER, version, documents);
+        return application(PROPOSAL, ApplicationStatus.DRAFT, null, LATER, version, documents, null);
+    }
+
+    private static GrantApplication submitted() {
+        return application(PROPOSAL, ApplicationStatus.SUBMITTED, LATER, LATER, 0, List.of(BUDGET), null);
+    }
+
+    private static GrantApplication assessed(Assessment assessment, long version) {
+        return application(
+                PROPOSAL, ApplicationStatus.ASSESSED, LATER, ASSESSED_AT, version, List.of(BUDGET), assessment);
     }
 
     private static GrantApplication application(
             ProjectProposal proposal, ApplicationStatus status, Instant submittedAt, Instant updatedAt, long version) {
-        return application(proposal, status, submittedAt, updatedAt, version, List.of());
+        return application(proposal, status, submittedAt, updatedAt, version, List.of(), null);
     }
 
     private static GrantApplication application(
@@ -256,7 +376,8 @@ class GrantApplicationPersistenceAdapterTest {
             Instant submittedAt,
             Instant updatedAt,
             long version,
-            List<SupportingDocument> documents) {
+            List<SupportingDocument> documents,
+            Assessment assessment) {
         return GrantApplication.restore(new GrantApplicationSnapshot(
                 APPLICATION_ID,
                 new ApplicationReference("CG-2026-000001"),
@@ -267,7 +388,7 @@ class GrantApplicationPersistenceAdapterTest {
                 documents,
                 status,
                 submittedAt,
-                null,
+                assessment,
                 null,
                 CREATED_AT,
                 updatedAt,

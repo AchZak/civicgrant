@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -71,6 +72,11 @@ class GrantApplicationJpaEntity {
     @JoinColumn(name = "grant_application_id", nullable = false, updatable = false)
     @OrderBy("uploadedAt, id")
     private List<SupportingDocumentJpaEntity> documents = new ArrayList<>();
+
+    // The assessment row holds the foreign key, so it owns the association and is inserted after this one.
+    @Setter(AccessLevel.PACKAGE)
+    @OneToOne(mappedBy = "grantApplication", cascade = CascadeType.ALL)
+    private AssessmentJpaEntity assessment;
 
     GrantApplicationJpaEntity(
             UUID id,
