@@ -160,6 +160,17 @@ public final class GrantApplication {
                 .orElseThrow(() -> documentNotFound(documentId));
     }
 
+    public Assessment assessmentFor(Actor reader) {
+        Objects.requireNonNull(reader, "reader");
+        ensureVisibleTo(reader);
+        ensureNotTheApplicant(reader);
+        if (assessment == null) {
+            throw new NotFoundException(
+                    "ASSESSMENT_NOT_FOUND", "Application " + reference.value() + " hasn't been assessed");
+        }
+        return assessment;
+    }
+
     private NotFoundException documentNotFound(DocumentId documentId) {
         return new NotFoundException(
                 "DOCUMENT_NOT_FOUND",

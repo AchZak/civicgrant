@@ -799,6 +799,80 @@ class GrantApplicationTest {
     }
 
     @Nested
+    @DisplayName("Reading the assessment")
+    class ReadAssessment {
+
+        @Test
+        @DisplayName("gives staff the assessment of an assessed application")
+        void givesStaffTheAssessmentOfAnAssessedApplication() {
+            // given
+            Assessment assessment =
+                    new Assessment(anAssessor().id(), false, new Recommendation.Reject(), "Geen vzw.", ASSESSED_AT);
+            GrantApplication application =
+                    anAssessedApplication().withAssessment(assessment).build();
+
+            // when
+            Assessment read = application.assessmentFor(aDecisionMaker());
+
+            // then
+            assertThat(read).isEqualTo(assessment);
+        }
+
+        @Test
+        @DisplayName("keeps giving the assessment once the application is decided")
+        void keepsGivingTheAssessmentOnceTheApplicationIsDecided() {
+            // given
+            GrantApplication application = anApprovedApplication().build();
+
+            // when
+            Assessment read = application.assessmentFor(anAssessor());
+
+            // then
+            assertThat(application.assessment()).contains(read);
+        }
+
+        @Test
+        @DisplayName("hides the assessment from another applicant, as if the application didn't exist")
+        void hidesTheAssessmentFromAnotherApplicant() {
+            // given
+            GrantApplication application = anAssessedApplication().build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.assessmentFor(anotherApplicant()));
+
+            // then
+            assertThatDomainException(thrown).isNotFound().hasCode("APPLICATION_NOT_FOUND");
+        }
+
+        @Test
+        @DisplayName("forbids the applicant to read the assessment of their own application, even with a staff role")
+        void forbidsTheApplicantToReadTheAssessmentOfTheirOwnApplication() {
+            // given
+            GrantApplication application = anAssessedApplication().build();
+            Actor applicantWhoAlsoDecides = actor("applicant-1", Role.APPLICANT, Role.DECISION_MAKER);
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.assessmentFor(applicantWhoAlsoDecides));
+
+            // then
+            assertThatDomainException(thrown).isForbidden().hasCode("CONFLICT_OF_INTEREST");
+        }
+
+        @Test
+        @DisplayName("answers not found until the application is assessed")
+        void answersNotFoundUntilTheApplicationIsAssessed() {
+            // given
+            GrantApplication application = aSubmittedApplication().build();
+
+            // when
+            Throwable thrown = catchThrowable(() -> application.assessmentFor(anAssessor()));
+
+            // then
+            assertThatDomainException(thrown).isNotFound().hasCode("ASSESSMENT_NOT_FOUND");
+        }
+    }
+
+    @Nested
     @DisplayName("Approving")
     class Approving {
 
