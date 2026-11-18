@@ -28,6 +28,8 @@
 //       role assignment          it may pull images, from the civicgrant repository only
 //     civicgrant-guardrails      policy assignment: the project's rules apply in this group
 //       role assignment          its identity may add missing tags here
+//     ag-civicgrant-shared       action group: every environment's alerts email the same address
+//       role assignment          per environment: its deploy identity may reference it in alert rules
 //
 //   rg-civicgrant-<env>          per environment, empty: its Deployment Stack fills it
 //     3 role assignments         the deploy identity may deploy here, and nowhere else
@@ -38,7 +40,7 @@
 //     civicgrant-guardrails      policy initiative: the project's rules, defined once
 //
 // Deployed by hand, from the project root. BUDGET_ALERT_EMAIL must be set, because
-// shared.bicepparam reads the alert address from it:
+// shared.bicepparam reads the address of the budget and monitoring alerts from it:
 //
 //   export BUDGET_ALERT_EMAIL=you@example.com
 //   az bicep lint --file infra/shared.bicep
@@ -80,7 +82,7 @@ param publishBranches array
 ])
 param registrySku string
 
-@description('Email address that receives the budget alerts.')
+@description('Email address that receives the budget alerts and the monitoring alerts.')
 param budgetAlertEmail string
 
 @description('Major PostgreSQL version of the shared server.')
@@ -257,6 +259,7 @@ module environments 'modules/environment.bicep' = [
       imageRepository: imageRepository
       guardrailsId: guardrails.outputs.id
       guardrailsEnforcementMode: guardrailsEnforcementMode
+      alertActionGroupName: alertActionGroup.outputs.name
     }
   }
 ]
@@ -284,6 +287,20 @@ module documentsStorage 'modules/documents-storage.bicep' = {
   }
 }
 
+// 10. Who the environments' alert rules notify: one email address, the budget's.
+//     Shared, so the address never travels through the pipeline: the environments
+//     only receive the group's resource id, which is no secret. Each environment's
+//     deploy identity gets read access to it in step 8.
+module alertActionGroup 'modules/action-group.bicep' = {
+  scope: resourceGroup
+  params: {
+    name: 'ag-civicgrant-shared'
+    tags: tags
+    shortName: 'civicgrant'
+    email: budgetAlertEmail
+  }
+}
+
 
 // ------------------------------------------------------------
 // OUTPUTS
@@ -299,6 +316,7 @@ output subscriptionId string = subscription().subscriptionId        // AZURE_SUB
 output postgresServerName string = postgres.outputs.name            // For az postgres and the bootstrap runbook.
 output postgresHost string = postgres.outputs.host                  // Host of the JDBC URL.
 output documentsEndpoint string = documentsStorage.outputs.blobEndpoint  // DOCUMENTS_ENDPOINT
+output alertActionGroupId string = alertActionGroup.outputs.id      // ALERT_ACTION_GROUP_ID
 
 // Per environment: the deploy identity's client id becomes AZURE_CLIENT_ID of the
 // GitHub Environment; the app identity's values go into the environment template.

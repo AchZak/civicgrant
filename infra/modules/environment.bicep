@@ -7,8 +7,8 @@
 //
 //   rg-civicgrant-<env>             empty resource group, filled later by the
 //                                   environment's Deployment Stack
-//   in rg-civicgrant-shared         the deploy and app identities
-//                                   (environment-identities.bicep)
+//   in rg-civicgrant-shared         the deploy and app identities, and their rights
+//                                   on shared resources (environment-identities.bicep)
 //   on rg-civicgrant-<env>          the deploy identity's roles
 //                                   (environment-access.bicep)
 //   on rg-civicgrant-<env>          the guardrails, before anything is deployed
@@ -63,6 +63,9 @@ param guardrailsId string
 ])
 param guardrailsEnforcementMode string
 
+@description('Name of the shared action group the environment\'s alert rules notify.')
+param alertActionGroupName string
+
 
 // ------------------------------------------------------------
 // VARIABLES
@@ -106,6 +109,7 @@ module identities 'environment-identities.bicep' = {
     githubSubjectPrefix: githubSubjectPrefix
     registryName: registryName
     imageRepository: imageRepository
+    alertActionGroupName: alertActionGroupName
   }
 }
 

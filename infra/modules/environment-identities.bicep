@@ -6,7 +6,9 @@
 // rights on shared resources:
 //
 //   id-civicgrant-deploy-<env>   GitHub Actions deploys the environment with it
+//     may attach the app identity, and read the shared action group
 //   id-civicgrant-app-<env>      the application runs with it
+//     may pull the application image
 //
 // Both live in rg-civicgrant-shared, not in the environment's resource group:
 // deleting and recreating the environment keeps them, so their role assignments
@@ -42,6 +44,9 @@ param registryName string
 @description('Repository in the registry the app may pull from.')
 param imageRepository string
 
+@description('Name of the shared action group the environment\'s alert rules notify.')
+param alertActionGroupName string
+
 
 // ------------------------------------------------------------
 // VARIABLES
@@ -51,6 +56,7 @@ param imageRepository string
 // To look one up: az role definition list --name '<role name>' --query "[0].name" --output tsv
 var repositoryReaderRoleId = 'b93aa761-3e63-49ed-ac28-beffa264f7ac'        // Container Registry Repository Reader
 var managedIdentityOperatorRoleId = 'f1a07417-d97a-45cb-824c-7a7467783830' // Managed Identity Operator
+var readerRoleId = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'                  // Reader
 
 // The app may read images from one repository only. An ABAC condition narrows a role
 // assignment: the role says what (read images), the condition says where.
@@ -134,6 +140,25 @@ resource deployAssignsAppIdentity 'Microsoft.Authorization/roleAssignments@2022-
   scope: appIdentity
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', managedIdentityOperatorRoleId)
+    principalId: deployIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// The shared action group, by name, like the registry above.
+resource alertActionGroup 'Microsoft.Insights/actionGroups@2023-01-01' existing = {
+  name: alertActionGroupName
+}
+
+// 6. The deploy identity may read the shared action group. Azure only lets an alert
+//    rule name an action group its creator can read, and the environment's alert
+//    rules are created with this identity. Reader, the narrowest role that does it,
+//    on this one action group: nothing else in the shared group becomes visible.
+resource deployReadsActionGroup 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(alertActionGroup.id, deployIdentity.id, readerRoleId)
+  scope: alertActionGroup
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', readerRoleId)
     principalId: deployIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
