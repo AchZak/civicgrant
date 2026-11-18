@@ -11,4 +11,6 @@ public interface FundingCallRepository {
     Optional<FundingCall> findById(FundingCallId id);
 
     List<FundingCall> findOpenAt(Instant moment);
+
+    void save(FundingCall fundingCall);
 }

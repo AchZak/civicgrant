@@ -29,4 +29,9 @@ public final class InMemoryFundingCallRepository implements FundingCallRepositor
                 .filter(fundingCall -> fundingCall.isOpenAt(moment))
                 .toList();
     }
+
+    @Override
+    public void save(FundingCall fundingCall) {
+        fundingCalls.put(fundingCall.id(), fundingCall);
+    }
 }

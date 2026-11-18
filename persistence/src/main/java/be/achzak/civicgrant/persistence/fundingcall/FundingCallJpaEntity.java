@@ -10,6 +10,7 @@ import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "funding_call")
@@ -26,7 +27,10 @@ class FundingCallJpaEntity {
     private Instant opensAt;
     private Instant closesAt;
     private BigDecimal totalBudget;
+
+    @Setter(AccessLevel.PACKAGE)
     private BigDecimal committedAmount;
+
     private BigDecimal maxAmountPerApplication;
 
     @Version

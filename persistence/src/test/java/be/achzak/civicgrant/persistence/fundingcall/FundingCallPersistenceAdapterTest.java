@@ -2,13 +2,18 @@ package be.achzak.civicgrant.persistence.fundingcall;
 
 import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import be.achzak.civicgrant.domain.fundingcall.model.BudgetEnvelope;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
 import be.achzak.civicgrant.domain.fundingcall.port.out.FundingCallRepository;
+import be.achzak.civicgrant.domain.shared.Actor;
+import be.achzak.civicgrant.domain.shared.ConflictException;
 import be.achzak.civicgrant.domain.shared.LocalizedText;
+import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.UserId;
 import be.achzak.civicgrant.persistence.PersistenceTest;
 import java.time.Duration;
 import java.time.Instant;
@@ -16,9 +21,12 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 @PersistenceTest
@@ -29,6 +37,9 @@ class FundingCallPersistenceAdapterTest {
 
     @Autowired
     private FundingCallRepository fundingCalls;
+
+    @Autowired
+    private TestEntityManager entityManager;
 
     @Autowired
     private JdbcClient jdbc;
@@ -73,6 +84,90 @@ class FundingCallPersistenceAdapterTest {
 
         // then
         assertThat(open).extracting(FundingCall::id).containsExactly(openingNow.id());
+    }
+
+    @Nested
+    @DisplayName("Saving the committed budget")
+    class SavingTheCommittedBudget {
+
+        private static final Actor DECISION_MAKER =
+                new Actor(new UserId("decision-maker-1"), Set.of(Role.DECISION_MAKER));
+
+        private final FundingCall stored =
+                fundingCall("NBH-SAVE", NOW.minus(Duration.ofDays(30)), NOW.plus(Duration.ofDays(60)));
+
+        @Test
+        @DisplayName("saves the committed amount and increments the version")
+        void savesTheCommittedAmountAndIncrementsTheVersion() {
+            // given
+            insert(stored);
+            FundingCall loaded = fundingCalls.findById(stored.id()).orElseThrow();
+            loaded.commitGrant(euros("7000.00"), DECISION_MAKER, NOW);
+
+            // when
+            fundingCalls.save(loaded);
+
+            // then
+            entityManager.clear();
+            assertThat(fundingCalls.findById(stored.id()))
+                    .get()
+                    .extracting(call -> call.budget().committed(), FundingCall::version)
+                    .containsExactly(euros("19500.00"), 4L);
+        }
+
+        @Test
+        @DisplayName("refuses a call read before its last change was saved")
+        void refusesACallReadBeforeItsLastChangeWasSaved() {
+            // given
+            insert(stored);
+            FundingCall first = fundingCalls.findById(stored.id()).orElseThrow();
+            FundingCall second = fundingCalls.findById(stored.id()).orElseThrow();
+            first.commitGrant(euros("7000.00"), DECISION_MAKER, NOW);
+            fundingCalls.save(first);
+            second.commitGrant(euros("9000.00"), DECISION_MAKER, NOW);
+
+            // when
+            Throwable thrown = catchThrowable(() -> fundingCalls.save(second));
+
+            // then
+            assertThat(thrown)
+                    .isInstanceOfSatisfying(
+                            ConflictException.class,
+                            conflict -> assertThat(conflict.code()).isEqualTo("CONCURRENT_UPDATE"));
+        }
+
+        @Test
+        @DisplayName("refuses to overwrite a change someone else saved at the same time")
+        void refusesToOverwriteAChangeSomeoneElseSavedAtTheSameTime() {
+            // given
+            insert(stored);
+            FundingCall loaded = fundingCalls.findById(stored.id()).orElseThrow();
+            jdbc.sql("""
+                            UPDATE civicgrant.funding_call
+                            SET committed_amount = committed_amount + 9000.00, version = version + 1
+                            WHERE id = :id
+                            """).param("id", stored.id().value()).update();
+            loaded.commitGrant(euros("7000.00"), DECISION_MAKER, NOW);
+
+            // when
+            Throwable thrown = catchThrowable(() -> fundingCalls.save(loaded));
+
+            // then
+            assertThat(thrown)
+                    .isInstanceOfSatisfying(
+                            ConflictException.class,
+                            conflict -> assertThat(conflict.code()).isEqualTo("CONCURRENT_UPDATE"));
+        }
+
+        @Test
+        @DisplayName("refuses to save a call that was never stored, since calls are only seeded")
+        void refusesToSaveACallThatWasNeverStored() {
+            // when
+            Throwable thrown = catchThrowable(() -> fundingCalls.save(stored));
+
+            // then
+            assertThat(thrown).isInstanceOf(IllegalStateException.class);
+        }
     }
 
     private static FundingCall fundingCall(String reference, Instant opensAt, Instant closesAt) {

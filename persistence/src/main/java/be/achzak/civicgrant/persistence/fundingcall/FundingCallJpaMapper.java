@@ -24,4 +24,8 @@ final class FundingCallJpaMapper {
                 entity.getVersion(),
                 entity.getCreatedAt());
     }
+
+    static void update(FundingCallJpaEntity entity, FundingCall fundingCall) {
+        entity.setCommittedAmount(fundingCall.budget().committed().amount());
+    }
 }
