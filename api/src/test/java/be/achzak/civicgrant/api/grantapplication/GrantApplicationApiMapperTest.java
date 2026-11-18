@@ -8,12 +8,18 @@ import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import be.achzak.civicgrant.api.generated.model.AssessmentRequest;
+import be.achzak.civicgrant.api.generated.model.DecisionOutcome;
+import be.achzak.civicgrant.api.generated.model.DecisionRequest;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.Assessment;
+import be.achzak.civicgrant.domain.grantapplication.model.Decision;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
 import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
+import be.achzak.civicgrant.domain.grantapplication.model.RejectionGround;
+import be.achzak.civicgrant.domain.grantapplication.port.in.ApproveApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentCommand;
+import be.achzak.civicgrant.domain.grantapplication.port.in.RejectApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQuery;
 import be.achzak.civicgrant.domain.shared.Role;
 import be.achzak.civicgrant.domain.shared.UserId;
@@ -164,6 +170,108 @@ class GrantApplicationApiMapperTest {
             assertThat(resource.getRecommendation())
                     .isEqualTo(be.achzak.civicgrant.api.generated.model.Recommendation.REJECT);
             assertThat(resource.getProposedAmount()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("Decisions")
+    class Decisions {
+
+        private static final Instant DECIDED_AT = Instant.parse("2026-05-18T09:30:00Z");
+        private static final UserId DECISION_MAKER = new UserId("decision-maker-1");
+
+        @Test
+        @DisplayName("maps an approval to the approve command with its granted amount")
+        void mapsAnApprovalToTheApproveCommand() {
+            // given
+            DecisionRequest request = new DecisionRequest(DecisionOutcome.APPROVED, "Versterkt de buurt.")
+                    .grantedAmount(new BigDecimal("7000"));
+
+            // when
+            ApproveApplicationCommand command = GrantApplicationApiMapper.toApproveCommand(
+                    APPLICATION_ID.value(), request, actor(Role.DECISION_MAKER));
+
+            // then
+            assertThat(command)
+                    .isEqualTo(new ApproveApplicationCommand(
+                            APPLICATION_ID, euros("7000.00"), "Versterkt de buurt.", actor(Role.DECISION_MAKER)));
+        }
+
+        @Test
+        @DisplayName("maps a rejection to the reject command with its ground")
+        void mapsARejectionToTheRejectCommand() {
+            // given
+            DecisionRequest request = new DecisionRequest(DecisionOutcome.REJECTED, "Geen vzw.")
+                    .rejectionGround(be.achzak.civicgrant.api.generated.model.RejectionGround.INELIGIBLE);
+
+            // when
+            RejectApplicationCommand command = GrantApplicationApiMapper.toRejectCommand(
+                    APPLICATION_ID.value(), request, actor(Role.DECISION_MAKER));
+
+            // then
+            assertThat(command)
+                    .isEqualTo(new RejectApplicationCommand(
+                            APPLICATION_ID, RejectionGround.INELIGIBLE, "Geen vzw.", actor(Role.DECISION_MAKER)));
+        }
+
+        @Test
+        @DisplayName("shows the granted amount of an approval")
+        void showsTheGrantedAmountOfAnApproval() {
+            // given
+            Decision approval =
+                    new Decision.Approval(euros("7000.00"), DECISION_MAKER, "Versterkt de buurt.", DECIDED_AT);
+
+            // when
+            be.achzak.civicgrant.api.generated.model.Decision resource = GrantApplicationApiMapper.toResource(approval);
+
+            // then
+            assertThat(resource)
+                    .isEqualTo(new be.achzak.civicgrant.api.generated.model.Decision(
+                                    DecisionOutcome.APPROVED,
+                                    "Versterkt de buurt.",
+                                    DECIDED_AT.atOffset(ZoneOffset.UTC))
+                            .grantedAmount(new BigDecimal("7000.00")));
+        }
+
+        @Test
+        @DisplayName("shows the ground of a rejection, without an amount")
+        void showsTheGroundOfARejection() {
+            // given
+            Decision rejection =
+                    new Decision.Rejection(RejectionGround.INCOMPLETE, DECISION_MAKER, "Geen begroting.", DECIDED_AT);
+
+            // when
+            be.achzak.civicgrant.api.generated.model.Decision resource =
+                    GrantApplicationApiMapper.toResource(rejection);
+
+            // then
+            assertThat(resource)
+                    .isEqualTo(new be.achzak.civicgrant.api.generated.model.Decision(
+                                    DecisionOutcome.REJECTED, "Geen begroting.", DECIDED_AT.atOffset(ZoneOffset.UTC))
+                            .rejectionGround(be.achzak.civicgrant.api.generated.model.RejectionGround.INCOMPLETE));
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @EnumSource(be.achzak.civicgrant.api.generated.model.RejectionGround.class)
+        @DisplayName("maps every rejection ground of the contract to the domain")
+        void mapsEveryRejectionGroundOfTheContractToTheDomain(
+                be.achzak.civicgrant.api.generated.model.RejectionGround ground) {
+            // when
+            RejectionGround mapped = GrantApplicationApiMapper.toDomain(ground);
+
+            // then
+            assertThat(mapped.name()).isEqualTo(ground.name());
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @EnumSource(RejectionGround.class)
+        @DisplayName("maps every rejection ground of the domain to the contract")
+        void mapsEveryRejectionGroundOfTheDomainToTheContract(RejectionGround ground) {
+            // when
+            String mapped = GrantApplicationApiMapper.toResource(ground).name();
+
+            // then
+            assertThat(mapped).isEqualTo(ground.name());
         }
     }
 }

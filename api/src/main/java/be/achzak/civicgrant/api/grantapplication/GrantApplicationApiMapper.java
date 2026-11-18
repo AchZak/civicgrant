@@ -3,6 +3,8 @@ package be.achzak.civicgrant.api.grantapplication;
 import be.achzak.civicgrant.api.generated.model.Application;
 import be.achzak.civicgrant.api.generated.model.AssessmentRequest;
 import be.achzak.civicgrant.api.generated.model.CreateApplicationRequest;
+import be.achzak.civicgrant.api.generated.model.DecisionOutcome;
+import be.achzak.civicgrant.api.generated.model.DecisionRequest;
 import be.achzak.civicgrant.api.generated.model.Submission;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
@@ -10,15 +12,19 @@ import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
 import be.achzak.civicgrant.domain.grantapplication.model.Assessment;
+import be.achzak.civicgrant.domain.grantapplication.model.Decision;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
 import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
+import be.achzak.civicgrant.domain.grantapplication.model.RejectionGround;
 import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
+import be.achzak.civicgrant.domain.grantapplication.port.in.ApproveApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentCommand;
+import be.achzak.civicgrant.domain.grantapplication.port.in.RejectApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQuery;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.Actor;
@@ -42,6 +48,8 @@ import org.springframework.web.multipart.MultipartFile;
 final class GrantApplicationApiMapper {
 
     private static final String PROPOSED_AMOUNT = "/proposedAmount";
+    private static final String GRANTED_AMOUNT = "/grantedAmount";
+    private static final String REJECTION_GROUND = "/rejectionGround";
 
     private GrantApplicationApiMapper() {}
 
@@ -119,6 +127,62 @@ final class GrantApplicationApiMapper {
             Assessment assessment, be.achzak.civicgrant.api.generated.model.Recommendation recommendation) {
         return new be.achzak.civicgrant.api.generated.model.Assessment(
                 assessment.eligible(), recommendation, assessment.comment(), utc(assessment.assessedAt()));
+    }
+
+    // The contract has no oneOf, so the mapper enforces "grantedAmount for an approval, rejectionGround for a
+    // rejection, never the other one".
+    static ApproveApplicationCommand toApproveCommand(UUID applicationId, DecisionRequest request, Actor actor) {
+        if (request.getGrantedAmount() == null) {
+            throw new BadRequestProblem(InputValidationIssues.requiredInput(InEnum.BODY, GRANTED_AMOUNT));
+        }
+        if (request.getRejectionGround() != null) {
+            throw new BadRequestProblem(
+                    InputValidationIssues.rejectedInput(InEnum.BODY, REJECTION_GROUND, request.getRejectionGround()));
+        }
+        return new ApproveApplicationCommand(
+                new ApplicationId(applicationId),
+                new Money(request.getGrantedAmount()),
+                request.getMotivation(),
+                actor);
+    }
+
+    static RejectApplicationCommand toRejectCommand(UUID applicationId, DecisionRequest request, Actor actor) {
+        if (request.getRejectionGround() == null) {
+            throw new BadRequestProblem(InputValidationIssues.requiredInput(InEnum.BODY, REJECTION_GROUND));
+        }
+        if (request.getGrantedAmount() != null) {
+            throw new BadRequestProblem(
+                    InputValidationIssues.rejectedInput(InEnum.BODY, GRANTED_AMOUNT, request.getGrantedAmount()));
+        }
+        return new RejectApplicationCommand(
+                new ApplicationId(applicationId),
+                toDomain(request.getRejectionGround()),
+                request.getMotivation(),
+                actor);
+    }
+
+    static RejectionGround toDomain(be.achzak.civicgrant.api.generated.model.RejectionGround ground) {
+        return RejectionGround.valueOf(ground.name());
+    }
+
+    static be.achzak.civicgrant.api.generated.model.Decision toResource(Decision decision) {
+        return switch (decision) {
+            case Decision.Approval approval ->
+                toResource(decision, DecisionOutcome.APPROVED)
+                        .grantedAmount(approval.grantedAmount().amount());
+            case Decision.Rejection rejection ->
+                toResource(decision, DecisionOutcome.REJECTED).rejectionGround(toResource(rejection.ground()));
+        };
+    }
+
+    private static be.achzak.civicgrant.api.generated.model.Decision toResource(
+            Decision decision, DecisionOutcome outcome) {
+        return new be.achzak.civicgrant.api.generated.model.Decision(
+                outcome, decision.motivation(), utc(decision.decidedAt()));
+    }
+
+    static be.achzak.civicgrant.api.generated.model.RejectionGround toResource(RejectionGround ground) {
+        return be.achzak.civicgrant.api.generated.model.RejectionGround.valueOf(ground.name());
     }
 
     static SearchApplicationsQuery toQuery(

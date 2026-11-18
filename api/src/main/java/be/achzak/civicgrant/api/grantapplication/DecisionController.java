@@ -1,0 +1,68 @@
+package be.achzak.civicgrant.api.grantapplication;
+
+import be.achzak.civicgrant.api.generated.api.DecisionsApi;
+import be.achzak.civicgrant.api.generated.model.Decision;
+import be.achzak.civicgrant.api.generated.model.DecisionRequest;
+import be.achzak.civicgrant.api.security.CurrentActor;
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
+import be.achzak.civicgrant.domain.grantapplication.port.in.ApproveApplicationUseCase;
+import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationQuery;
+import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationUseCase;
+import be.achzak.civicgrant.domain.grantapplication.port.in.RejectApplicationUseCase;
+import be.achzak.civicgrant.domain.shared.Actor;
+import io.github.belgif.rest.problem.ResourceNotFoundProblem;
+import java.util.UUID;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+@RestController
+class DecisionController implements DecisionsApi {
+
+    private final ApproveApplicationUseCase approveApplication;
+    private final RejectApplicationUseCase rejectApplication;
+    private final GetApplicationUseCase getApplication;
+    private final CurrentActor currentActor;
+
+    DecisionController(
+            ApproveApplicationUseCase approveApplication,
+            RejectApplicationUseCase rejectApplication,
+            GetApplicationUseCase getApplication,
+            CurrentActor currentActor) {
+        this.approveApplication = approveApplication;
+        this.rejectApplication = rejectApplication;
+        this.getApplication = getApplication;
+        this.currentActor = currentActor;
+    }
+
+    @Override
+    public ResponseEntity<Decision> decideApplication(UUID applicationId, DecisionRequest decisionRequest) {
+        Actor actor = currentActor.get();
+        switch (decisionRequest.getOutcome()) {
+            case APPROVED ->
+                approveApplication.approve(
+                        GrantApplicationApiMapper.toApproveCommand(applicationId, decisionRequest, actor));
+            case REJECTED ->
+                rejectApplication.reject(
+                        GrantApplicationApiMapper.toRejectCommand(applicationId, decisionRequest, actor));
+        }
+        return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequestUri()
+                        .build()
+                        .toUri())
+                .body(read(new ApplicationId(applicationId), actor));
+    }
+
+    @Override
+    public ResponseEntity<Decision> getDecision(UUID applicationId) {
+        return ResponseEntity.ok(read(new ApplicationId(applicationId), currentActor.get()));
+    }
+
+    // An application without a decision yet: to the client, that's a resource that doesn't exist.
+    private Decision read(ApplicationId id, Actor actor) {
+        return getApplication
+                .get(new GetApplicationQuery(id, actor))
+                .decision()
+                .map(GrantApplicationApiMapper::toResource)
+                .orElseThrow(ResourceNotFoundProblem::new);
+    }
+}
