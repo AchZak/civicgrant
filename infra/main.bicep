@@ -163,6 +163,15 @@ var appSettings = [
     value: 'Authorization=AAD;ClientId=${appIdentityClientId}'
   }
   {
+    // Writes each console log line as one JSON object in the Elastic Common Schema
+    // (logging.structured.format.console), a format built into Spring Boot. Log
+    // Analytics stores what the app prints, so fields such as the level and the logger
+    // can be queried instead of parsed out of text. Set here, not in application.yaml,
+    // so logs stay readable text on a laptop and in tests.
+    name: 'LOGGING_STRUCTURED_FORMAT_CONSOLE'
+    value: 'ecs'
+  }
+  {
     // Who issues valid access tokens: spring.security.oauth2.resourceserver.jwt.issuer-uri.
     // In environment variable names Spring drops the dashes: issuer-uri is ISSUERURI.
     // Nothing is fetched at startup. On the first request, Spring reads
