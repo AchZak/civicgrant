@@ -10,7 +10,10 @@ import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
 import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
+import be.achzak.civicgrant.domain.grantapplication.model.RejectionGround;
 import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
+import be.achzak.civicgrant.domain.grantapplication.port.in.ApproveApplicationCommand;
+import be.achzak.civicgrant.domain.grantapplication.port.in.ApproveApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationCommand;
@@ -19,6 +22,8 @@ import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationComma
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentUseCase;
+import be.achzak.civicgrant.domain.grantapplication.port.in.RejectApplicationCommand;
+import be.achzak.civicgrant.domain.grantapplication.port.in.RejectApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RemoveDocumentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RemoveDocumentUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SubmitApplicationCommand;
@@ -67,6 +72,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 class CivicgrantApplicationTests {
 
     private static final byte[] PDF = "%PDF-1.7\n%%EOF\n".getBytes(StandardCharsets.US_ASCII);
+    private static final Actor DECISION_MAKER = new Actor(new UserId("decision-maker-1"), Set.of(Role.DECISION_MAKER));
 
     @Autowired
     private RegisterOrganisationUseCase registerOrganisation;
@@ -91,6 +97,12 @@ class CivicgrantApplicationTests {
 
     @Autowired
     private RecordAssessmentUseCase recordAssessment;
+
+    @Autowired
+    private ApproveApplicationUseCase approveApplication;
+
+    @Autowired
+    private RejectApplicationUseCase rejectApplication;
 
     @Autowired
     private DocumentStorage documents;
@@ -288,6 +300,64 @@ class CivicgrantApplicationTests {
     }
 
     @Test
+    @DisplayName("stores an approval, commits its grant to the call's budget and writes its audit entry")
+    void storesAnApprovalCommitsItsGrantAndWritesItsAuditEntry() {
+        // given
+        ApplicationId id = anAssessedApplication("NBH-APPROVE", "0433000278");
+
+        // when
+        approveApplication.approve(
+                new ApproveApplicationCommand(id, euros("7000.00"), "Het project versterkt de buurt.", DECISION_MAKER));
+
+        // then
+        assertThat(jdbc.sql("""
+                        SELECT a.status || ' ' || d.decision_maker_oid || ' ' || d.outcome || ' ' || d.granted_amount
+                            || ' ' || f.committed_amount
+                        FROM civicgrant.grant_application a
+                        JOIN civicgrant.decision d ON d.grant_application_id = a.id
+                        JOIN civicgrant.funding_call f ON f.id = a.funding_call_id
+                        WHERE a.id = :id
+                        """).param("id", id.value()).query(String.class).single())
+                .isEqualTo("APPROVED decision-maker-1 APPROVED 7000.00 7000.00");
+        assertThat(auditedEventTypesOf(id))
+                .containsExactlyInAnyOrder(
+                        "APPLICATION_CREATED",
+                        "DOCUMENT_ATTACHED",
+                        "APPLICATION_SUBMITTED",
+                        "ASSESSMENT_RECORDED",
+                        "APPLICATION_APPROVED");
+    }
+
+    @Test
+    @DisplayName("stores a rejection and writes its audit entry")
+    void storesARejectionAndWritesItsAuditEntry() {
+        // given
+        ApplicationId id = anAssessedApplication("NBH-REJECT", "0433000377");
+
+        // when
+        rejectApplication.reject(new RejectApplicationCommand(
+                id,
+                RejectionGround.INSUFFICIENT_QUALITY,
+                "Het projectplan is onvoldoende uitgewerkt.",
+                DECISION_MAKER));
+
+        // then
+        assertThat(jdbc.sql("""
+                        SELECT a.status || ' ' || d.decision_maker_oid || ' ' || d.outcome || ' ' || d.rejection_ground
+                        FROM civicgrant.grant_application a JOIN civicgrant.decision d ON d.grant_application_id = a.id
+                        WHERE a.id = :id
+                        """).param("id", id.value()).query(String.class).single())
+                .isEqualTo("REJECTED decision-maker-1 REJECTED INSUFFICIENT_QUALITY");
+        assertThat(auditedEventTypesOf(id))
+                .containsExactlyInAnyOrder(
+                        "APPLICATION_CREATED",
+                        "DOCUMENT_ATTACHED",
+                        "APPLICATION_SUBMITTED",
+                        "ASSESSMENT_RECORDED",
+                        "APPLICATION_REJECTED");
+    }
+
+    @Test
     @DisplayName("accepts uploads up to the domain's 10 MiB per file and 11 MiB per request")
     void acceptsUploadsUpToTheDomainsLimit() {
         // when
@@ -336,6 +406,15 @@ class CivicgrantApplicationTests {
                 applicant));
         attachDocument.attach(new AttachDocumentCommand(id, "projectplan.pdf", "application/pdf", PDF, applicant));
         submitApplication.submit(new SubmitApplicationCommand(id, applicant));
+        return id;
+    }
+
+    private ApplicationId anAssessedApplication(String callReference, String enterpriseNumber) {
+        Actor applicant = new Actor(new UserId("applicant-1"), Set.of(Role.APPLICANT));
+        Actor assessor = new Actor(new UserId("assessor-1"), Set.of(Role.ASSESSOR));
+        ApplicationId id = aSubmittedApplication(callReference, enterpriseNumber, applicant);
+        recordAssessment.record(new RecordAssessmentCommand(
+                id, true, new Recommendation.Approve(euros("7500.00")), "Sterk buurtproject.", assessor));
         return id;
     }
 
