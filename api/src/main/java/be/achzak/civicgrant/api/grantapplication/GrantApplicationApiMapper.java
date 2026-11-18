@@ -1,6 +1,7 @@
 package be.achzak.civicgrant.api.grantapplication;
 
 import be.achzak.civicgrant.api.generated.model.Application;
+import be.achzak.civicgrant.api.generated.model.AssessmentRequest;
 import be.achzak.civicgrant.api.generated.model.CreateApplicationRequest;
 import be.achzak.civicgrant.api.generated.model.Submission;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
@@ -8,19 +9,26 @@ import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
+import be.achzak.civicgrant.domain.grantapplication.model.Assessment;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
+import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
 import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
 import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationCommand;
+import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQuery;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.Money;
+import io.github.belgif.rest.problem.BadRequestProblem;
+import io.github.belgif.rest.problem.api.InEnum;
+import io.github.belgif.rest.problem.api.InputValidationIssues;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -32,6 +40,8 @@ import java.util.function.IntFunction;
 import org.springframework.web.multipart.MultipartFile;
 
 final class GrantApplicationApiMapper {
+
+    private static final String PROPOSED_AMOUNT = "/proposedAmount";
 
     private GrantApplicationApiMapper() {}
 
@@ -64,6 +74,51 @@ final class GrantApplicationApiMapper {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    static RecordAssessmentCommand toCommand(UUID applicationId, AssessmentRequest request, Actor actor) {
+        return new RecordAssessmentCommand(
+                new ApplicationId(applicationId),
+                request.getEligible(),
+                toDomain(request.getRecommendation(), request.getProposedAmount()),
+                request.getComment(),
+                actor);
+    }
+
+    // The contract has no oneOf, so the mapper enforces "proposedAmount with APPROVE only".
+    private static Recommendation toDomain(
+            be.achzak.civicgrant.api.generated.model.Recommendation recommendation, BigDecimal proposedAmount) {
+        return switch (recommendation) {
+            case APPROVE -> {
+                if (proposedAmount == null) {
+                    throw new BadRequestProblem(InputValidationIssues.requiredInput(InEnum.BODY, PROPOSED_AMOUNT));
+                }
+                yield new Recommendation.Approve(new Money(proposedAmount));
+            }
+            case REJECT -> {
+                if (proposedAmount != null) {
+                    throw new BadRequestProblem(
+                            InputValidationIssues.rejectedInput(InEnum.BODY, PROPOSED_AMOUNT, proposedAmount));
+                }
+                yield new Recommendation.Reject();
+            }
+        };
+    }
+
+    static be.achzak.civicgrant.api.generated.model.Assessment toResource(Assessment assessment) {
+        return switch (assessment.recommendation()) {
+            case Recommendation.Approve(Money proposedAmount) ->
+                toResource(assessment, be.achzak.civicgrant.api.generated.model.Recommendation.APPROVE)
+                        .proposedAmount(proposedAmount.amount());
+            case Recommendation.Reject() ->
+                toResource(assessment, be.achzak.civicgrant.api.generated.model.Recommendation.REJECT);
+        };
+    }
+
+    private static be.achzak.civicgrant.api.generated.model.Assessment toResource(
+            Assessment assessment, be.achzak.civicgrant.api.generated.model.Recommendation recommendation) {
+        return new be.achzak.civicgrant.api.generated.model.Assessment(
+                assessment.eligible(), recommendation, assessment.comment(), utc(assessment.assessedAt()));
     }
 
     static SearchApplicationsQuery toQuery(

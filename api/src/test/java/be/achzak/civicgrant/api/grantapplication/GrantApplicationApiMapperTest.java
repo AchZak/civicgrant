@@ -1,17 +1,28 @@
 package be.achzak.civicgrant.api.grantapplication;
 
+import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.APPLICATION_ID;
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.aDraft;
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.aProposal;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
+import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import be.achzak.civicgrant.api.generated.model.AssessmentRequest;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
+import be.achzak.civicgrant.domain.grantapplication.model.Assessment;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
+import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
+import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQuery;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.UserId;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -68,5 +79,91 @@ class GrantApplicationApiMapperTest {
 
         // then
         assertThat(mapped).isEqualTo(status.name());
+    }
+
+    @Nested
+    @DisplayName("Assessments")
+    class Assessments {
+
+        private static final Instant ASSESSED_AT = Instant.parse("2026-05-04T14:00:00Z");
+
+        @Test
+        @DisplayName("maps a recommendation to approve with its proposed amount")
+        void mapsARecommendationToApproveWithItsProposedAmount() {
+            // given
+            AssessmentRequest request = new AssessmentRequest(
+                            true, be.achzak.civicgrant.api.generated.model.Recommendation.APPROVE, "Sterk.")
+                    .proposedAmount(new BigDecimal("7500"));
+
+            // when
+            RecordAssessmentCommand command =
+                    GrantApplicationApiMapper.toCommand(APPLICATION_ID.value(), request, actor(Role.ASSESSOR));
+
+            // then
+            assertThat(command)
+                    .isEqualTo(new RecordAssessmentCommand(
+                            APPLICATION_ID,
+                            true,
+                            new Recommendation.Approve(euros("7500.00")),
+                            "Sterk.",
+                            actor(Role.ASSESSOR)));
+        }
+
+        @Test
+        @DisplayName("maps a recommendation to reject without an amount")
+        void mapsARecommendationToRejectWithoutAnAmount() {
+            // given
+            AssessmentRequest request = new AssessmentRequest(
+                    false, be.achzak.civicgrant.api.generated.model.Recommendation.REJECT, "Geen vzw.");
+
+            // when
+            RecordAssessmentCommand command =
+                    GrantApplicationApiMapper.toCommand(APPLICATION_ID.value(), request, actor(Role.ASSESSOR));
+
+            // then
+            assertThat(command.recommendation()).isEqualTo(new Recommendation.Reject());
+        }
+
+        @Test
+        @DisplayName("shows the proposed amount of a recommendation to approve")
+        void showsTheProposedAmountOfARecommendationToApprove() {
+            // given
+            Assessment assessment = new Assessment(
+                    new UserId("assessor-1"),
+                    true,
+                    new Recommendation.Approve(euros("7500.00")),
+                    "Sterk.",
+                    ASSESSED_AT);
+
+            // when
+            be.achzak.civicgrant.api.generated.model.Assessment resource =
+                    GrantApplicationApiMapper.toResource(assessment);
+
+            // then
+            assertThat(resource)
+                    .isEqualTo(new be.achzak.civicgrant.api.generated.model.Assessment(
+                                    true,
+                                    be.achzak.civicgrant.api.generated.model.Recommendation.APPROVE,
+                                    "Sterk.",
+                                    ASSESSED_AT.atOffset(ZoneOffset.UTC))
+                            .proposedAmount(new BigDecimal("7500.00")));
+        }
+
+        @Test
+        @DisplayName("leaves out the amount of a recommendation to reject")
+        void leavesOutTheAmountOfARecommendationToReject() {
+            // given
+            Assessment assessment = new Assessment(
+                    new UserId("assessor-1"), false, new Recommendation.Reject(), "Geen vzw.", ASSESSED_AT);
+
+            // when
+            be.achzak.civicgrant.api.generated.model.Assessment resource =
+                    GrantApplicationApiMapper.toResource(assessment);
+
+            // then
+            assertThat(resource.getRecommendation())
+                    .isEqualTo(be.achzak.civicgrant.api.generated.model.Recommendation.REJECT);
+            assertThat(resource.getProposedAmount()).isNull();
+        }
     }
 }
