@@ -42,6 +42,8 @@ import be.achzak.civicgrant.domain.shared.Role;
 import be.achzak.civicgrant.domain.shared.UserId;
 import com.azure.storage.blob.models.BlobErrorCode;
 import com.azure.storage.blob.models.BlobStorageException;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.MultipartConfigElement;
 import java.io.IOException;
 import java.net.URI;
@@ -60,6 +62,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest(
@@ -112,6 +115,12 @@ class CivicgrantApplicationTests {
 
     @Autowired
     private JdbcClient jdbc;
+
+    @Autowired
+    private MeterRegistry meters;
+
+    @Autowired
+    private TransactionTemplate transactions;
 
     @LocalServerPort
     private int port;
@@ -358,6 +367,48 @@ class CivicgrantApplicationTests {
     }
 
     @Test
+    @DisplayName("counts a committed approval and its granted amount in the business metrics")
+    void countsACommittedApprovalAndItsGrantedAmount() {
+        // given
+        ApplicationId id = anAssessedApplication("NBH-METRICS", "0433000476");
+        double approvalsBefore = approvalCount();
+        long amountsBefore = grantedAmounts().count();
+        double totalBefore = grantedAmounts().totalAmount();
+
+        // when
+        approveApplication.approve(
+                new ApproveApplicationCommand(id, euros("6000.00"), "Het project versterkt de buurt.", DECISION_MAKER));
+
+        // then
+        assertThat(approvalCount()).isEqualTo(approvalsBefore + 1);
+        assertThat(grantedAmounts().count()).isEqualTo(amountsBefore + 1);
+        assertThat(grantedAmounts().totalAmount()).isEqualTo(totalBefore + 6000.00);
+    }
+
+    @Test
+    @DisplayName("counts nothing for an approval that is rolled back")
+    void countsNothingForAnApprovalThatIsRolledBack() {
+        // given
+        ApplicationId id = anAssessedApplication("NBH-ROLLBACK", "0433000575");
+        double approvalsBefore = approvalCount();
+
+        // when
+        transactions.executeWithoutResult(transaction -> {
+            approveApplication.approve(new ApproveApplicationCommand(
+                    id, euros("6000.00"), "Het project versterkt de buurt.", DECISION_MAKER));
+            transaction.setRollbackOnly();
+        });
+
+        // then
+        assertThat(jdbc.sql("SELECT status FROM civicgrant.grant_application WHERE id = :id")
+                        .param("id", id.value())
+                        .query(String.class)
+                        .single())
+                .isEqualTo("ASSESSED");
+        assertThat(approvalCount()).isEqualTo(approvalsBefore);
+    }
+
+    @Test
     @DisplayName("accepts uploads up to the domain's 10 MiB per file and 11 MiB per request")
     void acceptsUploadsUpToTheDomainsLimit() {
         // when
@@ -430,6 +481,17 @@ class CivicgrantApplicationTests {
                 euros("8000.00"),
                 euros("12000.00"),
                 Language.NL);
+    }
+
+    private double approvalCount() {
+        return meters.get(BusinessMetricsListener.APPLICATIONS)
+                .tag("event", "approved")
+                .counter()
+                .count();
+    }
+
+    private DistributionSummary grantedAmounts() {
+        return meters.get(BusinessMetricsListener.GRANTED_AMOUNTS).summary();
     }
 
     private List<String> auditedEventTypesOf(ApplicationId id) {
