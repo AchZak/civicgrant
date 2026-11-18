@@ -73,10 +73,15 @@ class GrantApplicationJpaEntity {
     @OrderBy("uploadedAt, id")
     private List<SupportingDocumentJpaEntity> documents = new ArrayList<>();
 
-    // The assessment row holds the foreign key, so it owns the association and is inserted after this one.
+    // The assessment and decision rows hold the foreign key, so they own the association and are
+    // inserted after this one.
     @Setter(AccessLevel.PACKAGE)
     @OneToOne(mappedBy = "grantApplication", cascade = CascadeType.ALL)
     private AssessmentJpaEntity assessment;
+
+    @Setter(AccessLevel.PACKAGE)
+    @OneToOne(mappedBy = "grantApplication", cascade = CascadeType.ALL)
+    private DecisionJpaEntity decision;
 
     GrantApplicationJpaEntity(
             UUID id,

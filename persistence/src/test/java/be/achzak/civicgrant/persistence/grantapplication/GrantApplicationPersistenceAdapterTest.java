@@ -9,12 +9,14 @@ import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationReference;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.Assessment;
+import be.achzak.civicgrant.domain.grantapplication.model.Decision;
 import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationSnapshot;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
 import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
+import be.achzak.civicgrant.domain.grantapplication.model.RejectionGround;
 import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
 import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
@@ -84,6 +86,14 @@ class GrantApplicationPersistenceAdapterTest {
             ASSESSED_AT);
     private static final Assessment REJECTION_RECOMMENDED =
             new Assessment(new UserId("assessor-1"), false, new Recommendation.Reject(), "Geen vzw.", ASSESSED_AT);
+    private static final Instant DECIDED_AT = Instant.parse("2026-05-18T09:30:00Z");
+    private static final Decision APPROVAL = new Decision.Approval(
+            euros("7000.00"), new UserId("decision-maker-1"), "Het project versterkt de buurt.", DECIDED_AT);
+    private static final Decision REJECTION = new Decision.Rejection(
+            RejectionGround.INSUFFICIENT_QUALITY,
+            new UserId("decision-maker-1"),
+            "Het projectplan is onvoldoende uitgewerkt.",
+            DECIDED_AT);
 
     @Autowired
     private GrantApplicationRepository applications;
@@ -348,6 +358,83 @@ class GrantApplicationPersistenceAdapterTest {
         }
     }
 
+    @Nested
+    @DisplayName("Storing a decision")
+    class StoringADecision {
+
+        @Test
+        @DisplayName("saves an approved application and loads it back with every column")
+        void savesAnApprovedApplicationAndLoadsItBack() {
+            // given
+            GrantApplication application = decided(APPROVAL);
+            applications.save(application);
+            entityManager.clear();
+
+            // when
+            Optional<GrantApplication> loaded = applications.findById(APPLICATION_ID);
+
+            // then
+            assertThat(loaded).get().usingRecursiveComparison().isEqualTo(application);
+        }
+
+        @Test
+        @DisplayName("loads a rejection with its ground and without a granted amount")
+        void loadsARejectionWithItsGroundAndWithoutAGrantedAmount() {
+            // given
+            applications.save(decided(REJECTION));
+            entityManager.clear();
+
+            // when
+            Optional<GrantApplication> loaded = applications.findById(APPLICATION_ID);
+
+            // then
+            assertThat(loaded)
+                    .get()
+                    .extracting(GrantApplication::status, GrantApplication::decision)
+                    .containsExactly(ApplicationStatus.REJECTED, Optional.of(REJECTION));
+        }
+
+        @Test
+        @DisplayName("adds the decision when a stored application is decided")
+        void addsTheDecisionWhenAStoredApplicationIsDecided() {
+            // given
+            applications.save(assessed(APPROVAL_RECOMMENDED, 0));
+            entityManager.clear();
+
+            // when
+            applications.save(decided(APPROVAL));
+
+            // then
+            entityManager.clear();
+            assertThat(applications.findById(APPLICATION_ID))
+                    .get()
+                    .extracting(GrantApplication::status, GrantApplication::decision, GrantApplication::version)
+                    .containsExactly(ApplicationStatus.APPROVED, Optional.of(APPROVAL), 1L);
+        }
+
+        @Test
+        @DisplayName("refuses a second decision on the same application")
+        void refusesASecondDecisionOnTheSameApplication() {
+            // given
+            applications.save(decided(APPROVAL));
+
+            // when
+            Throwable thrown = catchThrowable(() -> jdbc.sql("""
+                            INSERT INTO civicgrant.decision (grant_application_id, decision_maker_oid, outcome,
+                                granted_amount, rejection_ground, motivation, decided_at)
+                            VALUES (:id, 'decision-maker-2', 'REJECTED', NULL, 'INCOMPLETE', 'Toch niet.', :decidedAt)
+                            """)
+                    .param("id", APPLICATION_ID.value())
+                    .param("decidedAt", DECIDED_AT.atOffset(ZoneOffset.UTC))
+                    .update());
+
+            // then
+            assertThat(thrown)
+                    .isInstanceOf(DataIntegrityViolationException.class)
+                    .hasMessageContaining("decision_pkey");
+        }
+    }
+
     private static GrantApplication draft(ProjectProposal proposal, Instant updatedAt, long version) {
         return application(proposal, ApplicationStatus.DRAFT, null, updatedAt, version, List.of(), null);
     }
@@ -363,6 +450,28 @@ class GrantApplicationPersistenceAdapterTest {
     private static GrantApplication assessed(Assessment assessment, long version) {
         return application(
                 PROPOSAL, ApplicationStatus.ASSESSED, LATER, ASSESSED_AT, version, List.of(BUDGET), assessment);
+    }
+
+    private static GrantApplication decided(Decision decision) {
+        ApplicationStatus status = switch (decision) {
+            case Decision.Approval _ -> ApplicationStatus.APPROVED;
+            case Decision.Rejection _ -> ApplicationStatus.REJECTED;
+        };
+        return GrantApplication.restore(new GrantApplicationSnapshot(
+                APPLICATION_ID,
+                new ApplicationReference("CG-2026-000001"),
+                FUNDING_CALL_ID,
+                ORGANISATION_ID,
+                new UserId("applicant-1"),
+                PROPOSAL,
+                List.of(BUDGET),
+                status,
+                LATER,
+                APPROVAL_RECOMMENDED,
+                decision,
+                CREATED_AT,
+                DECIDED_AT,
+                0));
     }
 
     private static GrantApplication application(

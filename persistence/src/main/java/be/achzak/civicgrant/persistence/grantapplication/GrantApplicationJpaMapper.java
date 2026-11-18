@@ -5,6 +5,7 @@ import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationReference;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
 import be.achzak.civicgrant.domain.grantapplication.model.Assessment;
+import be.achzak.civicgrant.domain.grantapplication.model.Decision;
 import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationSnapshot;
@@ -24,7 +25,6 @@ final class GrantApplicationJpaMapper {
     private GrantApplicationJpaMapper() {}
 
     static GrantApplication toDomain(GrantApplicationJpaEntity entity) {
-        // The decision lives in its own table, not mapped yet.
         return GrantApplication.restore(new GrantApplicationSnapshot(
                 new ApplicationId(entity.getId()),
                 new ApplicationReference(entity.getReference()),
@@ -43,7 +43,7 @@ final class GrantApplicationJpaMapper {
                 entity.getStatus(),
                 entity.getSubmittedAt(),
                 entity.getAssessment() == null ? null : toDomain(entity.getAssessment()),
-                null,
+                entity.getDecision() == null ? null : toDomain(entity.getDecision()),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
                 entity.getVersion()));
@@ -91,6 +91,44 @@ final class GrantApplicationJpaMapper {
                     .map(assessment -> toEntity(entity, assessment))
                     .ifPresent(entity::setAssessment);
         }
+        if (entity.getDecision() == null) {
+            application.decision().map(decision -> toEntity(entity, decision)).ifPresent(entity::setDecision);
+        }
+    }
+
+    private static DecisionJpaEntity toEntity(GrantApplicationJpaEntity application, Decision decision) {
+        return switch (decision) {
+            case Decision.Approval approval ->
+                new DecisionJpaEntity(
+                        application,
+                        approval.decidedBy().value(),
+                        DecisionOutcome.APPROVED,
+                        approval.grantedAmount().amount(),
+                        null,
+                        approval.motivation(),
+                        approval.decidedAt());
+            case Decision.Rejection rejection ->
+                new DecisionJpaEntity(
+                        application,
+                        rejection.decidedBy().value(),
+                        DecisionOutcome.REJECTED,
+                        null,
+                        rejection.ground(),
+                        rejection.motivation(),
+                        rejection.decidedAt());
+        };
+    }
+
+    private static Decision toDomain(DecisionJpaEntity entity) {
+        UserId decidedBy = new UserId(entity.getDecisionMakerOid());
+        return switch (entity.getOutcome()) {
+            case APPROVED ->
+                new Decision.Approval(
+                        new Money(entity.getGrantedAmount()), decidedBy, entity.getMotivation(), entity.getDecidedAt());
+            case REJECTED ->
+                new Decision.Rejection(
+                        entity.getRejectionGround(), decidedBy, entity.getMotivation(), entity.getDecidedAt());
+        };
     }
 
     private static AssessmentJpaEntity toEntity(GrantApplicationJpaEntity application, Assessment assessment) {
