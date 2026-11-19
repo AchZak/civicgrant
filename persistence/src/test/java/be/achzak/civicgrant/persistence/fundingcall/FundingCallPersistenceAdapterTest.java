@@ -158,15 +158,42 @@ class FundingCallPersistenceAdapterTest {
                             ConflictException.class,
                             conflict -> assertThat(conflict.code()).isEqualTo("CONCURRENT_UPDATE"));
         }
+    }
+
+    @Nested
+    @DisplayName("Storing a new call")
+    class StoringANewCall {
+
+        private final FundingCall opened = newFundingCall("NBH-NEW");
 
         @Test
-        @DisplayName("refuses to save a call that was never stored, since calls are only seeded")
-        void refusesToSaveACallThatWasNeverStored() {
+        @DisplayName("stores every column of a call that was never stored")
+        void storesEveryColumnOfACallThatWasNeverStored() {
             // when
-            Throwable thrown = catchThrowable(() -> fundingCalls.save(stored));
+            fundingCalls.save(opened);
 
             // then
-            assertThat(thrown).isInstanceOf(IllegalStateException.class);
+            entityManager.clear();
+            assertThat(fundingCalls.findById(opened.id()))
+                    .get()
+                    .usingRecursiveComparison()
+                    .isEqualTo(opened);
+        }
+
+        @Test
+        @DisplayName("refuses a second call with a reference that's already taken")
+        void refusesASecondCallWithAReferenceThatsAlreadyTaken() {
+            // given
+            insert(fundingCall("NBH-NEW", NOW.minus(Duration.ofDays(30)), NOW.plus(Duration.ofDays(60))));
+
+            // when
+            Throwable thrown = catchThrowable(() -> fundingCalls.save(opened));
+
+            // then
+            assertThat(thrown)
+                    .isInstanceOfSatisfying(
+                            ConflictException.class,
+                            conflict -> assertThat(conflict.code()).isEqualTo("FUNDING_CALL_REFERENCE_TAKEN"));
         }
     }
 
@@ -179,6 +206,17 @@ class FundingCallPersistenceAdapterTest {
                 new BudgetEnvelope(euros("50000.00"), euros("12500.00"), euros("15000.00")),
                 3,
                 Instant.parse("2026-01-10T09:00:00Z"));
+    }
+
+    private static FundingCall newFundingCall(String reference) {
+        return FundingCall.restore(
+                FundingCallId.generate(),
+                reference,
+                new LocalizedText("Groene daken 2027", "Toitures vertes 2027"),
+                new SubmissionPeriod(NOW.plus(Duration.ofDays(14)), NOW.plus(Duration.ofDays(120))),
+                new BudgetEnvelope(euros("80000.00"), euros("0.00"), euros("20000.00")),
+                0,
+                NOW);
     }
 
     private void insert(FundingCall fundingCall) {

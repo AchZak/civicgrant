@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +18,9 @@ import lombok.Setter;
 @Table(name = "funding_call")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+// A builder, not a constructor: nine columns never change, more than Sonar's seven parameters.
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder(access = AccessLevel.PACKAGE)
 class FundingCallJpaEntity {
 
     @Id

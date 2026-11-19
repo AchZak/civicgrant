@@ -25,6 +25,22 @@ final class FundingCallJpaMapper {
                 entity.getCreatedAt());
     }
 
+    static FundingCallJpaEntity toEntity(FundingCall fundingCall) {
+        return FundingCallJpaEntity.builder()
+                .id(fundingCall.id().value())
+                .reference(fundingCall.reference())
+                .titleNl(fundingCall.title().nl())
+                .titleFr(fundingCall.title().fr())
+                .opensAt(fundingCall.submissionPeriod().opensAt())
+                .closesAt(fundingCall.submissionPeriod().closesAt())
+                .totalBudget(fundingCall.budget().total().amount())
+                .committedAmount(fundingCall.budget().committed().amount())
+                .maxAmountPerApplication(
+                        fundingCall.budget().capPerApplication().amount())
+                .createdAt(fundingCall.createdAt())
+                .build();
+    }
+
     static void update(FundingCallJpaEntity entity, FundingCall fundingCall) {
         entity.setCommittedAmount(fundingCall.budget().committed().amount());
     }

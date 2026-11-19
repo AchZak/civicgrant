@@ -9,10 +9,13 @@ import jakarta.persistence.OptimisticLockException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Component;
 
 @Component
 class FundingCallPersistenceAdapter implements FundingCallRepository {
+
+    private static final String UNIQUE_REFERENCE = "uq_funding_call_reference";
 
     private final FundingCallJpaRepository fundingCalls;
     private final EntityManager entityManager;
@@ -39,9 +42,28 @@ class FundingCallPersistenceAdapter implements FundingCallRepository {
         FundingCallJpaEntity stored =
                 entityManager.find(FundingCallJpaEntity.class, fundingCall.id().value());
         if (stored == null) {
-            throw new IllegalStateException(
-                    "Funding call " + fundingCall.reference() + " isn't stored: calls are only seeded");
+            insert(fundingCall);
+        } else {
+            update(stored, fundingCall);
         }
+    }
+
+    private void insert(FundingCall fundingCall) {
+        try {
+            entityManager.persist(FundingCallJpaMapper.toEntity(fundingCall));
+            // Flushed now, so a reference taken concurrently fails here, where it can become a conflict.
+            entityManager.flush();
+        } catch (ConstraintViolationException e) {
+            if (!UNIQUE_REFERENCE.equals(e.getConstraintName())) {
+                throw e;
+            }
+            throw new ConflictException(
+                    "FUNDING_CALL_REFERENCE_TAKEN",
+                    "Funding call reference " + fundingCall.reference() + " is already taken");
+        }
+    }
+
+    private void update(FundingCallJpaEntity stored, FundingCall fundingCall) {
         if (stored.getVersion() != fundingCall.version()) {
             throw concurrentUpdate(fundingCall);
         }
