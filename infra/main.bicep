@@ -11,9 +11,12 @@
 //   cae-civicgrant-<env>     Container Apps environment: where the app runs
 //     diagnostic setting     its console and system logs go to the workspace
 //   ca-civicgrant-<env>      Container App: the application image, running
+//   alert-civicgrant-<env>-server-errors
+//                            alert rule: emails when the app answers with a 5xx
 //
 // Everything it builds on already exists, created by shared.bicep: the resource
-// group, the identities, the registry, the database and the documents container. Their values arrive as
+// group, the identities, the registry, the database, the documents container and
+// the action group the alerts notify. Their values arrive as
 // parameters, so whoever deploys this template needs no rights outside the
 // resource group.
 //
@@ -66,6 +69,11 @@ param appIdentityPrincipalId string
 
 @description('Load the demo data after the schema migrations. Never in production.')
 param loadDemoData bool
+
+// Only referenced: the deploy identity needs read access to it (Reader, granted in
+// shared.bicep), never write access.
+@description('Resource id of the shared action group the alert rules notify, ag-civicgrant-shared.')
+param alertActionGroupId string
 
 // Exactly a GUID's length. An empty value would leave the token audience
 // unchecked, so the deployment stops instead.
@@ -242,6 +250,16 @@ module containerApp 'modules/container-app.bicep' = {
     registryLoginServer: registryLoginServer
     identityId: appIdentityId
     environmentVariables: appSettings
+  }
+}
+
+// 4. The alert rules, watching the Application Insights from step 1.
+module alerts 'modules/alerts.bicep' = {
+  params: {
+    environmentName: environmentName
+    tags: tags
+    applicationInsightsId: monitoring.outputs.applicationInsightsId
+    actionGroupId: alertActionGroupId
   }
 }
 

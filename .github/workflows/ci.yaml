@@ -244,6 +244,7 @@ jobs:
       REGISTRY_LOGIN_SERVER: ${{ vars.REGISTRY_LOGIN_SERVER }}         # Repository variable: shared.
       POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}                         # Repository variable: shared.
       DOCUMENTS_ENDPOINT: ${{ vars.DOCUMENTS_ENDPOINT }}               # Repository variable: shared.
+      ALERT_ACTION_GROUP_ID: ${{ vars.ALERT_ACTION_GROUP_ID }}         # Repository variable: shared, the alerts' action group.
       APP_IDENTITY_ID: ${{ vars.APP_IDENTITY_ID }}                     # GitHub Environment variable of tst.
       APP_IDENTITY_CLIENT_ID: ${{ vars.APP_IDENTITY_CLIENT_ID }}       # GitHub Environment variable of tst.
       APP_IDENTITY_PRINCIPAL_ID: ${{ vars.APP_IDENTITY_PRINCIPAL_ID }} # GitHub Environment variable of tst.

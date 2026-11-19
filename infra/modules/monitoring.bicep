@@ -126,4 +126,5 @@ resource publisherRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-0
 // ------------------------------------------------------------
 
 output workspaceId string = workspace.id                                       // Destination of the environment's logs.
+output applicationInsightsId string = applicationInsights.id                   // What the alert rules watch.
 output connectionString string = applicationInsights.properties.ConnectionString // Where the agent sends telemetry.
