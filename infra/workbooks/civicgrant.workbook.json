@@ -1,0 +1,199 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "## CivicGrant\nHow the API is doing: traffic, refusals, server errors, slow operations, the grant workflow and the log lines worth a look. Health probes (`/actuator/health`) are left out everywhere: they are most of the traffic and say nothing about users."
+      },
+      "name": "introduction"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "4d0b6c1e-7f2a-4a39-9d43-2a8f3c5e1b70",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "label": "Time range",
+            "type": 4,
+            "isRequired": true,
+            "value": {
+              "durationMs": 604800000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 2592000000
+                }
+              ],
+              "allowCustom": true
+            }
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let api = AppRequests\n    | where Name !startswith 'GET /actuator';\nunion\n    (api | summarize value = todouble(count()) | extend label = 'API requests', order = 1),\n    (api | summarize value = todouble(countif(toint(ResultCode) between (400 .. 499))) | extend label = 'Refused (4xx)', order = 2),\n    (api | summarize value = todouble(countif(toint(ResultCode) >= 500)) | extend label = 'Server errors (5xx)', order = 3),\n    (api | summarize value = round(percentile(DurationMs, 95)) | extend label = '95th percentile (ms)', order = 4)\n| sort by order asc\n| project label, value",
+        "size": 4,
+        "title": "API at a glance",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__WORKSPACE_ID__"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "label",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "value",
+            "formatter": 12,
+            "formatOptions": {
+              "palette": "auto"
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "maximumSignificantDigits": 4
+              }
+            }
+          },
+          "showBorder": true
+        }
+      },
+      "name": "api-tiles"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppRequests\n| where Name !startswith 'GET /actuator'\n| extend status = strcat(substring(ResultCode, 0, 1), 'xx')\n| summarize requests = count() by status, bin(TimeGenerated, {TimeRange:grain})",
+        "size": 0,
+        "title": "Requests over time, by status class",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__WORKSPACE_ID__"
+        ],
+        "visualization": "barchart"
+      },
+      "name": "traffic-over-time"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppRequests\n| where Name !startswith 'GET /actuator'\n| summarize\n    ['Requests'] = count(),\n    ['4xx'] = countif(toint(ResultCode) between (400 .. 499)),\n    ['5xx'] = countif(toint(ResultCode) >= 500),\n    ['95th percentile (ms)'] = round(percentile(DurationMs, 95))\n    by ['Operation'] = Name\n| sort by ['Requests'] desc",
+        "size": 0,
+        "title": "Per operation",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__WORKSPACE_ID__"
+        ],
+        "visualization": "table"
+      },
+      "name": "operations"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let steps = AppMetrics\n    | where Name == 'civicgrant_applications'\n    | summarize value = sum(Sum) by label = tostring(Properties.event);\nlet granted = AppMetrics\n    | where Name == 'civicgrant_grants_amount'\n    | summarize value = sum(Sum)\n    | extend label = 'euros granted';\nunion steps, granted\n| extend order = case(label == 'created', 1, label == 'submitted', 2, label == 'assessed', 3, label == 'approved', 4, label == 'rejected', 5, 6)\n| sort by order asc\n| project label, value",
+        "size": 4,
+        "title": "Grant workflow",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__WORKSPACE_ID__"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "label",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "value",
+            "formatter": 12,
+            "formatOptions": {
+              "palette": "auto"
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "maximumFractionDigits": 2
+              }
+            }
+          },
+          "showBorder": true
+        }
+      },
+      "name": "workflow-tiles"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppMetrics\n| where Name == 'civicgrant_applications'\n| summarize applications = sum(Sum) by step = tostring(Properties.event), bin(TimeGenerated, {TimeRange:grain})",
+        "size": 0,
+        "title": "Grant workflow over time",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__WORKSPACE_ID__"
+        ],
+        "visualization": "barchart"
+      },
+      "name": "workflow-over-time"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "ContainerAppConsoleLogs\n| extend entry = parse_json(Log)\n| extend level = tostring(entry.log.level)\n| where level in ('WARN', 'ERROR')\n| project\n    TimeGenerated,\n    level,\n    logger = tostring(entry.log.logger),\n    message = tostring(entry.message),\n    error = trim(' ', strcat(tostring(entry.error.type), ' ', tostring(entry.error.message))),\n    OperationId = tostring(entry.trace_id),\n    RevisionName\n| join kind=leftouter (AppRequests | project OperationId, request = Name, ResultCode) on OperationId\n| project TimeGenerated, level, request, ResultCode, logger, message, error, OperationId, RevisionName\n| sort by TimeGenerated desc\n| take 100",
+        "size": 0,
+        "title": "Warnings and errors in the logs, with their request",
+        "noDataMessage": "No warnings or errors in this time range.",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__WORKSPACE_ID__"
+        ],
+        "visualization": "table"
+      },
+      "name": "problem-logs"
+    }
+  ],
+  "fallbackResourceIds": [
+    "azure monitor"
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

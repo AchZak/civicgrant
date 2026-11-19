@@ -13,6 +13,7 @@
 //   ca-civicgrant-<env>      Container App: the application image, running
 //   alert-civicgrant-<env>-server-errors
 //                            alert rule: emails when the app answers with a 5xx
+//   CivicGrant <env>         workbook: traffic, errors, the grant workflow and problem logs
 //
 // Everything it builds on already exists, created by shared.bicep: the resource
 // group, the identities, the registry, the database, the documents container and
@@ -260,6 +261,16 @@ module alerts 'modules/alerts.bicep' = {
     tags: tags
     applicationInsightsId: monitoring.outputs.applicationInsightsId
     actionGroupId: alertActionGroupId
+  }
+}
+
+// 5. The workbook, querying the workspace from step 1.
+module workbook 'modules/workbook.bicep' = {
+  params: {
+    environmentName: environmentName
+    location: location
+    tags: tags
+    workspaceId: monitoring.outputs.workspaceId
   }
 }
 
