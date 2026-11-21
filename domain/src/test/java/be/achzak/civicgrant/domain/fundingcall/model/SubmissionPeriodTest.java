@@ -2,6 +2,7 @@ package be.achzak.civicgrant.domain.fundingcall.model;
 
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.CLOSES_AT;
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.OPENS_AT;
+import static be.achzak.civicgrant.domain.shared.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -24,7 +25,9 @@ class SubmissionPeriodTest {
             Throwable thrown = catchThrowable(() -> new SubmissionPeriod(OPENS_AT, OPENS_AT));
 
             // then
-            assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+            assertThatDomainException(thrown)
+                    .isBusinessRuleViolation()
+                    .hasCode("SUBMISSION_PERIOD_CLOSES_BEFORE_OPENING");
         }
     }
 
