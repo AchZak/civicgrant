@@ -1,5 +1,8 @@
 package be.achzak.civicgrant.domain.audit.model;
 
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallEvent;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallOpened;
+import be.achzak.civicgrant.domain.fundingcall.model.GrantCommitted;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationApproved;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationCreated;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationEdited;
@@ -18,6 +21,7 @@ import be.achzak.civicgrant.domain.shared.UserId;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public record AuditEntry(
         AuditSubject subject, AuditAction action, UserId actorId, Instant occurredAt, Map<String, String> details) {
@@ -40,6 +44,21 @@ public record AuditEntry(
                         registered,
                         AuditAction.ORGANISATION_REGISTERED,
                         Map.of("enterpriseNumber", registered.enterpriseNumber().value()));
+        };
+    }
+
+    public static Optional<AuditEntry> from(FundingCallEvent event) {
+        Objects.requireNonNull(event, "event");
+        AuditSubject subject = new AuditSubject.FundingCall(event.fundingCallId());
+        return switch (event) {
+            case FundingCallOpened opened ->
+                Optional.of(entry(
+                        subject,
+                        opened,
+                        AuditAction.FUNDING_CALL_OPENED,
+                        Map.of("reference", opened.reference(), "totalBudget", amount(opened.totalBudget()))));
+            // Already recorded as APPLICATION_APPROVED, with the granted amount.
+            case GrantCommitted _ -> Optional.empty();
         };
     }
 

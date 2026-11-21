@@ -1,18 +1,27 @@
 package be.achzak.civicgrant.persistence.audit;
 
+import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import be.achzak.civicgrant.domain.audit.model.AuditEntry;
 import be.achzak.civicgrant.domain.audit.port.out.AuditTrail;
+import be.achzak.civicgrant.domain.fundingcall.model.BudgetEnvelope;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallOpened;
+import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
+import be.achzak.civicgrant.domain.fundingcall.port.out.FundingCallRepository;
 import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationRegistered;
 import be.achzak.civicgrant.domain.organisation.port.out.OrganisationRepository;
+import be.achzak.civicgrant.domain.shared.LocalizedText;
 import be.achzak.civicgrant.domain.shared.UserId;
 import be.achzak.civicgrant.persistence.PersistenceTest;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -39,6 +48,9 @@ class AuditTrailPersistenceAdapterTest {
     private OrganisationRepository organisations;
 
     @Autowired
+    private FundingCallRepository fundingCalls;
+
+    @Autowired
     private TestEntityManager entityManager;
 
     @Autowired
@@ -60,10 +72,58 @@ class AuditTrailPersistenceAdapterTest {
 
         // then
         assertThat(storedEvents())
-                .containsExactly(
-                        new StoredEvent(null, organisation.value(), "ORGANISATION_REGISTERED", "applicant-1", NOW));
+                .containsExactly(new StoredEvent(
+                        null, organisation.value(), null, "ORGANISATION_REGISTERED", "applicant-1", NOW));
         assertThat(storedDetails())
                 .containsExactlyInAnyOrderElementsOf(entry.details().entrySet());
+    }
+
+    @Test
+    @DisplayName("stores an entry on its funding call, with the action, actor, moment and details")
+    void storesAnEntryOnItsFundingCall() {
+        // given
+        FundingCallId call = FundingCallId.generate();
+        fundingCalls.save(FundingCall.restore(
+                call,
+                "GRN-2027",
+                new LocalizedText("Groene daken 2027", "Toitures vertes 2027"),
+                new SubmissionPeriod(NOW, NOW.plus(Duration.ofDays(90))),
+                BudgetEnvelope.unspent(euros("80000.00"), euros("20000.00")),
+                0,
+                NOW));
+        AuditEntry entry = AuditEntry.from(new FundingCallOpened(
+                        call, "GRN-2027", euros("80000.00"), new UserId("programme-manager-1"), NOW))
+                .orElseThrow();
+
+        // when
+        auditTrail.append(entry);
+        entityManager.flush();
+
+        // then
+        assertThat(storedEvents())
+                .containsExactly(
+                        new StoredEvent(null, null, call.value(), "FUNDING_CALL_OPENED", "programme-manager-1", NOW));
+        assertThat(storedDetails())
+                .containsExactlyInAnyOrderElementsOf(entry.details().entrySet());
+    }
+
+    @Test
+    @DisplayName("refuses a row about both an application and a funding call")
+    void refusesARowAboutBothAnApplicationAndAFundingCall() {
+        // when
+        Throwable thrown = catchThrowable(() -> jdbc.sql("""
+                        INSERT INTO civicgrant.audit_event
+                            (grant_application_id, funding_call_id, event_type, actor_oid, occurred_at, details)
+                        VALUES (:application, :call, 'FUNDING_CALL_OPENED', 'programme-manager-1', now(), '{}'::jsonb)
+                        """)
+                .param("application", UUID.randomUUID())
+                .param("call", UUID.randomUUID())
+                .update());
+
+        // then
+        assertThat(thrown)
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .hasMessageContaining("ck_audit_event_subject");
     }
 
     @Test
@@ -83,12 +143,14 @@ class AuditTrailPersistenceAdapterTest {
 
     private List<StoredEvent> storedEvents() {
         return jdbc.sql("""
-                        SELECT grant_application_id, organisation_id, event_type, actor_oid, occurred_at
+                        SELECT grant_application_id, organisation_id, funding_call_id, event_type, actor_oid,
+                               occurred_at
                         FROM civicgrant.audit_event
                         """)
                 .query((row, number) -> new StoredEvent(
                         row.getObject("grant_application_id", UUID.class),
                         row.getObject("organisation_id", UUID.class),
+                        row.getObject("funding_call_id", UUID.class),
                         row.getString("event_type"),
                         row.getString("actor_oid"),
                         row.getObject("occurred_at", OffsetDateTime.class).toInstant()))
@@ -102,5 +164,10 @@ class AuditTrailPersistenceAdapterTest {
     }
 
     private record StoredEvent(
-            UUID grantApplicationId, UUID organisationId, String eventType, String actorOid, Instant occurredAt) {}
+            UUID grantApplicationId,
+            UUID organisationId,
+            UUID fundingCallId,
+            String eventType,
+            String actorOid,
+            Instant occurredAt) {}
 }

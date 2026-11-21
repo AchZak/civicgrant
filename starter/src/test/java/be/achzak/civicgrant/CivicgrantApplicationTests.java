@@ -219,6 +219,31 @@ class CivicgrantApplicationTests {
     }
 
     @Test
+    @DisplayName("writes an audit entry when a funding call is opened")
+    void writesAnAuditEntryWhenAFundingCallIsOpened() {
+        // given
+        Actor programmeManager = new Actor(new UserId("programme-manager-1"), Set.of(Role.PROGRAMME_MANAGER));
+        Instant opensAt = Instant.now().plus(Duration.ofDays(14));
+        OpenFundingCallCommand opening = new OpenFundingCallCommand(
+                "GRN-AUDIT",
+                new LocalizedText("Groene daken 2027", "Toitures vertes 2027"),
+                new SubmissionPeriod(opensAt, opensAt.plus(Duration.ofDays(90))),
+                euros("80000.00"),
+                euros("20000.00"),
+                programmeManager);
+
+        // when
+        FundingCallId id = openFundingCall.open(opening);
+
+        // then
+        assertThat(jdbc.sql("SELECT event_type, actor_oid FROM civicgrant.audit_event WHERE funding_call_id = :id")
+                        .param("id", id.value())
+                        .query((row, number) -> row.getString("event_type") + " by " + row.getString("actor_oid"))
+                        .list())
+                .containsExactly("FUNDING_CALL_OPENED by programme-manager-1");
+    }
+
+    @Test
     @DisplayName("creates a numbered application and writes its audit entry")
     void createsANumberedApplicationAndWritesItsAuditEntry() {
         // given

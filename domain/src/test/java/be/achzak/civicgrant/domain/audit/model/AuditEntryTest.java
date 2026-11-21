@@ -1,12 +1,15 @@
 package be.achzak.civicgrant.domain.audit.model;
 
 import static be.achzak.civicgrant.domain.shared.Actors.aDecisionMaker;
+import static be.achzak.civicgrant.domain.shared.Actors.aProgrammeManager;
 import static be.achzak.civicgrant.domain.shared.Actors.anApplicant;
 import static be.achzak.civicgrant.domain.shared.Actors.anAssessor;
 import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallOpened;
+import be.achzak.civicgrant.domain.fundingcall.model.GrantCommitted;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationApproved;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationCreated;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationEdited;
@@ -24,6 +27,7 @@ import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationRegistered;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -193,5 +197,39 @@ class AuditEntryTest {
         // then
         assertThat(entry.action()).isEqualTo(AuditAction.APPLICATION_REJECTED);
         assertThat(entry.details()).isEqualTo(Map.of("rejectionGround", "INELIGIBLE"));
+    }
+
+    @Test
+    @DisplayName("records an opening on the funding call, with its reference and total budget, not its titles")
+    void recordsOpeningOnTheFundingCall() {
+        // given
+        FundingCallId call = new FundingCallId(UUID.fromString("0f6e1d1c-0002-4000-8000-000000000002"));
+
+        // when
+        Optional<AuditEntry> entry = AuditEntry.from(new FundingCallOpened(
+                call, "GRN-2027", euros("80000.00"), aProgrammeManager().id(), NOW));
+
+        // then
+        assertThat(entry)
+                .contains(new AuditEntry(
+                        new AuditSubject.FundingCall(call),
+                        AuditAction.FUNDING_CALL_OPENED,
+                        aProgrammeManager().id(),
+                        NOW,
+                        Map.of("reference", "GRN-2027", "totalBudget", "80000.00")));
+    }
+
+    @Test
+    @DisplayName("records nothing for a committed grant, which the approval already records")
+    void recordsNothingForACommittedGrant() {
+        // given
+        FundingCallId call = new FundingCallId(UUID.fromString("0f6e1d1c-0002-4000-8000-000000000002"));
+
+        // when
+        Optional<AuditEntry> entry = AuditEntry.from(
+                new GrantCommitted(call, euros("7000.00"), aDecisionMaker().id(), NOW));
+
+        // then
+        assertThat(entry).isEmpty();
     }
 }

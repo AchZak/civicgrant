@@ -29,6 +29,7 @@ class AuditEventJpaEntity {
 
     private UUID grantApplicationId;
     private UUID organisationId;
+    private UUID fundingCallId;
 
     @Enumerated(EnumType.STRING)
     private AuditAction eventType;
@@ -42,12 +43,14 @@ class AuditEventJpaEntity {
     AuditEventJpaEntity(
             UUID grantApplicationId,
             UUID organisationId,
+            UUID fundingCallId,
             AuditAction eventType,
             String actorOid,
             Instant occurredAt,
             Map<String, String> details) {
         this.grantApplicationId = grantApplicationId;
         this.organisationId = organisationId;
+        this.fundingCallId = fundingCallId;
         this.eventType = eventType;
         this.actorOid = actorOid;
         this.occurredAt = occurredAt;

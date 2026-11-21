@@ -3,6 +3,7 @@ package be.achzak.civicgrant;
 import be.achzak.civicgrant.domain.audit.model.AuditEntry;
 import be.achzak.civicgrant.domain.audit.port.in.RecordAuditEntryCommand;
 import be.achzak.civicgrant.domain.audit.port.in.RecordAuditEntryUseCase;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallEvent;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationEvent;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationEvent;
 import org.springframework.context.event.EventListener;
@@ -25,5 +26,10 @@ class AuditTrailListener {
     @EventListener
     void on(GrantApplicationEvent event) {
         recordAuditEntry.record(new RecordAuditEntryCommand(AuditEntry.from(event)));
+    }
+
+    @EventListener
+    void on(FundingCallEvent event) {
+        AuditEntry.from(event).ifPresent(entry -> recordAuditEntry.record(new RecordAuditEntryCommand(entry)));
     }
 }
