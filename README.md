@@ -95,7 +95,7 @@ The pipeline authenticates to Azure with workload identity federation, so there 
 
 **Rolling evaluation instead of a competitive call.** Many calls for projects collect everything until the deadline, score it and fund from the top down. That needs scoring criteria, a ranking step and bulk decisions. Rolling evaluation is a legitimate model, often used for smaller grants, and keeps the scope focused on the workflow.
 
-**No message broker.** Notifications are handled in-process after the transaction commits. With one application and no other system consuming its events, a broker would add cost and moving parts without solving anything. I'd introduce Azure Service Bus with a transactional outbox the moment another system needs these events, for example a finance system that pays out approved grants.
+**No message broker.** The domain's events are handled in-process, by listeners in the same application. The audit trail writes its entry in the same transaction as the change. The business metrics, and the removal of a deleted document's file, wait until the transaction has committed. With one application and no other system consuming these events, a broker would add cost and moving parts without solving anything. I'd introduce Azure Service Bus with a transactional outbox the moment another system needs them, for example a finance system that pays out approved grants.
 
 **Key Vault is almost empty, on purpose.** Managed Identity removes the database and storage credentials. Key Vault only holds what can't be made passwordless.
 
@@ -222,4 +222,4 @@ Things a real system would need, left out to keep the project finishable:
 - Private networking (VNet integration, private endpoints) and API Management.
 - Payments of approved grants.
 - Appeals against a decision.
-- Email delivery. Notifications are shown in the application.
+- Notifications, by email or in the application. Applicants follow the status of their application in the portal.
