@@ -8,8 +8,9 @@ info:
     and the Angular client are both generated from it.
 
     Every operation needs a Microsoft Entra ID access token carrying one of the app
-    roles APPLICANT, ASSESSOR or DECISION_MAKER. Each operation names the roles it
-    accepts; any other role gets `urn:problem-type:civicgrant:roleRequired` (403).
+    roles APPLICANT, ASSESSOR, DECISION_MAKER or PROGRAMME_MANAGER. Each operation
+    names the roles it accepts; any other role gets
+    `urn:problem-type:civicgrant:roleRequired` (403).
 
     Errors are Problem Details (RFC 9457) as defined by Belgif. Standard problems are
     `urn:problem-type:belgif:<name>`; business problems are
@@ -96,8 +97,9 @@ paths:
       operationId: findOrganisations
       summary: Find an organisation by its enterprise number
       description: |
-        Roles: any. Returns the registered organisation with this enterprise number,
-        or an empty list when none is registered yet.
+        Roles: APPLICANT, ASSESSOR, DECISION_MAKER. Returns the registered
+        organisation with this enterprise number, or an empty list when none is
+        registered yet.
 
         Problems: 400 `enterpriseNumberInvalidFormat`, `enterpriseNumberInvalidChecksum`.
       parameters:
@@ -161,7 +163,7 @@ paths:
       tags: [Organisations]
       operationId: getOrganisation
       summary: Get an organisation
-      description: 'Roles: any.'
+      description: 'Roles: APPLICANT, ASSESSOR, DECISION_MAKER.'
       responses:
         '200':
           description: The organisation
@@ -184,8 +186,9 @@ paths:
       operationId: listApplications
       summary: List the applications the caller may see
       description: |
-        Roles: any. Applicants see their own applications; assessors and decision
-        makers see every application except drafts. Most recently changed first.
+        Roles: APPLICANT, ASSESSOR, DECISION_MAKER. Applicants see their own
+        applications; assessors and decision makers see every application except
+        drafts. Most recently changed first.
       parameters:
         - $ref: '#/components/parameters/StatusFilter'
         - $ref: '#/components/parameters/FundingCallFilter'
@@ -250,7 +253,7 @@ paths:
       tags: [Applications]
       operationId: getApplication
       summary: Get an application
-      description: 'Roles: any, for an application the caller may see.'
+      description: 'Roles: APPLICANT, ASSESSOR, DECISION_MAKER, for an application the caller may see.'
       responses:
         '200':
           description: The application
@@ -346,7 +349,7 @@ paths:
       tags: [Submissions]
       operationId: getSubmission
       summary: Get the submission of an application
-      description: 'Roles: any, for an application the caller may see. 404 while it''s a draft.'
+      description: 'Roles: APPLICANT, ASSESSOR, DECISION_MAKER, for an application the caller may see. 404 while it''s a draft.'
       responses:
         '200':
           description: The submission
@@ -420,7 +423,7 @@ paths:
       tags: [SupportingDocuments]
       operationId: getDocument
       summary: Get the details of an attached document
-      description: 'Roles: any, for an application the caller may see.'
+      description: 'Roles: APPLICANT, ASSESSOR, DECISION_MAKER, for an application the caller may see.'
       responses:
         '200':
           description: The document's details
@@ -466,7 +469,7 @@ paths:
       tags: [SupportingDocuments]
       operationId: downloadDocument
       summary: Download an attached document
-      description: 'Roles: any, for an application the caller may see.'
+      description: 'Roles: APPLICANT, ASSESSOR, DECISION_MAKER, for an application the caller may see.'
       responses:
         '200':
           description: The PDF file
@@ -609,7 +612,8 @@ paths:
       operationId: getDecision
       summary: Get the decision on an application
       description: |
-        Roles: any, for an application the caller may see. 404 until it's decided.
+        Roles: APPLICANT, ASSESSOR, DECISION_MAKER, for an application the caller may see.
+        404 until it's decided.
       responses:
         '200':
           description: The decision
