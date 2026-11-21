@@ -9,7 +9,7 @@
 //     api://<tenant id>/civicgrant-api-<env>
 //                               Application ID URI: the prefix of its scope
 //     access_as_user            scope: clients call the API for a signed-in user
-//     APPLICANT, ASSESSOR, DECISION_MAKER
+//     APPLICANT, ASSESSOR, DECISION_MAKER, PROGRAMME_MANAGER
 //                               app roles, assigned to users
 //     Azure CLI                 pre-authorised client, where allowAzureCli is true
 //   service principal           the registration's instance in this tenant: users

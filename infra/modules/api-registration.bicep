@@ -80,6 +80,11 @@ var roles = [
     displayName: 'Decision maker'
     description: 'Approves or rejects assessed applications, with a written motivation.'
   }
+  {
+    value: 'PROGRAMME_MANAGER'
+    displayName: 'Programme manager'
+    description: 'Opens funding calls, with their dates and budget.'
+  }
 ]
 
 // The Azure CLI's client id: the same in every tenant (a Microsoft first-party app).
