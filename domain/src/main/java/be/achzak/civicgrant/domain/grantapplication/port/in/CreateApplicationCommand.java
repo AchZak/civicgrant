@@ -4,10 +4,12 @@ import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.Actor;
+import be.achzak.civicgrant.domain.shared.Command;
 import java.util.Objects;
 
 public record CreateApplicationCommand(
-        FundingCallId fundingCallId, OrganisationId organisationId, ProjectProposal proposal, Actor actor) {
+        FundingCallId fundingCallId, OrganisationId organisationId, ProjectProposal proposal, Actor actor)
+        implements Command {
 
     public CreateApplicationCommand {
         Objects.requireNonNull(fundingCallId, "fundingCallId");

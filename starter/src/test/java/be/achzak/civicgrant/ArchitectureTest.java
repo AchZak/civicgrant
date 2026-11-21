@@ -7,6 +7,9 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 
 import be.achzak.civicgrant.domain.audit.service.RecordAuditEntryService;
 import be.achzak.civicgrant.domain.shared.Actor;
+import be.achzak.civicgrant.domain.shared.Command;
+import be.achzak.civicgrant.domain.shared.Query;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -16,6 +19,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import java.util.List;
 
 @AnalyzeClasses(packages = "be.achzak.civicgrant", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
@@ -64,6 +68,16 @@ class ArchitectureTest {
             .should(callActorRequireAnyRole());
 
     @ArchTest
+    static final ArchRule every_use_case_takes_exactly_one_command_or_query = methods()
+            .that()
+            .areDeclaredInClassesThat()
+            .resideInAPackage("..civicgrant.domain..port.in..")
+            .and()
+            .areDeclaredInClassesThat()
+            .areInterfaces()
+            .should(takeExactlyOneCommandOrQuery());
+
+    @ArchTest
     static final ArchRule api_does_not_use_persistence = noClasses()
             .that()
             .resideInAPackage("..civicgrant.api..")
@@ -88,6 +102,23 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAPackage("org.springframework.security.core.context..");
+
+    private static ArchCondition<JavaMethod> takeExactlyOneCommandOrQuery() {
+        return new ArchCondition<>("take exactly one command or query") {
+            @Override
+            public void check(JavaMethod method, ConditionEvents events) {
+                List<JavaClass> parameters = method.getRawParameterTypes();
+                boolean takesOne = parameters.size() == 1
+                        && (parameters.getFirst().isAssignableTo(Command.class)
+                                || parameters.getFirst().isAssignableTo(Query.class));
+                events.add(new SimpleConditionEvent(
+                        method,
+                        takesOne,
+                        method.getFullName() + (takesOne ? " takes" : " doesn't take")
+                                + " exactly one command or query"));
+            }
+        };
+    }
 
     private static ArchCondition<JavaMethod> callActorRequireAnyRole() {
         return new ArchCondition<>("call Actor.requireAnyRole") {

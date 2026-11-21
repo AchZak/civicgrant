@@ -1,5 +1,7 @@
 package be.achzak.civicgrant;
 
+import be.achzak.civicgrant.domain.shared.Command;
+import be.achzak.civicgrant.domain.shared.Query;
 import java.lang.reflect.Method;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionAttribute;
@@ -12,22 +14,17 @@ final class UseCaseTransactionAttributeSource implements TransactionAttributeSou
 
     @Override
     public TransactionAttribute getTransactionAttribute(Method method, Class<?> targetClass) {
-        if (targetClass == null || !isDomainService(targetClass) || method.getParameterCount() != 1) {
+        if (method.getParameterCount() != 1) {
             return null;
         }
-        String parameterType = method.getParameterTypes()[0].getSimpleName();
-        if (parameterType.endsWith("Command")) {
+        Class<?> request = method.getParameterTypes()[0];
+        if (Command.class.isAssignableFrom(request)) {
             return READ_WRITE;
         }
-        if (parameterType.endsWith("Query")) {
+        if (Query.class.isAssignableFrom(request)) {
             return READ_ONLY;
         }
         return null;
-    }
-
-    private static boolean isDomainService(Class<?> type) {
-        String packageName = type.getPackageName();
-        return packageName.startsWith("be.achzak.civicgrant.domain.") && packageName.endsWith(".service");
     }
 
     private static TransactionAttribute readOnly() {

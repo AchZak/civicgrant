@@ -2,11 +2,13 @@ package be.achzak.civicgrant.domain.grantapplication.port.in;
 
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.shared.Actor;
+import be.achzak.civicgrant.domain.shared.Command;
 import java.util.Arrays;
 import java.util.Objects;
 
 public record AttachDocumentCommand(
-        ApplicationId applicationId, String fileName, String declaredContentType, byte[] content, Actor actor) {
+        ApplicationId applicationId, String fileName, String declaredContentType, byte[] content, Actor actor)
+        implements Command {
 
     public AttachDocumentCommand {
         Objects.requireNonNull(applicationId, "applicationId");

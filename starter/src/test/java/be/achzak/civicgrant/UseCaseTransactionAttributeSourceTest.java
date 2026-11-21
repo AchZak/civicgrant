@@ -60,6 +60,19 @@ class UseCaseTransactionAttributeSourceTest {
     }
 
     @Test
+    @DisplayName("recognises a command by its type, not by its name")
+    void recognisesACommandByItsTypeNotByItsName() throws NoSuchMethodException {
+        // given
+        Method handle = LookalikeService.class.getMethod("handle", LookalikeCommand.class);
+
+        // when
+        TransactionAttribute attribute = source.getTransactionAttribute(handle, LookalikeService.class);
+
+        // then
+        assertThat(attribute).isNull();
+    }
+
+    @Test
     @DisplayName("leaves a service's other methods without a transaction")
     void leavesAServicesOtherMethodsWithoutATransaction() throws NoSuchMethodException {
         // given
@@ -70,5 +83,12 @@ class UseCaseTransactionAttributeSourceTest {
 
         // then
         assertThat(attribute).isNull();
+    }
+
+    record LookalikeCommand() {}
+
+    static class LookalikeService {
+
+        public void handle(LookalikeCommand command) {}
     }
 }

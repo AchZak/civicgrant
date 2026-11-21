@@ -3,9 +3,10 @@ package be.achzak.civicgrant.domain.grantapplication.port.in;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.shared.Actor;
+import be.achzak.civicgrant.domain.shared.Query;
 import java.util.Objects;
 
-public record DownloadDocumentQuery(ApplicationId applicationId, DocumentId documentId, Actor actor) {
+public record DownloadDocumentQuery(ApplicationId applicationId, DocumentId documentId, Actor actor) implements Query {
 
     public DownloadDocumentQuery {
         Objects.requireNonNull(applicationId, "applicationId");

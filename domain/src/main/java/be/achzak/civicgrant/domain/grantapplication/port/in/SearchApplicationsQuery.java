@@ -3,11 +3,13 @@ package be.achzak.civicgrant.domain.grantapplication.port.in;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.shared.Actor;
+import be.achzak.civicgrant.domain.shared.Query;
 import java.util.Objects;
 import java.util.Set;
 
 public record SearchApplicationsQuery(
-        Set<ApplicationStatus> statuses, Set<FundingCallId> fundingCalls, int page, int pageSize, Actor actor) {
+        Set<ApplicationStatus> statuses, Set<FundingCallId> fundingCalls, int page, int pageSize, Actor actor)
+        implements Query {
 
     public static final int MAX_PAGE_SIZE = 100;
 

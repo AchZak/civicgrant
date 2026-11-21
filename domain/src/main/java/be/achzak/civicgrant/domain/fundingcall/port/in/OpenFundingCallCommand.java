@@ -2,6 +2,7 @@ package be.achzak.civicgrant.domain.fundingcall.port.in;
 
 import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
 import be.achzak.civicgrant.domain.shared.Actor;
+import be.achzak.civicgrant.domain.shared.Command;
 import be.achzak.civicgrant.domain.shared.LocalizedText;
 import be.achzak.civicgrant.domain.shared.Money;
 import java.util.Objects;
@@ -12,7 +13,8 @@ public record OpenFundingCallCommand(
         SubmissionPeriod submissionPeriod,
         Money totalBudget,
         Money capPerApplication,
-        Actor actor) {
+        Actor actor)
+        implements Command {
 
     public OpenFundingCallCommand {
         Objects.requireNonNull(reference, "reference");

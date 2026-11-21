@@ -2,9 +2,10 @@ package be.achzak.civicgrant.domain.fundingcall.port.in;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.shared.Actor;
+import be.achzak.civicgrant.domain.shared.Query;
 import java.util.Objects;
 
-public record GetFundingCallQuery(FundingCallId fundingCallId, Actor actor) {
+public record GetFundingCallQuery(FundingCallId fundingCallId, Actor actor) implements Query {
 
     public GetFundingCallQuery {
         Objects.requireNonNull(fundingCallId, "fundingCallId");
