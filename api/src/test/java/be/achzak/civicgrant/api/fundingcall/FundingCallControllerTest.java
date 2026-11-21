@@ -5,6 +5,7 @@ import static be.achzak.civicgrant.api.security.AccessTokens.actor;
 import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
 import be.achzak.civicgrant.domain.fundingcall.model.BudgetEnvelope;
@@ -15,6 +16,9 @@ import be.achzak.civicgrant.domain.fundingcall.port.in.GetFundingCallQuery;
 import be.achzak.civicgrant.domain.fundingcall.port.in.GetFundingCallUseCase;
 import be.achzak.civicgrant.domain.fundingcall.port.in.ListOpenFundingCallsQuery;
 import be.achzak.civicgrant.domain.fundingcall.port.in.ListOpenFundingCallsUseCase;
+import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallCommand;
+import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallUseCase;
+import be.achzak.civicgrant.domain.shared.ConflictException;
 import be.achzak.civicgrant.domain.shared.ForbiddenException;
 import be.achzak.civicgrant.domain.shared.LocalizedText;
 import be.achzak.civicgrant.domain.shared.NotFoundException;
@@ -24,9 +28,11 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
@@ -45,6 +51,135 @@ class FundingCallControllerTest {
 
     @MockitoBean
     private GetFundingCallUseCase getFundingCall;
+
+    @MockitoBean
+    private OpenFundingCallUseCase openFundingCall;
+
+    @Nested
+    @DisplayName("Opening a funding call")
+    class Opening {
+
+        private static final Instant NEW_CALL_OPENS_AT = Instant.parse("2026-12-01T08:00:00Z");
+        private static final Instant NEW_CALL_CLOSES_AT = Instant.parse("2027-03-31T22:00:00Z");
+
+        private final OpenFundingCallCommand command = new OpenFundingCallCommand(
+                "GRN-2027",
+                new LocalizedText("Groene daken 2027", "Toitures vertes 2027"),
+                new SubmissionPeriod(NEW_CALL_OPENS_AT, NEW_CALL_CLOSES_AT),
+                euros("80000.00"),
+                euros("20000.00"),
+                actor(Role.PROGRAMME_MANAGER));
+
+        @Test
+        @DisplayName("opens a call and answers 201 with its location and the stored call")
+        void opensACallAndAnswers201WithItsLocationAndTheStoredCall() {
+            // given
+            FundingCall opened = FundingCall.restore(
+                    FundingCallId.generate(),
+                    "GRN-2027",
+                    command.title(),
+                    command.submissionPeriod(),
+                    BudgetEnvelope.unspent(euros("80000.00"), euros("20000.00")),
+                    0,
+                    Instant.parse("2026-11-21T10:00:00Z"));
+            given(openFundingCall.open(command)).willReturn(opened.id());
+            given(getFundingCall.get(new GetFundingCallQuery(opened.id(), actor(Role.PROGRAMME_MANAGER))))
+                    .willReturn(opened);
+
+            // when
+            MvcTestResult result = open("GRN-2027", NEW_CALL_CLOSES_AT);
+
+            // then
+            assertThat(result).hasStatus(HttpStatus.CREATED);
+            assertThat(result)
+                    .headers()
+                    .hasValue(
+                            "Location",
+                            "http://localhost/api/v1/fundingCalls/"
+                                    + opened.id().value());
+            assertThat(result)
+                    .bodyJson()
+                    .extractingPath("$.reference")
+                    .asString()
+                    .isEqualTo("GRN-2027");
+            assertThat(result)
+                    .bodyJson()
+                    .extractingPath("$.remainingBudget")
+                    .asNumber()
+                    .satisfies(amount ->
+                            assertThat(new BigDecimal(amount.toString())).isEqualByComparingTo("80000"));
+        }
+
+        @Test
+        @DisplayName("returns 400 submissionPeriodClosesBeforeOpening without calling the use case")
+        void returns400WhenTheCallClosesBeforeItOpens() {
+            // when
+            MvcTestResult result = open("GRN-2027", NEW_CALL_OPENS_AT.minusSeconds(1));
+
+            // then
+            assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
+            assertThat(result)
+                    .bodyJson()
+                    .extractingPath("$.type")
+                    .asString()
+                    .isEqualTo("urn:problem-type:civicgrant:submissionPeriodClosesBeforeOpening");
+            then(openFundingCall).shouldHaveNoInteractions();
+        }
+
+        @Test
+        @DisplayName("returns 400 badRequest for a reference in lower case, which the contract refuses")
+        void returns400BadRequestForAReferenceInLowerCase() {
+            // when
+            MvcTestResult result = open("grn-2027", NEW_CALL_CLOSES_AT);
+
+            // then
+            assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
+            assertThat(result)
+                    .bodyJson()
+                    .extractingPath("$.type")
+                    .asString()
+                    .isEqualTo("urn:problem-type:belgif:badRequest");
+            then(openFundingCall).shouldHaveNoInteractions();
+        }
+
+        @Test
+        @DisplayName("returns 409 fundingCallReferenceTaken for a reference already in use")
+        void returns409ForAReferenceAlreadyInUse() {
+            // given
+            given(openFundingCall.open(command))
+                    .willThrow(new ConflictException(
+                            "FUNDING_CALL_REFERENCE_TAKEN", "Funding call reference GRN-2027 is already taken"));
+
+            // when
+            MvcTestResult result = open("GRN-2027", NEW_CALL_CLOSES_AT);
+
+            // then
+            assertThat(result).hasStatus(HttpStatus.CONFLICT);
+            assertThat(result)
+                    .bodyJson()
+                    .extractingPath("$.type")
+                    .asString()
+                    .isEqualTo("urn:problem-type:civicgrant:fundingCallReferenceTaken");
+        }
+
+        private MvcTestResult open(String reference, Instant closesAt) {
+            return mvc.post()
+                    .uri("/api/v1/fundingCalls")
+                    .with(accessToken(Role.PROGRAMME_MANAGER))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                            {
+                              "reference": "%s",
+                              "title": {"nl": "Groene daken 2027", "fr": "Toitures vertes 2027"},
+                              "opensAt": "%s",
+                              "closesAt": "%s",
+                              "totalBudget": 80000.00,
+                              "maxAmountPerApplication": 20000.00
+                            }
+                            """.formatted(reference, NEW_CALL_OPENS_AT, closesAt))
+                    .exchange();
+        }
+    }
 
     @Test
     @DisplayName("returns the open funding calls with their dates and budget")

@@ -66,6 +66,45 @@ paths:
           $ref: '#/components/responses/Forbidden'
         default:
           $ref: '#/components/responses/DefaultProblem'
+    post:
+      tags: [FundingCalls]
+      operationId: openFundingCall
+      summary: Open a funding call
+      description: |
+        Role: PROGRAMME_MANAGER. The call starts with nothing committed; applicants can
+        submit from `opensAt` on, which may already have passed.
+
+        Problems: 400 `fundingCallReferenceInvalid`, `translationMissing`,
+        `fundingCallTitleTooLong`, `submissionPeriodClosesBeforeOpening`,
+        `fundingCallAlreadyClosed`, `totalBudgetNotPositive`,
+        `capPerApplicationNotPositive`, `capPerApplicationExceedsBudget`;
+        409 `fundingCallReferenceTaken`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpenFundingCallRequest'
+      responses:
+        '201':
+          description: The opened funding call
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundingCall'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
 
   /fundingCalls/{fundingCallId}:
     parameters:
@@ -813,6 +852,36 @@ components:
         maxAmountPerApplication:
           $ref: '#/components/schemas/Amount'
         remainingBudget:
+          $ref: '#/components/schemas/Amount'
+
+    OpenFundingCallRequest:
+      description: |
+        The funding call to open. Titles are measured after removing leading and
+        trailing spaces, and hold at most 200 characters in each language.
+      type: object
+      required: [reference, title, opensAt, closesAt, totalBudget, maxAmountPerApplication]
+      properties:
+        reference:
+          description: |
+            Unique. Capitals and digits in groups joined by single hyphens, at most
+            30 characters.
+          type: string
+          maxLength: 30
+          pattern: '^[A-Z0-9-]+$'
+          example: GRN-2027
+        title:
+          $ref: '#/components/schemas/LocalizedText'
+        opensAt:
+          description: From when applications can be submitted
+          type: string
+          format: date-time
+        closesAt:
+          description: Until when, excluded; after `opensAt` and still to come
+          type: string
+          format: date-time
+        totalBudget:
+          $ref: '#/components/schemas/Amount'
+        maxAmountPerApplication:
           $ref: '#/components/schemas/Amount'
 
     FundingCallCollection:
