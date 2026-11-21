@@ -30,7 +30,7 @@ Everyone signs in with Microsoft Entra ID, which is the only user store. CivicGr
 
 - A funding call has a unique reference of capitals, digits and hyphens. It closes after it opens and can't be opened once its closing date has passed. Its cap per application is above zero and at most its total budget.
 - The enterprise number (KBO/BCE) must be valid, including its mod-97 checksum.
-- Only certain legal forms can apply (non-profits by default).
+- Only non-profits can apply: associations (vzw/asbl), international associations (ivzw/aisbl) and foundations.
 - An application can't be submitted after the call has closed.
 - The requested amount can't exceed the call's per-application cap, or the total cost of the project.
 - An application needs at least one supporting document, a PDF of at most 10 MB, before it can be submitted.
@@ -123,7 +123,7 @@ The pipeline authenticates to Azure with workload identity federation, so there 
 
 **Closed sets of outcomes are sealed types.** An assessment recommends `Approve(proposedAmount)` or `Reject()`, a decision is an `Approval` with a granted amount or a `Rejection` with a formal ground, and a grant application records one of eight events. Each set is a sealed interface of records, so a rejection with a granted amount can't even be built, and a `switch` over one needs no `default`: adding a ninth event breaks the build until the audit trail says how to record it.
 
-**Failures are codes, in four families.** Every expected failure is a domain exception with a stable code, such as `SUBMISSION_AFTER_CLOSING_DATE`, which the frontend translates into Dutch or French. The English message is for logs only. The family says what kind of failure it is, and the API maps each to one HTTP status: not found (404), forbidden (403), business rule violated (400), and not allowed in the current status (409). When someone may not even know an application exists, such as an applicant asking for someone else's, or staff asking for a draft, the answer is 404 rather than 403, so ids can't be probed. A bug, such as corrupt stored data, is a plain Java exception and becomes a 500.
+**Failures are codes, in four families.** Every expected failure is a domain exception with a stable code, such as `SUBMISSION_AFTER_CLOSING_DATE`, which the frontend translates into Dutch or French. The English message is for developers: it becomes the problem's `detail`, which clients never parse or show. The family says what kind of failure it is, and the API maps each to one HTTP status: not found (404), forbidden (403), business rule violated (400), and not allowed in the current status (409). When someone may not even know an application exists, such as an applicant asking for someone else's, or staff asking for a draft, the answer is 404 rather than 403, so ids can't be probed. A bug, such as corrupt stored data, is a plain Java exception and becomes a 500.
 
 **Nobody decides alone, or on their own application.** Whoever assessed an application can't decide on it (`SEPARATION_OF_DUTIES`), and an applicant can't assess or decide on their own (`CONFLICT_OF_INTEREST`), even with every role. Both are domain rules, not database constraints: they compare people stored in different tables, which a `CHECK` constraint can't do. The test environment has two staff accounts, members of the tenant's own domain at no cost, so the rules are also checked there with real tokens: one assesses, the other decides, and the assessor's attempt to decide answers 403.
 
