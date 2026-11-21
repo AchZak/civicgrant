@@ -1,4 +1,4 @@
-package be.achzak.civicgrant;
+package be.achzak.civicgrant.starter.event;
 
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationApproved;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationCreated;

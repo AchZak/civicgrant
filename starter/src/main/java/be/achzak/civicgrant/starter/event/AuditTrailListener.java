@@ -1,4 +1,4 @@
-package be.achzak.civicgrant;
+package be.achzak.civicgrant.starter.event;
 
 import be.achzak.civicgrant.domain.audit.model.AuditEntry;
 import be.achzak.civicgrant.domain.audit.port.in.RecordAuditEntryCommand;

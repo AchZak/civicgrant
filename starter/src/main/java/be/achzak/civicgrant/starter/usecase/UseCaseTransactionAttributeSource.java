@@ -1,4 +1,4 @@
-package be.achzak.civicgrant;
+package be.achzak.civicgrant.starter.usecase;
 
 import be.achzak.civicgrant.domain.shared.Command;
 import be.achzak.civicgrant.domain.shared.Query;

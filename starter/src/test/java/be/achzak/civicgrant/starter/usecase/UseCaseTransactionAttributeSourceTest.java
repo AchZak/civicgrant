@@ -1,4 +1,4 @@
-package be.achzak.civicgrant;
+package be.achzak.civicgrant.starter.usecase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

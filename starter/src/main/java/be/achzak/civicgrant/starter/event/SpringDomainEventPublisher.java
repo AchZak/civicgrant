@@ -1,4 +1,4 @@
-package be.achzak.civicgrant;
+package be.achzak.civicgrant.starter.event;
 
 import be.achzak.civicgrant.domain.shared.DomainEvent;
 import be.achzak.civicgrant.domain.shared.DomainEventPublisher;

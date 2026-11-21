@@ -1,4 +1,4 @@
-package be.achzak.civicgrant;
+package be.achzak.civicgrant.starter.usecase;
 
 import java.time.Clock;
 import org.springframework.aop.Advisor;

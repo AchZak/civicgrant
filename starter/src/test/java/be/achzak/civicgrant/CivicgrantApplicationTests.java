@@ -85,6 +85,9 @@ class CivicgrantApplicationTests {
 
     private static final byte[] PDF = "%PDF-1.7\n%%EOF\n".getBytes(StandardCharsets.US_ASCII);
     private static final Actor DECISION_MAKER = new Actor(new UserId("decision-maker-1"), Set.of(Role.DECISION_MAKER));
+    // The monitoring workbook queries these names, so the test pins them.
+    private static final String APPLICATIONS_METER = "civicgrant.applications";
+    private static final String GRANTED_AMOUNTS_METER = "civicgrant.grants.amount";
 
     @Autowired
     private RegisterOrganisationUseCase registerOrganisation;
@@ -562,14 +565,11 @@ class CivicgrantApplicationTests {
     }
 
     private double approvalCount() {
-        return meters.get(BusinessMetricsListener.APPLICATIONS)
-                .tag("event", "approved")
-                .counter()
-                .count();
+        return meters.get(APPLICATIONS_METER).tag("event", "approved").counter().count();
     }
 
     private DistributionSummary grantedAmounts() {
-        return meters.get(BusinessMetricsListener.GRANTED_AMOUNTS).summary();
+        return meters.get(GRANTED_AMOUNTS_METER).summary();
     }
 
     private List<String> auditedEventTypesOf(ApplicationId id) {

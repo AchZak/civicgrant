@@ -150,6 +150,13 @@ class ArchitectureTest {
             .resideInAnyPackage("jakarta.persistence..", "org.hibernate..");
 
     @ArchTest
+    static final ArchRule only_the_application_class_lives_in_the_root_package = classes()
+            .that()
+            .resideInAPackage("be.achzak.civicgrant")
+            .should()
+            .haveSimpleName(CivicgrantApplication.class.getSimpleName());
+
+    @ArchTest
     static final ArchRule api_does_not_use_persistence = noClasses()
             .that()
             .resideInAPackage("..civicgrant.api..")
