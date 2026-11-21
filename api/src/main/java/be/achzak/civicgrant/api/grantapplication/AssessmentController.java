@@ -1,8 +1,8 @@
 package be.achzak.civicgrant.api.grantapplication;
 
 import be.achzak.civicgrant.api.generated.api.AssessmentsApi;
-import be.achzak.civicgrant.api.generated.model.Assessment;
-import be.achzak.civicgrant.api.generated.model.AssessmentRequest;
+import be.achzak.civicgrant.api.generated.model.AssessmentDto;
+import be.achzak.civicgrant.api.generated.model.AssessmentRequestDto;
 import be.achzak.civicgrant.api.security.CurrentActor;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.port.in.GetAssessmentQuery;
@@ -29,9 +29,9 @@ class AssessmentController implements AssessmentsApi {
     }
 
     @Override
-    public ResponseEntity<Assessment> recordAssessment(UUID applicationId, AssessmentRequest assessmentRequest) {
+    public ResponseEntity<AssessmentDto> recordAssessment(UUID applicationId, AssessmentRequestDto assessmentRequest) {
         Actor actor = currentActor.get();
-        recordAssessment.record(GrantApplicationApiMapper.toCommand(applicationId, assessmentRequest, actor));
+        recordAssessment.record(AssessmentApiMapper.toCommand(applicationId, assessmentRequest, actor));
         return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequestUri()
                         .build()
                         .toUri())
@@ -39,11 +39,11 @@ class AssessmentController implements AssessmentsApi {
     }
 
     @Override
-    public ResponseEntity<Assessment> getAssessment(UUID applicationId) {
+    public ResponseEntity<AssessmentDto> getAssessment(UUID applicationId) {
         return ResponseEntity.ok(read(new ApplicationId(applicationId), currentActor.get()));
     }
 
-    private Assessment read(ApplicationId id, Actor actor) {
-        return GrantApplicationApiMapper.toResource(getAssessment.get(new GetAssessmentQuery(id, actor)));
+    private AssessmentDto read(ApplicationId id, Actor actor) {
+        return AssessmentApiMapper.toDto(getAssessment.get(new GetAssessmentQuery(id, actor)));
     }
 }

@@ -1,9 +1,9 @@
 package be.achzak.civicgrant.api.fundingcall;
 
 import be.achzak.civicgrant.api.generated.api.FundingCallsApi;
-import be.achzak.civicgrant.api.generated.model.FundingCall;
-import be.achzak.civicgrant.api.generated.model.FundingCallCollection;
-import be.achzak.civicgrant.api.generated.model.OpenFundingCallRequest;
+import be.achzak.civicgrant.api.generated.model.FundingCallCollectionDto;
+import be.achzak.civicgrant.api.generated.model.FundingCallDto;
+import be.achzak.civicgrant.api.generated.model.OpenFundingCallRequestDto;
 import be.achzak.civicgrant.api.security.CurrentActor;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.fundingcall.port.in.GetFundingCallQuery;
@@ -38,23 +38,23 @@ class FundingCallController implements FundingCallsApi {
     }
 
     @Override
-    public ResponseEntity<FundingCall> openFundingCall(OpenFundingCallRequest request) {
+    public ResponseEntity<FundingCallDto> openFundingCall(OpenFundingCallRequestDto request) {
         Actor actor = currentActor.get();
         FundingCallId id = openFundingCall.open(FundingCallApiMapper.toCommand(request, actor));
-        FundingCall opened = FundingCallApiMapper.toResource(getFundingCall.get(new GetFundingCallQuery(id, actor)));
+        FundingCallDto opened = FundingCallApiMapper.toDto(getFundingCall.get(new GetFundingCallQuery(id, actor)));
         return ResponseEntity.created(locationOf(id)).body(opened);
     }
 
     @Override
-    public ResponseEntity<FundingCallCollection> listOpenFundingCalls() {
+    public ResponseEntity<FundingCallCollectionDto> listOpenFundingCalls() {
         ListOpenFundingCallsQuery query = new ListOpenFundingCallsQuery(currentActor.get());
-        return ResponseEntity.ok(FundingCallApiMapper.toCollection(listOpenFundingCalls.list(query)));
+        return ResponseEntity.ok(FundingCallApiMapper.toDto(listOpenFundingCalls.list(query)));
     }
 
     @Override
-    public ResponseEntity<FundingCall> getFundingCall(UUID fundingCallId) {
+    public ResponseEntity<FundingCallDto> getFundingCall(UUID fundingCallId) {
         GetFundingCallQuery query = new GetFundingCallQuery(new FundingCallId(fundingCallId), currentActor.get());
-        return ResponseEntity.ok(FundingCallApiMapper.toResource(getFundingCall.get(query)));
+        return ResponseEntity.ok(FundingCallApiMapper.toDto(getFundingCall.get(query)));
     }
 
     private static URI locationOf(FundingCallId id) {

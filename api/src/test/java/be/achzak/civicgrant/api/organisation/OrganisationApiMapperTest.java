@@ -3,7 +3,8 @@ package be.achzak.civicgrant.api.organisation;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import be.achzak.civicgrant.api.generated.model.RegisterOrganisationRequest;
+import be.achzak.civicgrant.api.generated.model.LegalFormDto;
+import be.achzak.civicgrant.api.generated.model.RegisterOrganisationRequestDto;
 import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
@@ -19,11 +20,12 @@ import org.junit.jupiter.params.provider.EnumSource;
 class OrganisationApiMapperTest {
 
     @ParameterizedTest(name = "{0}")
-    @EnumSource(be.achzak.civicgrant.api.generated.model.LegalForm.class)
+    @EnumSource(LegalFormDto.class)
     @DisplayName("maps every legal form of the contract to the domain")
-    void mapsEveryLegalFormOfTheContractToTheDomain(be.achzak.civicgrant.api.generated.model.LegalForm legalForm) {
+    void mapsEveryLegalFormOfTheContractToTheDomain(LegalFormDto legalForm) {
         // given
-        RegisterOrganisationRequest request = new RegisterOrganisationRequest("0202239951", "Buurtwerk vzw", legalForm);
+        RegisterOrganisationRequestDto request =
+                new RegisterOrganisationRequestDto("0202239951", "Buurtwerk vzw", legalForm);
 
         // when
         RegisterOrganisationCommand command = OrganisationApiMapper.toCommand(request, actor(Role.APPLICANT));
@@ -45,8 +47,7 @@ class OrganisationApiMapperTest {
                 Instant.parse("2026-01-10T09:00:00Z"));
 
         // when
-        String mapped =
-                OrganisationApiMapper.toResource(organisation).getLegalForm().name();
+        String mapped = OrganisationApiMapper.toDto(organisation).getLegalForm().name();
 
         // then
         assertThat(mapped).isEqualTo(legalForm.name());

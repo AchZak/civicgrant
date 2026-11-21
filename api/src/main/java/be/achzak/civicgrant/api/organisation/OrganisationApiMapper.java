@@ -1,7 +1,9 @@
 package be.achzak.civicgrant.api.organisation;
 
-import be.achzak.civicgrant.api.generated.model.OrganisationCollection;
-import be.achzak.civicgrant.api.generated.model.RegisterOrganisationRequest;
+import be.achzak.civicgrant.api.generated.model.LegalFormDto;
+import be.achzak.civicgrant.api.generated.model.OrganisationCollectionDto;
+import be.achzak.civicgrant.api.generated.model.OrganisationDto;
+import be.achzak.civicgrant.api.generated.model.RegisterOrganisationRequestDto;
 import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
@@ -13,7 +15,7 @@ final class OrganisationApiMapper {
 
     private OrganisationApiMapper() {}
 
-    static RegisterOrganisationCommand toCommand(RegisterOrganisationRequest request, Actor actor) {
+    static RegisterOrganisationCommand toCommand(RegisterOrganisationRequestDto request, Actor actor) {
         return new RegisterOrganisationCommand(
                 EnterpriseNumber.parse(request.getEnterpriseNumber()),
                 request.getName(),
@@ -21,17 +23,16 @@ final class OrganisationApiMapper {
                 actor);
     }
 
-    static OrganisationCollection toCollection(List<Organisation> organisations) {
-        return new OrganisationCollection(
-                organisations.stream().map(OrganisationApiMapper::toResource).toList());
+    static OrganisationCollectionDto toDto(List<Organisation> organisations) {
+        return new OrganisationCollectionDto(
+                organisations.stream().map(OrganisationApiMapper::toDto).toList());
     }
 
-    static be.achzak.civicgrant.api.generated.model.Organisation toResource(Organisation organisation) {
-        return new be.achzak.civicgrant.api.generated.model.Organisation(
+    static OrganisationDto toDto(Organisation organisation) {
+        return new OrganisationDto(
                 organisation.id().value(),
                 organisation.enterpriseNumber().value(),
                 organisation.name(),
-                be.achzak.civicgrant.api.generated.model.LegalForm.valueOf(
-                        organisation.legalForm().name()));
+                LegalFormDto.valueOf(organisation.legalForm().name()));
     }
 }

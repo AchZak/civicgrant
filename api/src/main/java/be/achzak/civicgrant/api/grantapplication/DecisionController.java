@@ -1,8 +1,8 @@
 package be.achzak.civicgrant.api.grantapplication;
 
 import be.achzak.civicgrant.api.generated.api.DecisionsApi;
-import be.achzak.civicgrant.api.generated.model.Decision;
-import be.achzak.civicgrant.api.generated.model.DecisionRequest;
+import be.achzak.civicgrant.api.generated.model.DecisionDto;
+import be.achzak.civicgrant.api.generated.model.DecisionRequestDto;
 import be.achzak.civicgrant.api.security.CurrentActor;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.port.in.ApproveApplicationUseCase;
@@ -36,15 +36,13 @@ class DecisionController implements DecisionsApi {
     }
 
     @Override
-    public ResponseEntity<Decision> decideApplication(UUID applicationId, DecisionRequest decisionRequest) {
+    public ResponseEntity<DecisionDto> decideApplication(UUID applicationId, DecisionRequestDto decisionRequest) {
         Actor actor = currentActor.get();
         switch (decisionRequest.getOutcome()) {
             case APPROVED ->
-                approveApplication.approve(
-                        GrantApplicationApiMapper.toApproveCommand(applicationId, decisionRequest, actor));
+                approveApplication.approve(DecisionApiMapper.toApproveCommand(applicationId, decisionRequest, actor));
             case REJECTED ->
-                rejectApplication.reject(
-                        GrantApplicationApiMapper.toRejectCommand(applicationId, decisionRequest, actor));
+                rejectApplication.reject(DecisionApiMapper.toRejectCommand(applicationId, decisionRequest, actor));
         }
         return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequestUri()
                         .build()
@@ -53,16 +51,16 @@ class DecisionController implements DecisionsApi {
     }
 
     @Override
-    public ResponseEntity<Decision> getDecision(UUID applicationId) {
+    public ResponseEntity<DecisionDto> getDecision(UUID applicationId) {
         return ResponseEntity.ok(read(new ApplicationId(applicationId), currentActor.get()));
     }
 
     // An application without a decision yet: to the client, that's a resource that doesn't exist.
-    private Decision read(ApplicationId id, Actor actor) {
+    private DecisionDto read(ApplicationId id, Actor actor) {
         return getApplication
                 .get(new GetApplicationQuery(id, actor))
                 .decision()
-                .map(GrantApplicationApiMapper::toResource)
+                .map(DecisionApiMapper::toDto)
                 .orElseThrow(ResourceNotFoundProblem::new);
     }
 }

@@ -1,59 +1,40 @@
 package be.achzak.civicgrant.api.grantapplication;
 
-import be.achzak.civicgrant.api.generated.model.Application;
-import be.achzak.civicgrant.api.generated.model.AssessmentRequest;
-import be.achzak.civicgrant.api.generated.model.CreateApplicationRequest;
-import be.achzak.civicgrant.api.generated.model.DecisionOutcome;
-import be.achzak.civicgrant.api.generated.model.DecisionRequest;
-import be.achzak.civicgrant.api.generated.model.Submission;
+import static java.time.ZoneOffset.UTC;
+
+import be.achzak.civicgrant.api.generated.model.ApplicationDto;
+import be.achzak.civicgrant.api.generated.model.ApplicationPageDto;
+import be.achzak.civicgrant.api.generated.model.ApplicationStatusDto;
+import be.achzak.civicgrant.api.generated.model.ApplicationSummaryDto;
+import be.achzak.civicgrant.api.generated.model.CreateApplicationRequestDto;
+import be.achzak.civicgrant.api.generated.model.LanguageDto;
+import be.achzak.civicgrant.api.generated.model.ProjectProposalDto;
+import be.achzak.civicgrant.api.generated.model.SubmissionDto;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
-import be.achzak.civicgrant.domain.grantapplication.model.Assessment;
-import be.achzak.civicgrant.domain.grantapplication.model.Decision;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
-import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
-import be.achzak.civicgrant.domain.grantapplication.model.RejectionGround;
-import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
-import be.achzak.civicgrant.domain.grantapplication.port.in.ApproveApplicationCommand;
-import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationCommand;
-import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentCommand;
-import be.achzak.civicgrant.domain.grantapplication.port.in.RejectApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQuery;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.Money;
-import io.github.belgif.rest.problem.BadRequestProblem;
-import io.github.belgif.rest.problem.api.InEnum;
-import io.github.belgif.rest.problem.api.InputValidationIssues;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.IntFunction;
-import org.springframework.web.multipart.MultipartFile;
 
 final class GrantApplicationApiMapper {
 
-    private static final String PROPOSED_AMOUNT = "/proposedAmount";
-    private static final String GRANTED_AMOUNT = "/grantedAmount";
-    private static final String REJECTION_GROUND = "/rejectionGround";
-
     private GrantApplicationApiMapper() {}
 
-    static CreateApplicationCommand toCommand(CreateApplicationRequest request, Actor actor) {
+    static CreateApplicationCommand toCommand(CreateApplicationRequestDto request, Actor actor) {
         return new CreateApplicationCommand(
                 new FundingCallId(request.getFundingCallId()),
                 new OrganisationId(request.getOrganisationId()),
@@ -61,183 +42,18 @@ final class GrantApplicationApiMapper {
                 actor);
     }
 
-    static EditApplicationCommand toCommand(
-            UUID applicationId, be.achzak.civicgrant.api.generated.model.ProjectProposal proposal, Actor actor) {
+    static EditApplicationCommand toCommand(UUID applicationId, ProjectProposalDto proposal, Actor actor) {
         return new EditApplicationCommand(new ApplicationId(applicationId), toDomain(proposal), actor);
     }
 
-    // A part without a file name or content type gets the domain's own refusal, not a 500.
-    static AttachDocumentCommand toCommand(UUID applicationId, MultipartFile file, Actor actor) {
-        return new AttachDocumentCommand(
-                new ApplicationId(applicationId),
-                Objects.requireNonNullElse(file.getOriginalFilename(), ""),
-                Objects.requireNonNullElse(file.getContentType(), ""),
-                contentOf(file),
-                actor);
-    }
-
-    private static byte[] contentOf(MultipartFile file) {
-        try {
-            return file.getBytes();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    static RecordAssessmentCommand toCommand(UUID applicationId, AssessmentRequest request, Actor actor) {
-        return new RecordAssessmentCommand(
-                new ApplicationId(applicationId),
-                request.getEligible(),
-                toDomain(request.getRecommendation(), request.getProposedAmount()),
-                request.getComment(),
-                actor);
-    }
-
-    // The contract has no oneOf, so the mapper enforces "proposedAmount with APPROVE only".
-    private static Recommendation toDomain(
-            be.achzak.civicgrant.api.generated.model.Recommendation recommendation, BigDecimal proposedAmount) {
-        return switch (recommendation) {
-            case APPROVE -> {
-                if (proposedAmount == null) {
-                    throw new BadRequestProblem(InputValidationIssues.requiredInput(InEnum.BODY, PROPOSED_AMOUNT));
-                }
-                yield new Recommendation.Approve(new Money(proposedAmount));
-            }
-            case REJECT -> {
-                if (proposedAmount != null) {
-                    throw new BadRequestProblem(
-                            InputValidationIssues.rejectedInput(InEnum.BODY, PROPOSED_AMOUNT, proposedAmount));
-                }
-                yield new Recommendation.Reject();
-            }
-        };
-    }
-
-    static be.achzak.civicgrant.api.generated.model.Assessment toResource(Assessment assessment) {
-        return switch (assessment.recommendation()) {
-            case Recommendation.Approve(Money proposedAmount) ->
-                toResource(assessment, be.achzak.civicgrant.api.generated.model.Recommendation.APPROVE)
-                        .proposedAmount(proposedAmount.amount());
-            case Recommendation.Reject() ->
-                toResource(assessment, be.achzak.civicgrant.api.generated.model.Recommendation.REJECT);
-        };
-    }
-
-    private static be.achzak.civicgrant.api.generated.model.Assessment toResource(
-            Assessment assessment, be.achzak.civicgrant.api.generated.model.Recommendation recommendation) {
-        return new be.achzak.civicgrant.api.generated.model.Assessment(
-                assessment.eligible(), recommendation, assessment.comment(), utc(assessment.assessedAt()));
-    }
-
-    // The contract has no oneOf, so the mapper enforces "grantedAmount for an approval, rejectionGround for a
-    // rejection, never the other one".
-    static ApproveApplicationCommand toApproveCommand(UUID applicationId, DecisionRequest request, Actor actor) {
-        if (request.getGrantedAmount() == null) {
-            throw new BadRequestProblem(InputValidationIssues.requiredInput(InEnum.BODY, GRANTED_AMOUNT));
-        }
-        if (request.getRejectionGround() != null) {
-            throw new BadRequestProblem(
-                    InputValidationIssues.rejectedInput(InEnum.BODY, REJECTION_GROUND, request.getRejectionGround()));
-        }
-        return new ApproveApplicationCommand(
-                new ApplicationId(applicationId),
-                new Money(request.getGrantedAmount()),
-                request.getMotivation(),
-                actor);
-    }
-
-    static RejectApplicationCommand toRejectCommand(UUID applicationId, DecisionRequest request, Actor actor) {
-        if (request.getRejectionGround() == null) {
-            throw new BadRequestProblem(InputValidationIssues.requiredInput(InEnum.BODY, REJECTION_GROUND));
-        }
-        if (request.getGrantedAmount() != null) {
-            throw new BadRequestProblem(
-                    InputValidationIssues.rejectedInput(InEnum.BODY, GRANTED_AMOUNT, request.getGrantedAmount()));
-        }
-        return new RejectApplicationCommand(
-                new ApplicationId(applicationId),
-                toDomain(request.getRejectionGround()),
-                request.getMotivation(),
-                actor);
-    }
-
-    static RejectionGround toDomain(be.achzak.civicgrant.api.generated.model.RejectionGround ground) {
-        return RejectionGround.valueOf(ground.name());
-    }
-
-    static be.achzak.civicgrant.api.generated.model.Decision toResource(Decision decision) {
-        return switch (decision) {
-            case Decision.Approval approval ->
-                toResource(decision, DecisionOutcome.APPROVED)
-                        .grantedAmount(approval.grantedAmount().amount());
-            case Decision.Rejection rejection ->
-                toResource(decision, DecisionOutcome.REJECTED).rejectionGround(toResource(rejection.ground()));
-        };
-    }
-
-    private static be.achzak.civicgrant.api.generated.model.Decision toResource(
-            Decision decision, DecisionOutcome outcome) {
-        return new be.achzak.civicgrant.api.generated.model.Decision(
-                outcome, decision.motivation(), utc(decision.decidedAt()));
-    }
-
-    static be.achzak.civicgrant.api.generated.model.RejectionGround toResource(RejectionGround ground) {
-        return be.achzak.civicgrant.api.generated.model.RejectionGround.valueOf(ground.name());
-    }
-
     static SearchApplicationsQuery toQuery(
-            be.achzak.civicgrant.api.generated.model.ApplicationStatus status,
-            UUID fundingCallId,
-            int page,
-            int pageSize,
-            Actor actor) {
+            ApplicationStatusDto status, UUID fundingCallId, int page, int pageSize, Actor actor) {
         Set<ApplicationStatus> statuses = status == null ? Set.of() : Set.of(ApplicationStatus.valueOf(status.name()));
         Set<FundingCallId> fundingCalls = fundingCallId == null ? Set.of() : Set.of(new FundingCallId(fundingCallId));
         return new SearchApplicationsQuery(statuses, fundingCalls, page, pageSize, actor);
     }
 
-    static Application toResource(GrantApplication application) {
-        Application resource = new Application(
-                application.id().value(),
-                application.reference().value(),
-                application.fundingCallId().value(),
-                application.organisationId().value(),
-                toResource(application.status()),
-                toResource(application.proposal()),
-                application.documents().stream()
-                        .map(GrantApplicationApiMapper::toResource)
-                        .toList(),
-                utc(application.createdAt()),
-                utc(application.updatedAt()));
-        application.submittedAt().map(GrantApplicationApiMapper::utc).ifPresent(resource::setSubmittedAt);
-        return resource;
-    }
-
-    static be.achzak.civicgrant.api.generated.model.ApplicationPage toResource(
-            ApplicationPage page, IntFunction<URI> linkToPage) {
-        be.achzak.civicgrant.api.generated.model.ApplicationPage resource =
-                new be.achzak.civicgrant.api.generated.model.ApplicationPage(
-                        page.items().stream()
-                                .map(GrantApplicationApiMapper::toResource)
-                                .toList(),
-                        page.page(),
-                        page.pageSize(),
-                        page.total(),
-                        linkToPage.apply(page.page()));
-        if ((long) page.page() * page.pageSize() < page.total()) {
-            resource.setNext(linkToPage.apply(page.page() + 1));
-        }
-        if (page.page() > 1) {
-            resource.setPrev(linkToPage.apply(page.page() - 1));
-        }
-        return resource;
-    }
-
-    static be.achzak.civicgrant.api.generated.model.ApplicationStatus toResource(ApplicationStatus status) {
-        return be.achzak.civicgrant.api.generated.model.ApplicationStatus.valueOf(status.name());
-    }
-
-    static ProjectProposal toDomain(be.achzak.civicgrant.api.generated.model.ProjectProposal proposal) {
+    static ProjectProposal toDomain(ProjectProposalDto proposal) {
         return new ProjectProposal(
                 proposal.getTitle(),
                 proposal.getDescription(),
@@ -246,43 +62,69 @@ final class GrantApplicationApiMapper {
                 Language.valueOf(proposal.getLanguage().name()));
     }
 
-    private static be.achzak.civicgrant.api.generated.model.ProjectProposal toResource(ProjectProposal proposal) {
-        return new be.achzak.civicgrant.api.generated.model.ProjectProposal(
+    static ApplicationDto toDto(GrantApplication application) {
+        ApplicationDto dto = new ApplicationDto(
+                application.id().value(),
+                application.reference().value(),
+                application.fundingCallId().value(),
+                application.organisationId().value(),
+                toDto(application.status()),
+                toDto(application.proposal()),
+                application.documents().stream()
+                        .map(SupportingDocumentApiMapper::toDto)
+                        .toList(),
+                application.createdAt().atOffset(UTC),
+                application.updatedAt().atOffset(UTC));
+        application.submittedAt().ifPresent(submittedAt -> dto.setSubmittedAt(submittedAt.atOffset(UTC)));
+        return dto;
+    }
+
+    static ApplicationPageDto toDto(ApplicationPage page, IntFunction<URI> linkToPage) {
+        ApplicationPageDto dto = new ApplicationPageDto(
+                page.items().stream().map(GrantApplicationApiMapper::toDto).toList(),
+                page.page(),
+                page.pageSize(),
+                page.total(),
+                linkToPage.apply(page.page()));
+        if ((long) page.page() * page.pageSize() < page.total()) {
+            dto.setNext(linkToPage.apply(page.page() + 1));
+        }
+        if (page.page() > 1) {
+            dto.setPrev(linkToPage.apply(page.page() - 1));
+        }
+        return dto;
+    }
+
+    static ApplicationStatusDto toDto(ApplicationStatus status) {
+        return ApplicationStatusDto.valueOf(status.name());
+    }
+
+    static SubmissionDto toSubmissionDto(Instant submittedAt) {
+        return new SubmissionDto(submittedAt.atOffset(UTC));
+    }
+
+    private static ProjectProposalDto toDto(ProjectProposal proposal) {
+        return new ProjectProposalDto(
                 proposal.title(),
                 proposal.description(),
                 proposal.requestedAmount().amount(),
                 proposal.totalProjectBudget().amount(),
-                be.achzak.civicgrant.api.generated.model.Language.valueOf(
-                        proposal.language().name()));
+                LanguageDto.valueOf(proposal.language().name()));
     }
 
-    static Submission toSubmission(Instant submittedAt) {
-        return new Submission(utc(submittedAt));
-    }
-
-    static be.achzak.civicgrant.api.generated.model.SupportingDocument toResource(SupportingDocument document) {
-        return new be.achzak.civicgrant.api.generated.model.SupportingDocument(
-                document.id().value(), document.fileName(), document.sizeInBytes(), utc(document.uploadedAt()));
-    }
-
-    private static be.achzak.civicgrant.api.generated.model.ApplicationSummary toResource(ApplicationSummary summary) {
-        be.achzak.civicgrant.api.generated.model.ApplicationSummary resource =
-                new be.achzak.civicgrant.api.generated.model.ApplicationSummary(
-                        summary.id().value(),
-                        summary.reference().value(),
-                        summary.fundingCallId().value(),
-                        summary.organisationId().value(),
-                        toResource(summary.status()),
-                        summary.projectTitle(),
-                        summary.requestedAmount().amount(),
-                        utc(summary.updatedAt()));
+    private static ApplicationSummaryDto toDto(ApplicationSummary summary) {
+        ApplicationSummaryDto dto = new ApplicationSummaryDto(
+                summary.id().value(),
+                summary.reference().value(),
+                summary.fundingCallId().value(),
+                summary.organisationId().value(),
+                toDto(summary.status()),
+                summary.projectTitle(),
+                summary.requestedAmount().amount(),
+                summary.updatedAt().atOffset(UTC));
         if (summary.submittedAt() != null) {
-            resource.setSubmittedAt(utc(summary.submittedAt()));
+            dto.setSubmittedAt(summary.submittedAt().atOffset(UTC));
         }
-        return resource;
-    }
-
-    private static OffsetDateTime utc(Instant instant) {
-        return instant.atOffset(ZoneOffset.UTC);
+        return dto;
     }
 }

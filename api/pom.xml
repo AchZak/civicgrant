@@ -81,6 +81,7 @@
                             <generatorName>spring</generatorName>
                             <apiPackage>be.achzak.civicgrant.api.generated.api</apiPackage>
                             <modelPackage>be.achzak.civicgrant.api.generated.model</modelPackage>
+                            <modelNameSuffix>Dto</modelNameSuffix>
                             <generateSupportingFiles>false</generateSupportingFiles>
                             <configOptions>
                                 <interfaceOnly>true</interfaceOnly>

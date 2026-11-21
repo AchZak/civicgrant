@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.api.grantapplication;
 
 import be.achzak.civicgrant.api.generated.api.SubmissionsApi;
-import be.achzak.civicgrant.api.generated.model.Submission;
+import be.achzak.civicgrant.api.generated.model.SubmissionDto;
 import be.achzak.civicgrant.api.security.CurrentActor;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationQuery;
@@ -32,7 +32,7 @@ class SubmissionController implements SubmissionsApi {
     }
 
     @Override
-    public ResponseEntity<Submission> submitApplication(UUID applicationId) {
+    public ResponseEntity<SubmissionDto> submitApplication(UUID applicationId) {
         Actor actor = currentActor.get();
         ApplicationId id = new ApplicationId(applicationId);
         submitApplication.submit(new SubmitApplicationCommand(id, actor));
@@ -43,16 +43,16 @@ class SubmissionController implements SubmissionsApi {
     }
 
     @Override
-    public ResponseEntity<Submission> getSubmission(UUID applicationId) {
+    public ResponseEntity<SubmissionDto> getSubmission(UUID applicationId) {
         return ResponseEntity.ok(read(new ApplicationId(applicationId), currentActor.get()));
     }
 
     // A draft has no submission yet: to the client, that's a resource that doesn't exist.
-    private Submission read(ApplicationId id, Actor actor) {
+    private SubmissionDto read(ApplicationId id, Actor actor) {
         return getApplication
                 .get(new GetApplicationQuery(id, actor))
                 .submittedAt()
-                .map(GrantApplicationApiMapper::toSubmission)
+                .map(GrantApplicationApiMapper::toSubmissionDto)
                 .orElseThrow(ResourceNotFoundProblem::new);
     }
 }

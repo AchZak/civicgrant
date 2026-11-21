@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.api.grantapplication;
 
 import be.achzak.civicgrant.api.generated.api.SupportingDocumentsApi;
-import be.achzak.civicgrant.api.generated.model.SupportingDocument;
+import be.achzak.civicgrant.api.generated.model.SupportingDocumentDto;
 import be.achzak.civicgrant.api.security.CurrentActor;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
@@ -50,14 +50,14 @@ class SupportingDocumentController implements SupportingDocumentsApi {
     }
 
     @Override
-    public ResponseEntity<SupportingDocument> attachDocument(UUID applicationId, MultipartFile file) {
+    public ResponseEntity<SupportingDocumentDto> attachDocument(UUID applicationId, MultipartFile file) {
         Actor actor = currentActor.get();
-        DocumentId id = attachDocument.attach(GrantApplicationApiMapper.toCommand(applicationId, file, actor));
+        DocumentId id = attachDocument.attach(SupportingDocumentApiMapper.toCommand(applicationId, file, actor));
         return ResponseEntity.created(locationOf(id)).body(read(applicationId, id, actor));
     }
 
     @Override
-    public ResponseEntity<SupportingDocument> getDocument(UUID applicationId, UUID documentId) {
+    public ResponseEntity<SupportingDocumentDto> getDocument(UUID applicationId, UUID documentId) {
         return ResponseEntity.ok(read(applicationId, new DocumentId(documentId), currentActor.get()));
     }
 
@@ -81,8 +81,8 @@ class SupportingDocumentController implements SupportingDocumentsApi {
         return ResponseEntity.noContent().build();
     }
 
-    private SupportingDocument read(UUID applicationId, DocumentId documentId, Actor actor) {
-        return GrantApplicationApiMapper.toResource(
+    private SupportingDocumentDto read(UUID applicationId, DocumentId documentId, Actor actor) {
+        return SupportingDocumentApiMapper.toDto(
                 getDocument.get(new GetDocumentQuery(new ApplicationId(applicationId), documentId, actor)));
     }
 
