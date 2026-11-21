@@ -9,9 +9,12 @@ import be.achzak.civicgrant.domain.audit.service.RecordAuditEntryService;
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.Command;
 import be.achzak.civicgrant.domain.shared.Query;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -78,6 +81,75 @@ class ArchitectureTest {
             .should(takeExactlyOneCommandOrQuery());
 
     @ArchTest
+    static final ArchRule use_cases_are_interfaces_with_one_method = classes()
+            .that()
+            .resideInAPackage("..civicgrant.domain..port.in..")
+            .and()
+            .areInterfaces()
+            .should()
+            .haveSimpleNameEndingWith("UseCase")
+            .andShould(declareExactlyOneMethod());
+
+    @ArchTest
+    static final ArchRule services_implement_exactly_one_use_case = classes()
+            .that()
+            .resideInAPackage("..civicgrant.domain..service..")
+            .should()
+            .haveSimpleNameEndingWith("Service")
+            .andShould(implementExactlyOneUseCase());
+
+    @ArchTest
+    static final ArchRule commands_and_queries_are_records_next_to_their_use_case = classes()
+            .that()
+            .areAssignableTo(Command.class)
+            .or()
+            .areAssignableTo(Query.class)
+            .and()
+            .areNotInterfaces()
+            .should()
+            .beAssignableTo(Record.class)
+            .andShould()
+            .resideInAPackage("..civicgrant.domain..port.in..");
+
+    @ArchTest
+    static final ArchRule outside_the_domain_aggregates_are_only_read_through_accessors = noClasses()
+            .that()
+            .resideOutsideOfPackage("..civicgrant.domain..")
+            .should()
+            .callMethodWhere(aggregateBehaviour());
+
+    @ArchTest
+    static final ArchRule api_reaches_the_domain_through_use_cases_only = noClasses()
+            .that()
+            .resideInAPackage("..civicgrant.api..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage("..civicgrant.domain..service..", "..civicgrant.domain..port.out..");
+
+    @ArchTest
+    static final ArchRule persistence_reaches_the_domain_through_outbound_ports_only = noClasses()
+            .that()
+            .resideInAPackage("..civicgrant.persistence..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage("..civicgrant.domain..service..", "..civicgrant.domain..port.in..");
+
+    @ArchTest
+    static final ArchRule persistence_classes_are_package_private = classes()
+            .that()
+            .resideInAPackage("..civicgrant.persistence..")
+            .should()
+            .notBePublic();
+
+    @ArchTest
+    static final ArchRule only_persistence_uses_jpa = noClasses()
+            .that()
+            .resideOutsideOfPackage("..civicgrant.persistence..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage("jakarta.persistence..", "org.hibernate..");
+
+    @ArchTest
     static final ArchRule api_does_not_use_persistence = noClasses()
             .that()
             .resideInAPackage("..civicgrant.api..")
@@ -102,6 +174,50 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAPackage("org.springframework.security.core.context..");
+
+    private static ArchCondition<JavaClass> declareExactlyOneMethod() {
+        return new ArchCondition<>("declare exactly one method") {
+            @Override
+            public void check(JavaClass useCase, ConditionEvents events) {
+                int methods = useCase.getMethods().size();
+                events.add(new SimpleConditionEvent(
+                        useCase, methods == 1, useCase.getName() + " declares " + methods + " methods"));
+            }
+        };
+    }
+
+    private static ArchCondition<JavaClass> implementExactlyOneUseCase() {
+        return new ArchCondition<>("implement exactly one use case and nothing else") {
+            @Override
+            public void check(JavaClass service, ConditionEvents events) {
+                List<JavaClass> interfaces = List.copyOf(service.getRawInterfaces());
+                boolean implementsOne = interfaces.size() == 1
+                        && JavaClass.Predicates.resideInAPackage("..port.in..").test(interfaces.getFirst());
+                events.add(new SimpleConditionEvent(
+                        service, implementsOne, service.getName() + " implements " + interfaces));
+            }
+        };
+    }
+
+    // Every aggregate records domain events, so pullEvents is what tells one apart from a value object.
+    private static DescribedPredicate<JavaMethodCall> aggregateBehaviour() {
+        return DescribedPredicate.describe(
+                "aggregate behaviour (anything but an accessor or a static factory)",
+                call -> recordsEvents(call.getTargetOwner()) && !isAccessorOrFactory(call.getTarget()));
+    }
+
+    private static boolean recordsEvents(JavaClass type) {
+        return type.getMethods().stream().anyMatch(method -> method.getName().equals("pullEvents"));
+    }
+
+    private static boolean isAccessorOrFactory(MethodCallTarget method) {
+        boolean isStatic = method.resolveMember()
+                .map(member -> member.getModifiers().contains(JavaModifier.STATIC))
+                .orElse(false);
+        boolean isAccessor =
+                method.getRawParameterTypes().isEmpty() && !method.getName().equals("pullEvents");
+        return isStatic || isAccessor;
+    }
 
     private static ArchCondition<JavaMethod> takeExactlyOneCommandOrQuery() {
         return new ArchCondition<>("take exactly one command or query") {
