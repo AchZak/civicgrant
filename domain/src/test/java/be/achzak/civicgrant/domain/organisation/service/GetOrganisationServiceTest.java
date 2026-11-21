@@ -1,6 +1,7 @@
 package be.achzak.civicgrant.domain.organisation.service;
 
 import static be.achzak.civicgrant.domain.organisation.model.OrganisationBuilder.anOrganisation;
+import static be.achzak.civicgrant.domain.shared.Actors.aProgrammeManager;
 import static be.achzak.civicgrant.domain.shared.Actors.actor;
 import static be.achzak.civicgrant.domain.shared.Actors.anActorWithoutRoles;
 import static be.achzak.civicgrant.domain.shared.Actors.anApplicant;
@@ -50,9 +51,9 @@ class GetOrganisationServiceTest {
     }
 
     @ParameterizedTest(name = "{0}")
-    @EnumSource(Role.class)
-    @DisplayName("lets every role get an organisation")
-    void letsEveryRoleGetAnOrganisation(Role role) {
+    @EnumSource(value = Role.class, names = "PROGRAMME_MANAGER", mode = EnumSource.Mode.EXCLUDE)
+    @DisplayName("lets applicants, assessors and decision makers get an organisation")
+    void letsApplicantsAndStaffGetAnOrganisation(Role role) {
         // given
         Organisation organisation = anOrganisation().build();
         GetOrganisationService service = new GetOrganisationService(new InMemoryOrganisationRepository(organisation));
@@ -74,6 +75,21 @@ class GetOrganisationServiceTest {
         // when
         Throwable thrown =
                 catchThrowable(() -> service.get(new GetOrganisationQuery(organisation.id(), anActorWithoutRoles())));
+
+        // then
+        assertThatDomainException(thrown).isForbidden().hasCode("ROLE_REQUIRED");
+    }
+
+    @Test
+    @DisplayName("refuses a programme manager, who has no business with organisations")
+    void refusesProgrammeManager() {
+        // given
+        Organisation organisation = anOrganisation().build();
+        GetOrganisationService service = new GetOrganisationService(new InMemoryOrganisationRepository(organisation));
+
+        // when
+        Throwable thrown =
+                catchThrowable(() -> service.get(new GetOrganisationQuery(organisation.id(), aProgrammeManager())));
 
         // then
         assertThatDomainException(thrown).isForbidden().hasCode("ROLE_REQUIRED");

@@ -27,7 +27,7 @@ public class ListOpenFundingCallsService implements ListOpenFundingCallsUseCase 
     @Override
     public List<FundingCall> list(ListOpenFundingCallsQuery query) {
         Objects.requireNonNull(query, "query");
-        query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER);
+        query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER, Role.PROGRAMME_MANAGER);
         return fundingCalls.findOpenAt(clock.instant()).stream()
                 .sorted(CLOSING_SOONEST_FIRST)
                 .toList();

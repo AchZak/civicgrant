@@ -22,6 +22,10 @@ public final class Actors {
         return actor("decision-maker-1", Role.DECISION_MAKER);
     }
 
+    public static Actor aProgrammeManager() {
+        return actor("programme-manager-1", Role.PROGRAMME_MANAGER);
+    }
+
     public static Actor anActorWithoutRoles() {
         return actor("no-role-1");
     }

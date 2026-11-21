@@ -1,6 +1,7 @@
 package be.achzak.civicgrant.domain.organisation.service;
 
 import static be.achzak.civicgrant.domain.organisation.model.OrganisationBuilder.anOrganisation;
+import static be.achzak.civicgrant.domain.shared.Actors.aProgrammeManager;
 import static be.achzak.civicgrant.domain.shared.Actors.actor;
 import static be.achzak.civicgrant.domain.shared.Actors.anActorWithoutRoles;
 import static be.achzak.civicgrant.domain.shared.Actors.anApplicant;
@@ -55,9 +56,9 @@ class SearchOrganisationsServiceTest {
     }
 
     @ParameterizedTest(name = "{0}")
-    @EnumSource(Role.class)
-    @DisplayName("lets every role search organisations")
-    void letsEveryRoleSearchOrganisations(Role role) {
+    @EnumSource(value = Role.class, names = "PROGRAMME_MANAGER", mode = EnumSource.Mode.EXCLUDE)
+    @DisplayName("lets applicants, assessors and decision makers search organisations")
+    void letsApplicantsAndStaffSearchOrganisations(Role role) {
         // given
         Organisation organisation =
                 anOrganisation().withEnterpriseNumber(ENTERPRISE_NUMBER).build();
@@ -81,6 +82,20 @@ class SearchOrganisationsServiceTest {
         // when
         Throwable thrown = catchThrowable(
                 () -> service.search(new SearchOrganisationsQuery(ENTERPRISE_NUMBER, anActorWithoutRoles())));
+
+        // then
+        assertThatDomainException(thrown).isForbidden().hasCode("ROLE_REQUIRED");
+    }
+
+    @Test
+    @DisplayName("refuses a programme manager, who has no business with organisations")
+    void refusesProgrammeManager() {
+        // given
+        SearchOrganisationsService service = new SearchOrganisationsService(new InMemoryOrganisationRepository());
+
+        // when
+        Throwable thrown = catchThrowable(
+                () -> service.search(new SearchOrganisationsQuery(ENTERPRISE_NUMBER, aProgrammeManager())));
 
         // then
         assertThatDomainException(thrown).isForbidden().hasCode("ROLE_REQUIRED");

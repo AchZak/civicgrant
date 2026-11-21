@@ -19,7 +19,7 @@ public class GetFundingCallService implements GetFundingCallUseCase {
     @Override
     public FundingCall get(GetFundingCallQuery query) {
         Objects.requireNonNull(query, "query");
-        query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER);
+        query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER, Role.PROGRAMME_MANAGER);
         return fundingCalls
                 .findById(query.fundingCallId())
                 .orElseThrow(() -> new NotFoundException(
