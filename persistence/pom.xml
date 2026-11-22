@@ -119,4 +119,27 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <configuration>
+                            <!-- appended to the parent's Lombok path: generates the JPA static metamodel (GrantApplicationJpaEntity_), so criteria queries name attributes the compiler checks -->
+                            <annotationProcessorPaths combine.children="append">
+                                <path>
+                                    <groupId>org.hibernate.orm</groupId>
+                                    <artifactId>hibernate-processor</artifactId>
+                                </path>
+                            </annotationProcessorPaths>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

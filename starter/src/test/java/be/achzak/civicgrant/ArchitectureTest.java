@@ -22,6 +22,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import jakarta.persistence.metamodel.StaticMetamodel;
 import java.util.List;
 
 @AnalyzeClasses(packages = "be.achzak.civicgrant", importOptions = ImportOption.DoNotIncludeTests.class)
@@ -138,6 +139,8 @@ class ArchitectureTest {
     static final ArchRule persistence_classes_are_package_private = classes()
             .that()
             .resideInAPackage("..civicgrant.persistence..")
+            .and()
+            .areNotAnnotatedWith(StaticMetamodel.class)
             .should()
             .notBePublic();
 

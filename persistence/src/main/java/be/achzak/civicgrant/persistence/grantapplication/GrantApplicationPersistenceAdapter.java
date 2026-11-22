@@ -85,17 +85,19 @@ class GrantApplicationPersistenceAdapter implements GrantApplicationRepository {
         Root<GrantApplicationJpaEntity> application = query.from(GrantApplicationJpaEntity.class);
         query.select(builder.construct(
                         GrantApplicationSummaryRow.class,
-                        application.get("id"),
-                        application.get("reference"),
-                        application.get("fundingCallId"),
-                        application.get("organisationId"),
-                        application.get("status"),
-                        application.get("projectTitle"),
-                        application.get("requestedAmount"),
-                        application.get("submittedAt"),
-                        application.get("updatedAt")))
+                        application.get(GrantApplicationJpaEntity_.id),
+                        application.get(GrantApplicationJpaEntity_.reference),
+                        application.get(GrantApplicationJpaEntity_.fundingCallId),
+                        application.get(GrantApplicationJpaEntity_.organisationId),
+                        application.get(GrantApplicationJpaEntity_.status),
+                        application.get(GrantApplicationJpaEntity_.projectTitle),
+                        application.get(GrantApplicationJpaEntity_.requestedAmount),
+                        application.get(GrantApplicationJpaEntity_.submittedAt),
+                        application.get(GrantApplicationJpaEntity_.updatedAt)))
                 .where(criteria.predicates(builder, application))
-                .orderBy(builder.desc(application.get("updatedAt")), builder.asc(application.get("id")));
+                .orderBy(
+                        builder.desc(application.get(GrantApplicationJpaEntity_.updatedAt)),
+                        builder.asc(application.get(GrantApplicationJpaEntity_.id)));
         return entityManager
                 .createQuery(query)
                 .setFirstResult(offset)
@@ -117,15 +119,18 @@ class GrantApplicationPersistenceAdapter implements GrantApplicationRepository {
         Predicate[] predicates(CriteriaBuilder builder, Root<GrantApplicationJpaEntity> application) {
             List<Predicate> predicates = new ArrayList<>();
             Predicate own = builder.equal(
-                    application.get("applicantOid"), visibility.user().value());
-            Predicate leftDraft = builder.notEqual(application.get("status"), ApplicationStatus.DRAFT);
+                    application.get(GrantApplicationJpaEntity_.applicantOid),
+                    visibility.user().value());
+            Predicate leftDraft =
+                    builder.notEqual(application.get(GrantApplicationJpaEntity_.status), ApplicationStatus.DRAFT);
             predicates.add(visibility.staff() ? builder.or(own, leftDraft) : own);
             if (!statuses.isEmpty()) {
-                predicates.add(application.get("status").in(statuses));
+                predicates.add(
+                        application.get(GrantApplicationJpaEntity_.status).in(statuses));
             }
             if (!fundingCalls.isEmpty()) {
                 predicates.add(application
-                        .get("fundingCallId")
+                        .get(GrantApplicationJpaEntity_.fundingCallId)
                         .in(fundingCalls.stream().map(FundingCallId::value).toList()));
             }
             return predicates.toArray(Predicate[]::new);
