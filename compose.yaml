@@ -16,8 +16,8 @@
 # Started by hand:
 #   docker compose up -d       start in the background
 #   docker compose ps          check that it's running and healthy
-#   docker compose down        stop and remove the container, keep the data
-#   docker compose down -v     same, and delete the data (the volume) too
+#   docker compose down        stop and remove the containers, keep the data
+#   docker compose down -v     same, and delete the data (the volumes) too
 
 
 # Project name. Docker prefixes everything it creates with it: the container
