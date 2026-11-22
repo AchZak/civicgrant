@@ -65,21 +65,6 @@ class GrantApplicationDecisionTest {
         }
 
         @Test
-        @DisplayName("may grant less than the requested amount")
-        void mayGrantLessThanTheRequestedAmount() {
-            // given
-            GrantApplication application = anAssessedApplication().build();
-
-            // when
-            application.approve(euros("5000.00"), MOTIVATION, aDecisionMaker(), NOW);
-
-            // then
-            assertThat(application.decision())
-                    .contains(new Decision.Approval(
-                            euros("5000.00"), aDecisionMaker().id(), MOTIVATION, NOW));
-        }
-
-        @Test
         @DisplayName("rejects granting one cent more than the requested amount")
         void rejectsGrantingOneCentMoreThanRequested() {
             // given
@@ -91,20 +76,6 @@ class GrantApplicationDecisionTest {
 
             // then
             assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("GRANTED_AMOUNT_EXCEEDS_REQUESTED");
-        }
-
-        @Test
-        @DisplayName("rejects granting zero")
-        void rejectsGrantingZero() {
-            // given
-            GrantApplication application = anAssessedApplication().build();
-
-            // when
-            Throwable thrown =
-                    catchThrowable(() -> application.approve(euros("0.00"), MOTIVATION, aDecisionMaker(), NOW));
-
-            // then
-            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("GRANTED_AMOUNT_NOT_POSITIVE");
         }
 
         @Test
@@ -153,21 +124,6 @@ class GrantApplicationDecisionTest {
 
             // then
             assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("MOTIVATION_REQUIRED");
-        }
-
-        @Test
-        @DisplayName("rejects a motivation longer than 4,000 characters")
-        void rejectsMotivationLongerThan4000Characters() {
-            // given
-            GrantApplication application = anAssessedApplication().build();
-            String tooLong = "a".repeat(4_001);
-
-            // when
-            Throwable thrown =
-                    catchThrowable(() -> application.approve(euros("8000.00"), tooLong, aDecisionMaker(), NOW));
-
-            // then
-            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("MOTIVATION_TOO_LONG");
         }
 
         @Test

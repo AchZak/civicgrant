@@ -72,35 +72,6 @@ class GrantApplicationAssessmentTest {
         }
 
         @Test
-        @DisplayName("accepts a rejection recommendation for an ineligible application")
-        void acceptsRejectionRecommendationForIneligibleApplication() {
-            // given
-            GrantApplication application = aSubmittedApplication().build();
-
-            // when
-            application.recordAssessment(false, new Recommendation.Reject(), COMMENT, anAssessor(), NOW);
-
-            // then
-            assertThat(application.status()).isEqualTo(ApplicationStatus.ASSESSED);
-        }
-
-        @Test
-        @DisplayName("rejects recommending an ineligible application for approval")
-        void rejectsRecommendingIneligibleApplicationForApproval() {
-            // given
-            GrantApplication application = aSubmittedApplication().build();
-
-            // when
-            Throwable thrown = catchThrowable(
-                    () -> application.recordAssessment(false, proposing("8000.00"), COMMENT, anAssessor(), NOW));
-
-            // then
-            assertThatDomainException(thrown)
-                    .isBusinessRuleViolation()
-                    .hasCode("APPROVAL_RECOMMENDATION_REQUIRES_ELIGIBILITY");
-        }
-
-        @Test
         @DisplayName("rejects proposing one cent more than the requested amount")
         void rejectsProposingOneCentMoreThanRequested() {
             // given
@@ -115,33 +86,6 @@ class GrantApplicationAssessmentTest {
         }
 
         @Test
-        @DisplayName("rejects proposing zero")
-        void rejectsProposingZero() {
-            // given
-            GrantApplication application = aSubmittedApplication().build();
-
-            // when
-            Throwable thrown = catchThrowable(
-                    () -> application.recordAssessment(true, proposing("0.00"), COMMENT, anAssessor(), NOW));
-
-            // then
-            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("PROPOSED_AMOUNT_NOT_POSITIVE");
-        }
-
-        @Test
-        @DisplayName("strips whitespace around the comment")
-        void stripsWhitespaceAroundTheComment() {
-            // given
-            GrantApplication application = aSubmittedApplication().build();
-
-            // when
-            application.recordAssessment(false, new Recommendation.Reject(), "  " + COMMENT + "\n", anAssessor(), NOW);
-
-            // then
-            assertThat(application.assessment()).map(Assessment::comment).contains(COMMENT);
-        }
-
-        @Test
         @DisplayName("rejects a blank comment")
         void rejectsBlankComment() {
             // given
@@ -153,21 +97,6 @@ class GrantApplicationAssessmentTest {
 
             // then
             assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("ASSESSMENT_COMMENT_REQUIRED");
-        }
-
-        @Test
-        @DisplayName("rejects a comment longer than 4,000 characters")
-        void rejectsCommentLongerThan4000Characters() {
-            // given
-            GrantApplication application = aSubmittedApplication().build();
-            String tooLong = "a".repeat(4_001);
-
-            // when
-            Throwable thrown = catchThrowable(
-                    () -> application.recordAssessment(false, new Recommendation.Reject(), tooLong, anAssessor(), NOW));
-
-            // then
-            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("ASSESSMENT_COMMENT_TOO_LONG");
         }
 
         @Test

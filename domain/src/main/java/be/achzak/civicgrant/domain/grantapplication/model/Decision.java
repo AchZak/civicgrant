@@ -1,17 +1,52 @@
 package be.achzak.civicgrant.domain.grantapplication.model;
 
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.GRANTED_AMOUNT_EXCEEDS_REQUESTED;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.MOTIVATION_REQUIRED;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.MOTIVATION_TOO_LONG;
+import static be.achzak.civicgrant.domain.shared.SharedErrorCode.GRANTED_AMOUNT_NOT_POSITIVE;
+
 import be.achzak.civicgrant.domain.shared.Money;
 import be.achzak.civicgrant.domain.shared.UserId;
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.time.Instant;
 import java.util.Objects;
 
 public sealed interface Decision {
+
+    int MAX_MOTIVATION_LENGTH = 4_000;
 
     UserId decidedBy();
 
     String motivation();
 
     Instant decidedAt();
+
+    static Approval approval(
+            Money grantedAmount, Money requestedAmount, UserId decidedBy, String motivation, Instant decidedAt) {
+        Objects.requireNonNull(grantedAmount, "grantedAmount");
+        Objects.requireNonNull(requestedAmount, "requestedAmount");
+        String validMotivation = validMotivation(motivation);
+        if (!grantedAmount.isPositive()) {
+            throw new BusinessRuleViolationException(
+                    GRANTED_AMOUNT_NOT_POSITIVE, "A granted amount is greater than zero");
+        }
+        if (grantedAmount.isGreaterThan(requestedAmount)) {
+            throw new BusinessRuleViolationException(
+                    GRANTED_AMOUNT_EXCEEDS_REQUESTED,
+                    "Granted amount " + grantedAmount.amount() + " exceeds the requested amount of "
+                            + requestedAmount.amount());
+        }
+        return new Approval(grantedAmount, decidedBy, validMotivation, decidedAt);
+    }
+
+    static Rejection rejection(RejectionGround ground, UserId decidedBy, String motivation, Instant decidedAt) {
+        return new Rejection(ground, decidedBy, validMotivation(motivation), decidedAt);
+    }
+
+    private static String validMotivation(String motivation) {
+        Objects.requireNonNull(motivation, "motivation");
+        return RequiredText.strip(motivation, MAX_MOTIVATION_LENGTH, MOTIVATION_REQUIRED, MOTIVATION_TOO_LONG);
+    }
 
     record Approval(Money grantedAmount, UserId decidedBy, String motivation, Instant decidedAt) implements Decision {
 
