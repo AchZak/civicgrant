@@ -120,6 +120,13 @@ class ArchitectureTest {
             .callMethodWhere(aggregateBehaviour());
 
     @ArchTest
+    static final ArchRule only_persistence_restores_aggregates = noClasses()
+            .that()
+            .resideOutsideOfPackage("..civicgrant.persistence..")
+            .should()
+            .callMethodWhere(aggregateRestore());
+
+    @ArchTest
     static final ArchRule api_reaches_the_domain_through_use_cases_only = noClasses()
             .that()
             .resideInAPackage("..civicgrant.api..")
@@ -214,6 +221,13 @@ class ArchitectureTest {
         return DescribedPredicate.describe(
                 "aggregate behaviour (anything but an accessor or a static factory)",
                 call -> recordsEvents(call.getTargetOwner()) && !isAccessorOrFactory(call.getTarget()));
+    }
+
+    private static DescribedPredicate<JavaMethodCall> aggregateRestore() {
+        return DescribedPredicate.describe(
+                "an aggregate's restore",
+                call -> recordsEvents(call.getTargetOwner())
+                        && call.getTarget().getName().equals("restore"));
     }
 
     private static boolean recordsEvents(JavaClass type) {

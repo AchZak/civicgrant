@@ -18,6 +18,6 @@ Aggregates refer to each other by id. A rule that needs another aggregate receiv
 
 The rules are tested on the aggregate itself, in unit tests named after the rule, without services or a database.
 
-Queries may return an aggregate to the API, which then maps it, and ArchUnit fails the build if anything outside the domain calls more than its accessors, so a change can't bypass its use case and transaction.
+Queries may return an aggregate to the API, which then maps it, and ArchUnit fails the build if anything outside the domain calls more than its accessors, so a change can't bypass its use case and transaction. It also fails the build if anything but persistence calls `restore`, since that skips every rule.
 
 Each aggregate has its own package, and ArchUnit fails the build if two of them ever depend on each other in a cycle.
