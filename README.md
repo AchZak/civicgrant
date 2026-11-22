@@ -120,7 +120,7 @@ flowchart LR
     gha -->|"deploys a Deployment Stack"| aca
 ```
 
-All infrastructure is defined in Bicep. GitHub Actions builds one image per commit and promotes it through three environments:
+All infrastructure is defined in Bicep: [infra/README.md](infra/README.md) shows what each template creates and who deploys it. GitHub Actions builds one image per commit and promotes it through three environments:
 
 | Trigger | Environment |
 |---|---|
