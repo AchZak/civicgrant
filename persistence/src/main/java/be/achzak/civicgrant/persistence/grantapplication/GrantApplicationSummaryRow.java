@@ -1,6 +1,6 @@
 package be.achzak.civicgrant.persistence.grantapplication;
 
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
+import be.achzak.civicgrant.core.grantapplication.domain.ApplicationStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;

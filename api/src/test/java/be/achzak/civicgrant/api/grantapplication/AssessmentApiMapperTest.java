@@ -2,17 +2,17 @@ package be.achzak.civicgrant.api.grantapplication;
 
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.APPLICATION_ID;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
-import static be.achzak.civicgrant.domain.shared.Money.euros;
+import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import be.achzak.civicgrant.api.generated.model.AssessmentDto;
 import be.achzak.civicgrant.api.generated.model.AssessmentRequestDto;
 import be.achzak.civicgrant.api.generated.model.RecommendationDto;
-import be.achzak.civicgrant.domain.grantapplication.model.Assessment;
-import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
-import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentCommand;
-import be.achzak.civicgrant.domain.shared.Role;
-import be.achzak.civicgrant.domain.shared.UserId;
+import be.achzak.civicgrant.core.grantapplication.application.port.in.RecordAssessmentCommand;
+import be.achzak.civicgrant.core.grantapplication.domain.Assessment;
+import be.achzak.civicgrant.core.grantapplication.domain.Recommendation;
+import be.achzak.civicgrant.core.sharedkernel.domain.Role;
+import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneOffset;

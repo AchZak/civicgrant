@@ -1,6 +1,6 @@
 package be.achzak.civicgrant.persistence.audit;
 
-import be.achzak.civicgrant.domain.audit.model.AuditAction;
+import be.achzak.civicgrant.core.audit.domain.AuditAction;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

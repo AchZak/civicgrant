@@ -1,12 +1,12 @@
 package be.achzak.civicgrant.wiring;
 
-import static be.achzak.civicgrant.domain.shared.Money.euros;
+import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
 import static be.achzak.civicgrant.wiring.WiringFixtures.DECISION_MAKER;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
-import be.achzak.civicgrant.domain.grantapplication.port.in.ApproveApplicationCommand;
-import be.achzak.civicgrant.domain.grantapplication.port.in.ApproveApplicationUseCase;
+import be.achzak.civicgrant.core.grantapplication.application.port.in.ApproveApplicationCommand;
+import be.achzak.civicgrant.core.grantapplication.application.port.in.ApproveApplicationUseCase;
+import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.DisplayName;

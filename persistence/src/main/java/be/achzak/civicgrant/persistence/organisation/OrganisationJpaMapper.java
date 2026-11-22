@@ -1,8 +1,8 @@
 package be.achzak.civicgrant.persistence.organisation;
 
-import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
-import be.achzak.civicgrant.domain.organisation.model.Organisation;
-import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
+import be.achzak.civicgrant.core.organisation.domain.EnterpriseNumber;
+import be.achzak.civicgrant.core.organisation.domain.Organisation;
+import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 
 final class OrganisationJpaMapper {
 

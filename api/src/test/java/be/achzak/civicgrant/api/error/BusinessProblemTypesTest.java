@@ -2,10 +2,10 @@ package be.achzak.civicgrant.api.error;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode;
-import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode;
-import be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode;
-import be.achzak.civicgrant.domain.shared.error.ErrorCode;
+import be.achzak.civicgrant.core.fundingcall.domain.FundingCallErrorCode;
+import be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode;
+import be.achzak.civicgrant.core.organisation.domain.OrganisationErrorCode;
+import be.achzak.civicgrant.core.sharedkernel.domain.error.ErrorCode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,11 +51,11 @@ class BusinessProblemTypesTest {
                 .isTrue();
     }
 
-    // Every enum implementing ErrorCode in the domain, so a new aggregate's codes are checked without a list to update.
+    // Every enum implementing ErrorCode in the core, so a new aggregate's codes are checked without a list to update.
     static Stream<ErrorCode> businessCodes() {
         ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
         scanner.addIncludeFilter(new AssignableTypeFilter(ErrorCode.class));
-        return scanner.findCandidateComponents("be.achzak.civicgrant.domain").stream()
+        return scanner.findCandidateComponents("be.achzak.civicgrant.core").stream()
                 .map(BeanDefinition::getBeanClassName)
                 .map(BusinessProblemTypesTest::constantsOf)
                 .flatMap(Arrays::stream)

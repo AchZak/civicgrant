@@ -1,6 +1,6 @@
 # 47. Every aggregate package has the same layout, and its events sit apart
 
-Status: accepted, partly superseded by [ADR 48](0048-the-read-side-of-a-search-has-its-own-package.md): a search's read models moved out of `model`
+Status: superseded by [ADR 50](0050-the-core-separates-the-domain-from-the-application.md): each aggregate package now has a domain and an application layer. Earlier partly superseded by [ADR 48](0048-the-read-side-of-a-search-has-its-own-package.md): a search's read models moved out of `model`
 
 ## Context
 

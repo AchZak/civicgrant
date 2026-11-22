@@ -19,7 +19,7 @@
     <description>Grant application portal for a fictional Belgian public administration</description>
 
     <modules>
-        <module>domain</module>
+        <module>core</module>
         <module>api</module>
         <module>persistence</module>
         <module>starter</module>
@@ -46,7 +46,7 @@
         <dependencies>
             <dependency>
                 <groupId>be.achzak</groupId>
-                <artifactId>civicgrant-domain</artifactId>
+                <artifactId>civicgrant-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

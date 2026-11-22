@@ -1,9 +1,9 @@
 package be.achzak.civicgrant.persistence.documentstorage;
 
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
-import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
-import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
-import be.achzak.civicgrant.domain.grantapplication.port.out.DocumentStorage;
+import be.achzak.civicgrant.core.grantapplication.application.port.out.DocumentStorage;
+import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
+import be.achzak.civicgrant.core.grantapplication.domain.DocumentId;
+import be.achzak.civicgrant.core.grantapplication.domain.SupportingDocument;
 import com.azure.core.util.BinaryData;
 import com.azure.core.util.Context;
 import com.azure.storage.blob.BlobClient;

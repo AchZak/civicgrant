@@ -5,10 +5,10 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
-import be.achzak.civicgrant.domain.audit.service.RecordAuditEntryService;
-import be.achzak.civicgrant.domain.shared.Actor;
-import be.achzak.civicgrant.domain.shared.Command;
-import be.achzak.civicgrant.domain.shared.Query;
+import be.achzak.civicgrant.core.audit.application.service.RecordAuditEntryService;
+import be.achzak.civicgrant.core.sharedkernel.application.Command;
+import be.achzak.civicgrant.core.sharedkernel.application.Query;
+import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import be.achzak.civicgrant.persistence.documentstorage.DocumentBlobNames;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
@@ -29,37 +29,55 @@ import java.util.List;
 @AnalyzeClasses(packages = "be.achzak.civicgrant", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
 
+    private static final String DOMAIN = "..civicgrant.core.*.domain..";
+    private static final String APPLICATION = "..civicgrant.core.*.application..";
+    private static final String INBOUND_PORTS = "..civicgrant.core.*.application.port.in..";
+    private static final String OUTBOUND_PORTS = "..civicgrant.core.*.application.port.out..";
+    private static final String SERVICES = "..civicgrant.core.*.application.service..";
+
     @ArchTest
-    static final ArchRule domain_depends_only_on_the_jdk = classes()
+    static final ArchRule core_depends_only_on_the_jdk = classes()
             .that()
-            .resideInAPackage("..civicgrant.domain..")
+            .resideInAPackage("..civicgrant.core..")
             .should()
             .onlyDependOnClassesThat()
-            .resideInAnyPackage("java..", "..civicgrant.domain..")
+            .resideInAnyPackage("java..", "..civicgrant.core..")
             .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule every_core_class_belongs_to_the_domain_or_the_application =
+            classes().that().resideInAPackage("..civicgrant.core..").should().resideInAnyPackage(DOMAIN, APPLICATION);
+
+    @ArchTest
+    static final ArchRule the_domain_does_not_depend_on_the_application = noClasses()
+            .that()
+            .resideInAPackage(DOMAIN)
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage(APPLICATION);
 
     @ArchTest
     static final ArchRule shared_kernel_depends_on_no_aggregate = classes()
             .that()
-            .resideInAPackage("..civicgrant.domain.shared..")
+            .resideInAPackage("..civicgrant.core.sharedkernel..")
             .should()
             .onlyDependOnClassesThat()
-            .resideInAnyPackage("java..", "..civicgrant.domain.shared..")
+            .resideInAnyPackage("java..", "..civicgrant.core.sharedkernel..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule no_cycles_between_aggregate_packages =
-            slices().matching("..civicgrant.domain.(*)..").should().beFreeOfCycles();
+            slices().matching("..civicgrant.core.(*)..").should().beFreeOfCycles();
 
     @ArchTest
-    static final ArchRule nothing_else_in_the_domain_depends_on_audit = noClasses()
+    static final ArchRule nothing_else_in_the_core_depends_on_audit = noClasses()
             .that()
-            .resideInAPackage("..civicgrant.domain..")
+            .resideInAPackage("..civicgrant.core..")
             .and()
-            .resideOutsideOfPackage("..civicgrant.domain.audit..")
+            .resideOutsideOfPackage("..civicgrant.core.audit..")
             .should()
             .dependOnClassesThat()
-            .resideInAPackage("..civicgrant.domain.audit..");
+            .resideInAPackage("..civicgrant.core.audit..");
 
     @ArchTest
     static final ArchRule every_use_case_checks_the_actors_role = methods()
@@ -67,7 +85,7 @@ class ArchitectureTest {
             .arePublic()
             .and()
             .areDeclaredInClassesThat()
-            .resideInAPackage("..civicgrant.domain..service..")
+            .resideInAPackage(SERVICES)
             .and()
             .areNotDeclaredIn(RecordAuditEntryService.class)
             .should(callActorRequireAnyRole());
@@ -76,7 +94,7 @@ class ArchitectureTest {
     static final ArchRule every_use_case_takes_exactly_one_command_or_query = methods()
             .that()
             .areDeclaredInClassesThat()
-            .resideInAPackage("..civicgrant.domain..port.in..")
+            .resideInAPackage(INBOUND_PORTS)
             .and()
             .areDeclaredInClassesThat()
             .areInterfaces()
@@ -85,7 +103,7 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule use_cases_are_interfaces_with_one_method = classes()
             .that()
-            .resideInAPackage("..civicgrant.domain..port.in..")
+            .resideInAPackage(INBOUND_PORTS)
             .and()
             .areInterfaces()
             .should()
@@ -93,9 +111,13 @@ class ArchitectureTest {
             .andShould(declareExactlyOneMethod());
 
     @ArchTest
+    static final ArchRule outbound_ports_are_interfaces =
+            classes().that().resideInAPackage(OUTBOUND_PORTS).should().beInterfaces();
+
+    @ArchTest
     static final ArchRule services_implement_exactly_one_use_case = classes()
             .that()
-            .resideInAPackage("..civicgrant.domain..service..")
+            .resideInAPackage(SERVICES)
             .should()
             .haveSimpleNameEndingWith("Service")
             .andShould(implementExactlyOneUseCase());
@@ -111,12 +133,12 @@ class ArchitectureTest {
             .should()
             .beAssignableTo(Record.class)
             .andShould()
-            .resideInAPackage("..civicgrant.domain..port.in..");
+            .resideInAPackage(INBOUND_PORTS);
 
     @ArchTest
-    static final ArchRule outside_the_domain_aggregates_are_only_read_through_accessors = noClasses()
+    static final ArchRule outside_the_core_aggregates_are_only_read_through_accessors = noClasses()
             .that()
-            .resideOutsideOfPackage("..civicgrant.domain..")
+            .resideOutsideOfPackage("..civicgrant.core..")
             .should()
             .callMethodWhere(aggregateBehaviour());
 
@@ -128,20 +150,20 @@ class ArchitectureTest {
             .callMethodWhere(aggregateRestore());
 
     @ArchTest
-    static final ArchRule api_reaches_the_domain_through_use_cases_only = noClasses()
+    static final ArchRule api_reaches_the_core_through_use_cases_only = noClasses()
             .that()
             .resideInAPackage("..civicgrant.api..")
             .should()
             .dependOnClassesThat()
-            .resideInAnyPackage("..civicgrant.domain..service..", "..civicgrant.domain..port.out..");
+            .resideInAnyPackage(SERVICES, OUTBOUND_PORTS);
 
     @ArchTest
-    static final ArchRule persistence_reaches_the_domain_through_outbound_ports_only = noClasses()
+    static final ArchRule persistence_reaches_the_core_through_outbound_ports_only = noClasses()
             .that()
             .resideInAPackage("..civicgrant.persistence..")
             .should()
             .dependOnClassesThat()
-            .resideInAnyPackage("..civicgrant.domain..service..", "..civicgrant.domain..port.in..");
+            .resideInAnyPackage(SERVICES, INBOUND_PORTS);
 
     @ArchTest
     static final ArchRule persistence_classes_are_package_private = classes()
@@ -212,7 +234,7 @@ class ArchitectureTest {
             public void check(JavaClass service, ConditionEvents events) {
                 List<JavaClass> interfaces = List.copyOf(service.getRawInterfaces());
                 boolean implementsOne = interfaces.size() == 1
-                        && JavaClass.Predicates.resideInAPackage("..port.in..").test(interfaces.getFirst());
+                        && JavaClass.Predicates.resideInAPackage(INBOUND_PORTS).test(interfaces.getFirst());
                 events.add(new SimpleConditionEvent(
                         service, implementsOne, service.getName() + " implements " + interfaces));
             }

@@ -19,8 +19,6 @@ A new decision gets the next number. An accepted decision isn't rewritten when i
 - [11. Domain exceptions become Belgif problems in the API, not in the domain](0011-domain-exceptions-become-belgif-problems-in-the-api.md)
 - [12. The audit trail is built from domain events, and holds no free text](0012-audit-trail-from-domain-events.md)
 - [13. No message broker](0013-no-message-broker.md)
-- [47. Every aggregate package has the same layout, and its events sit apart](0047-every-aggregate-package-has-the-same-layout.md)
-- [48. The read side of a search has its own package](0048-the-read-side-of-a-search-has-its-own-package.md)
 
 ## Data and consistency
 
@@ -41,7 +39,6 @@ A new decision gets the next number. An accepted decision isn't rewritten when i
 
 - [23. Documents live in Blob Storage, named by ids and reached with the app's identity](0023-documents-live-in-blob-storage.md)
 - [24. A file and its row stay in step without a distributed transaction](0024-a-file-and-its-row-stay-in-step.md)
-- [49. Blob Storage has its own package in persistence](0049-blob-storage-has-its-own-package-in-persistence.md)
 
 ## Identity and access
 
@@ -79,3 +76,10 @@ A new decision gets the next number. An accepted decision isn't rewritten when i
 - [44. Main only receives releases from develop](0044-main-only-receives-releases-from-develop.md)
 - [45. Repository settings are code](0045-repository-settings-are-code.md)
 - [46. Security checks on every change](0046-security-checks-on-every-change.md)
+
+## Code structure
+
+- [47. Every aggregate package has the same layout, and its events sit apart](0047-every-aggregate-package-has-the-same-layout.md) (superseded by 50)
+- [48. The read side of a search has its own package](0048-the-read-side-of-a-search-has-its-own-package.md) (partly superseded by 50)
+- [49. Blob Storage has its own package in persistence](0049-blob-storage-has-its-own-package-in-persistence.md)
+- [50. The core separates the domain from the application](0050-the-core-separates-the-domain-from-the-application.md)

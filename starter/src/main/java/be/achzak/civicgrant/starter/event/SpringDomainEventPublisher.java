@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.starter.event;
 
-import be.achzak.civicgrant.domain.shared.event.DomainEvent;
-import be.achzak.civicgrant.domain.shared.event.DomainEventPublisher;
+import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPublisher;
+import be.achzak.civicgrant.core.sharedkernel.domain.event.DomainEvent;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;

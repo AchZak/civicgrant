@@ -3,9 +3,9 @@ package be.achzak.civicgrant.persistence.documentstorage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
-import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
-import be.achzak.civicgrant.domain.grantapplication.port.out.DocumentStorage;
+import be.achzak.civicgrant.core.grantapplication.application.port.out.DocumentStorage;
+import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
+import be.achzak.civicgrant.core.grantapplication.domain.DocumentId;
 import be.achzak.civicgrant.persistence.PersistenceTest;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;

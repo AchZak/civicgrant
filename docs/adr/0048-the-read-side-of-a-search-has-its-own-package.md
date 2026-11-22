@@ -1,6 +1,6 @@
 # 48. The read side of a search has its own package
 
-Status: accepted
+Status: accepted, partly superseded by [ADR 50](0050-the-core-separates-the-domain-from-the-application.md): the package is now `<aggregate>.application.search`, in the application layer
 
 ## Context
 

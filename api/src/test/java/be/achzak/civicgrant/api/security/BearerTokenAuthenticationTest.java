@@ -3,8 +3,8 @@ package be.achzak.civicgrant.api.security;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
-import be.achzak.civicgrant.domain.shared.Actor;
-import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
+import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;

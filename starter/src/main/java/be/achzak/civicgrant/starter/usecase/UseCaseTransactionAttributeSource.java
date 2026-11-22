@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.starter.usecase;
 
-import be.achzak.civicgrant.domain.shared.Command;
-import be.achzak.civicgrant.domain.shared.Query;
+import be.achzak.civicgrant.core.sharedkernel.application.Command;
+import be.achzak.civicgrant.core.sharedkernel.application.Query;
 import java.lang.reflect.Method;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionAttribute;

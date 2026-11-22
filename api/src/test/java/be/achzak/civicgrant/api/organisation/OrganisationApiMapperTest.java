@@ -5,12 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import be.achzak.civicgrant.api.generated.model.LegalFormDto;
 import be.achzak.civicgrant.api.generated.model.RegisterOrganisationRequestDto;
-import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
-import be.achzak.civicgrant.domain.organisation.model.LegalForm;
-import be.achzak.civicgrant.domain.organisation.model.Organisation;
-import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
-import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationCommand;
-import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.core.organisation.application.port.in.RegisterOrganisationCommand;
+import be.achzak.civicgrant.core.organisation.domain.EnterpriseNumber;
+import be.achzak.civicgrant.core.organisation.domain.LegalForm;
+import be.achzak.civicgrant.core.organisation.domain.Organisation;
+import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
+import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;

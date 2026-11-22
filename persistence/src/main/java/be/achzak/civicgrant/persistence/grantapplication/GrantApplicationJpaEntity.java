@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.persistence.grantapplication;
 
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
-import be.achzak.civicgrant.domain.grantapplication.model.Language;
+import be.achzak.civicgrant.core.grantapplication.domain.ApplicationStatus;
+import be.achzak.civicgrant.core.grantapplication.domain.Language;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

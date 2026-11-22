@@ -33,7 +33,7 @@ A parameter file starts with the name of its template, so acc and prd will sit n
 | `entra.bicep` | `rg-civicgrant-shared`, which only keeps the deployment record | a tenant administrator, by hand | one app registration per environment, `civicgrant-api-<env>`, with its scope and app roles |
 | `environment.bicep` | `rg-civicgrant-<env>` | the pipeline, as the Deployment Stack `stack-civicgrant-<env>` | Log Analytics, Application Insights, the Container Apps environment, the Container App, the alert rule and the monitoring workbook |
 
-The pipeline's deploy identity has rights on its own environment's resource group only. Everything outside it (the shared resources, the identities, the policies, Entra ID) is deployed by hand by someone who holds those rights. [ADR 34](../docs/adr/0034-shared-resources-are-bootstrapped-by-hand.md), [ADR 35](../docs/adr/0035-two-identities-per-environment.md) and [ADR 38](../docs/adr/0038-deploy-to-test-through-a-deployment-stack.md) explain the split.
+The pipeline's deploy identity has rights on its own environment's resource group only. Everything outside it (the shared resources, the identities, the policies, Entra ID) is deployed by hand by someone who holds those rights. The pipeline can't create the identities it signs in with, and keeping policies and identities out of its reach means a compromised pipeline can't give itself more rights or loosen the guardrails.
 
 ## Setting up from nothing
 
@@ -61,6 +61,6 @@ Lint each entry point the same way. The tst what-if needs the variables `environ
 
 - Names follow the Cloud Adoption Framework abbreviations: `rg-civicgrant-tst`, `ca-civicgrant-tst`. Names that must be globally unique get a `uniqueString` suffix.
 - Every resource carries the tags `project`, `environment` and `managedBy`. The guardrails copy them from the resource group when one is missing.
-- No keys, passwords or connection strings. The app signs in to PostgreSQL, Blob Storage and Application Insights with its managed identity, and the pipeline signs in to Azure with GitHub's OIDC token. Azure Policy refuses a resource that turns shared keys, admin users or anonymous access back on ([ADR 36](../docs/adr/0036-azure-policy-guardrails.md)).
-- Shared resources live in Belgium Central; PostgreSQL, the documents storage and the environments in France Central ([ADR 39](../docs/adr/0039-hosting-regions.md)).
-- Costs stay at a few euros a month: one PostgreSQL server for every environment ([ADR 28](../docs/adr/0028-one-postgresql-server-for-all-environments.md)), Container Apps that scale to zero, and a €5 budget that alerts from the first euro.
+- No keys, passwords or connection strings. The app signs in to PostgreSQL, Blob Storage and Application Insights with its managed identity, and the pipeline signs in to Azure with GitHub's OIDC token. Azure Policy refuses a resource that turns shared keys, admin users or anonymous access back on ([Decisions](../README.md#decisions)).
+- Shared resources live in Belgium Central; PostgreSQL, the documents storage and the environments in France Central.
+- Costs stay at a few euros a month: one PostgreSQL server for every environment, Container Apps that scale to zero, and a €5 budget that alerts from the first euro.

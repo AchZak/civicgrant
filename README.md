@@ -13,7 +13,7 @@ A programme manager opens a funding call, for example "Neighbourhood Projects 20
 3. A decision maker approves or rejects. Every approval is taken from the call's budget.
 4. The applicant follows the status of their application and sees the outcome with its motivation.
 
-Applications are evaluated one by one as they come in (rolling evaluation). Good projects are funded until the budget runs out. [ADR 1](docs/adr/0001-rolling-evaluation.md) explains why it isn't a competitive ranking.
+Applications are evaluated one by one as they come in (rolling evaluation). Good projects are funded until the budget runs out. It's a common model for smaller grants, and it keeps the project about the workflow: no scoring criteria, no ranking step, no bulk decisions.
 
 ### Roles
 
@@ -50,7 +50,7 @@ Hexagonal architecture, split into four Maven modules so the dependency directio
 
 ```
 civicgrant/
-├── domain/        aggregates, business rules, use cases and ports. Plain Java.
+├── core/          the hexagon, plain Java: a domain and an application layer per aggregate
 ├── api/           OpenAPI contract, generated interfaces, REST controllers
 ├── persistence/   JPA and PostgreSQL, Flyway migrations, Blob Storage
 ├── starter/       Spring Boot application, configuration and wiring
@@ -62,16 +62,20 @@ flowchart LR
     client["Angular app"] -->|"HTTPS, Entra token"| api
     subgraph app["starter: one Spring Boot application"]
         api["api<br/>contract, controllers,<br/>security, errors"]
-        domain["domain<br/>aggregates, use cases, ports<br/>plain Java"]
+        subgraph core["core: plain Java"]
+            application["application<br/>use cases, ports, services"]
+            domain["domain<br/>aggregates, rules, events"]
+            application -->|"runs"| domain
+        end
         persistence["persistence<br/>JPA, Flyway, Blob Storage"]
-        api -->|"calls a use case"| domain
-        persistence -->|"implements its ports"| domain
+        api -->|"calls a use case"| application
+        persistence -->|"implements its outbound ports"| application
     end
     persistence --> db[("PostgreSQL")]
     persistence --> blob[("Blob Storage")]
 ```
 
-`api` and `persistence` depend on `domain`, never on each other. `starter` puts everything together. The domain doesn't know about Spring, JPA or Azure, and ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the domain only through use cases, persistence only through outbound ports, each use case is an interface with one method taking one command or query, each service implements exactly one use case, JPA stays inside persistence, outside the domain an aggregate is only ever read, and only persistence rebuilds one from storage.
+`api` and `persistence` depend on `core`, never on each other. `starter` puts everything together. Inside `core`, each aggregate has a domain layer (the aggregate, its rules and events) and an application layer (the use cases and outbound ports, and the services that run them), and the domain never depends on the application. The core doesn't know about Spring, JPA or Azure, and ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the core only through use cases, persistence only through outbound ports, outbound ports are interfaces, each use case is an interface with one method taking one command or query, each service implements exactly one use case, JPA stays inside persistence, outside the core an aggregate is only ever read, and only persistence rebuilds one from storage.
 
 The API is contract-first: `api/src/main/openapi/openapi.yaml` is written by hand and is the single source of truth. The Spring interfaces and the Angular client are generated from it, and the pipeline lints it with Redocly on every change. The application serves the API only, not its documentation.
 
@@ -83,8 +87,8 @@ The API is contract-first: `api/src/main/openapi/openapi.yaml` is written by han
 
 If you only have a few minutes, these files show how the pieces fit:
 
-- [GrantApplication](domain/src/main/java/be/achzak/civicgrant/domain/grantapplication/model/GrantApplication.java): the aggregate. Every step of the workflow is a method named after it, and each one checks who acts, the status and the data, or throws.
-- [ApproveApplicationService](domain/src/main/java/be/achzak/civicgrant/domain/grantapplication/service/ApproveApplicationService.java): a use case from start to end. It checks the role, changes two aggregates in one transaction so the budget can't be overspent, saves, then publishes the events.
+- [GrantApplication](core/src/main/java/be/achzak/civicgrant/core/grantapplication/domain/GrantApplication.java): the aggregate. Every step of the workflow is a method named after it, and each one checks who acts, the status and the data, or throws.
+- [ApproveApplicationService](core/src/main/java/be/achzak/civicgrant/core/grantapplication/application/service/ApproveApplicationService.java): a use case from start to end. It checks the role, changes two aggregates in one transaction so the budget can't be overspent, saves, then publishes the events.
 - [ArchitectureTest](starter/src/test/java/be/achzak/civicgrant/ArchitectureTest.java): the conventions above as rules that fail the build, including that every use case checks the actor's role.
 - [UseCaseTransactionAttributeSource](starter/src/main/java/be/achzak/civicgrant/starter/usecase/UseCaseTransactionAttributeSource.java): how a domain without annotations still runs in transactions. A command gets a read-write one, a query a read-only one.
 - [GrantApplicationPersistenceAdapter](persistence/src/main/java/be/achzak/civicgrant/persistence/grantapplication/GrantApplicationPersistenceAdapter.java): optimistic locking that turns a lost race into a 409, and the paged search.
@@ -132,15 +136,23 @@ The pipeline authenticates to Azure with workload identity federation, so there 
 
 ## Decisions
 
-Every architectural decision is recorded in [docs/adr](docs/adr/README.md): the context that called for it, what was decided, the alternatives, and what it costs. There are 49, grouped by area. The ones that shape the code most:
+The choices that shape the code and the Azure setup most.
 
-- [Aggregates guard their own rules](docs/adr/0002-aggregates-guard-their-own-rules.md)
-- [Roles are checked by the domain, and the build fails if a use case forgets](docs/adr/0005-roles-are-checked-by-the-domain.md)
-- [Failures are codes, in four families](docs/adr/0010-failures-are-codes-in-four-families.md), which [become Belgif problems in the API, not in the domain](docs/adr/0011-domain-exceptions-become-belgif-problems-in-the-api.md)
-- [The audit trail is built from domain events, and holds no free text](docs/adr/0012-audit-trail-from-domain-events.md)
-- [The budget can't be overspent, even by two decision makers at once](docs/adr/0014-the-budget-cannot-be-overspent.md)
-- [Each environment has two identities, each allowed one job](docs/adr/0035-two-identities-per-environment.md)
-- [Azure refuses what breaks the project's rules, through Azure Policy](docs/adr/0036-azure-policy-guardrails.md)
+**The domain doesn't depend on the application.** Each aggregate package in `core` has two layers. The domain layer holds the aggregate, its value objects, its rules and its events. The application layer holds the use cases, the ports in both directions and the services that load an aggregate, call it, save it and publish its events. A repository is something a use case needs, not something an aggregate uses, so the domain declares nothing an adapter implements. ArchUnit fails the build if the domain uses anything from the application, or if a class sits in neither layer.
+
+**Aggregates guard their own rules.** A grant application changes only through methods named after what happens, such as `submit`, `recordAssessment` or `approve`, never through setters. Each method checks who is acting, then the status and dates, then the data, and either succeeds completely or throws. `create` runs the creation rules; `restore` rebuilds an aggregate from storage without running any, because data that was valid when it was saved must stay readable when a rule changes later. Outside the core an aggregate is only read, and only persistence may restore one.
+
+**Roles are checked in the use cases, and the build fails if one forgets.** Every use case starts by checking the caller's role, before it loads anything, so a caller without the role learns nothing about what exists. The endpoints have no role rules of their own. A use case lists every role it accepts, never "any role", so a role added later gets nothing until someone decides it should.
+
+**Failures are codes, in four families.** Every expected failure is an exception with a stable code, such as `SUBMISSION_AFTER_CLOSING_DATE`, which the frontend translates into Dutch or French. The family decides the HTTP status: not found (404), forbidden (403), business rule violated (400) and not allowed in the current status (409). The core knows nothing about HTTP: one handler in the API turns its exceptions into Belgif problems. When someone may not even know an application exists, the answer is 404 rather than 403, so ids can't be probed.
+
+**The audit trail is built from domain events, and holds no free text.** Every state change records an event, and a listener writes its audit entry in the same transaction as the change, so there's never a change without its history, nor history of a change that was rolled back. Entries hold ids, codes and amounts, never what people typed: audit rows are append-only, so personal data written there could never be erased on request, as the GDPR requires.
+
+**The budget can't be overspent, even by two decision makers at once.** A funding call keeps the amount already committed, and it has a version. An approval checks the application's own rules first and only then takes the grant from what's left, and both are saved in one transaction. When two approvals read the call at the same moment, the second one finds the version changed when it saves, answers 409 `concurrentUpdate` and changes nothing. Locking the call's row would also work, but every other decision on that call would then have to wait.
+
+**Each environment has two identities, each allowed one job.** A deploy identity, trusted only by GitHub jobs running in that environment, may deploy into the environment's resource group and nowhere else. An app identity runs the application and may pull images from one repository only. Both, like the other shared resources, are deployed by hand by an Owner, so a compromised pipeline can't give itself more rights.
+
+**Azure refuses what breaks the project's rules, through Azure Policy.** The templates keep resources in the two chosen regions, storage without shared keys or public access, the registry without an admin user or anonymous pull, Container Apps on HTTPS with a managed identity, and monitoring that only accepts data sent with an Entra sign-in. A template can't stop a change made from the CLI or the portal, so one Azure Policy initiative, built from Microsoft's own definitions and assigned to each CivicGrant resource group, refuses anything that breaks these rules, wherever the request comes from. A resource without the project's tags inherits them from its resource group. Azure Policy costs nothing for Azure resources.
 
 ## Running it locally
 

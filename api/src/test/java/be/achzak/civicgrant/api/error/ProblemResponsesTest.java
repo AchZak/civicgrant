@@ -1,17 +1,17 @@
 package be.achzak.civicgrant.api.error;
 
-import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_DRAFT;
-import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
-import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.SEPARATION_OF_DUTIES;
-import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.SUBMISSION_AFTER_CLOSING_DATE;
+import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.APPLICATION_NOT_DRAFT;
+import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
+import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.SEPARATION_OF_DUTIES;
+import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.SUBMISSION_AFTER_CLOSING_DATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
-import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
-import be.achzak.civicgrant.domain.shared.error.ConflictException;
-import be.achzak.civicgrant.domain.shared.error.ForbiddenException;
-import be.achzak.civicgrant.domain.shared.error.NotFoundException;
+import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
+import be.achzak.civicgrant.core.sharedkernel.domain.error.ForbiddenException;
+import be.achzak.civicgrant.core.sharedkernel.domain.error.NotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.DisplayName;

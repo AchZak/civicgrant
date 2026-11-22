@@ -4,11 +4,11 @@ import be.achzak.civicgrant.api.generated.model.LegalFormDto;
 import be.achzak.civicgrant.api.generated.model.OrganisationCollectionDto;
 import be.achzak.civicgrant.api.generated.model.OrganisationDto;
 import be.achzak.civicgrant.api.generated.model.RegisterOrganisationRequestDto;
-import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
-import be.achzak.civicgrant.domain.organisation.model.LegalForm;
-import be.achzak.civicgrant.domain.organisation.model.Organisation;
-import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationCommand;
-import be.achzak.civicgrant.domain.shared.Actor;
+import be.achzak.civicgrant.core.organisation.application.port.in.RegisterOrganisationCommand;
+import be.achzak.civicgrant.core.organisation.domain.EnterpriseNumber;
+import be.achzak.civicgrant.core.organisation.domain.LegalForm;
+import be.achzak.civicgrant.core.organisation.domain.Organisation;
+import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import java.util.List;
 
 final class OrganisationApiMapper {

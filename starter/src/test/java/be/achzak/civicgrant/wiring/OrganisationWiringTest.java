@@ -2,17 +2,17 @@ package be.achzak.civicgrant.wiring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
-import be.achzak.civicgrant.domain.organisation.model.LegalForm;
-import be.achzak.civicgrant.domain.organisation.model.Organisation;
-import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
-import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationCommand;
-import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationUseCase;
-import be.achzak.civicgrant.domain.organisation.port.in.SearchOrganisationsQuery;
-import be.achzak.civicgrant.domain.organisation.port.in.SearchOrganisationsUseCase;
-import be.achzak.civicgrant.domain.shared.Actor;
-import be.achzak.civicgrant.domain.shared.Role;
-import be.achzak.civicgrant.domain.shared.UserId;
+import be.achzak.civicgrant.core.organisation.application.port.in.RegisterOrganisationCommand;
+import be.achzak.civicgrant.core.organisation.application.port.in.RegisterOrganisationUseCase;
+import be.achzak.civicgrant.core.organisation.application.port.in.SearchOrganisationsQuery;
+import be.achzak.civicgrant.core.organisation.application.port.in.SearchOrganisationsUseCase;
+import be.achzak.civicgrant.core.organisation.domain.EnterpriseNumber;
+import be.achzak.civicgrant.core.organisation.domain.LegalForm;
+import be.achzak.civicgrant.core.organisation.domain.Organisation;
+import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
+import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
+import be.achzak.civicgrant.core.sharedkernel.domain.Role;
+import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;

@@ -1,22 +1,22 @@
 package be.achzak.civicgrant.api.grantapplication;
 
-import static be.achzak.civicgrant.domain.shared.Money.euros;
+import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
 
-import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationReference;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
-import be.achzak.civicgrant.domain.grantapplication.model.Assessment;
-import be.achzak.civicgrant.domain.grantapplication.model.Decision;
-import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
-import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationSnapshot;
-import be.achzak.civicgrant.domain.grantapplication.model.Language;
-import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
-import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
-import be.achzak.civicgrant.domain.grantapplication.model.RejectionGround;
-import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationSummary;
-import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
-import be.achzak.civicgrant.domain.shared.UserId;
+import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
+import be.achzak.civicgrant.core.grantapplication.application.search.ApplicationSummary;
+import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
+import be.achzak.civicgrant.core.grantapplication.domain.ApplicationReference;
+import be.achzak.civicgrant.core.grantapplication.domain.ApplicationStatus;
+import be.achzak.civicgrant.core.grantapplication.domain.Assessment;
+import be.achzak.civicgrant.core.grantapplication.domain.Decision;
+import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
+import be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationSnapshot;
+import be.achzak.civicgrant.core.grantapplication.domain.Language;
+import be.achzak.civicgrant.core.grantapplication.domain.ProjectProposal;
+import be.achzak.civicgrant.core.grantapplication.domain.Recommendation;
+import be.achzak.civicgrant.core.grantapplication.domain.RejectionGround;
+import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
+import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;

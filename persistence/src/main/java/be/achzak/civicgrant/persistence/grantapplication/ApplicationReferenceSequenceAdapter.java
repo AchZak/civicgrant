@@ -1,6 +1,6 @@
 package be.achzak.civicgrant.persistence.grantapplication;
 
-import be.achzak.civicgrant.domain.grantapplication.port.out.ApplicationReferenceSequence;
+import be.achzak.civicgrant.core.grantapplication.application.port.out.ApplicationReferenceSequence;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 

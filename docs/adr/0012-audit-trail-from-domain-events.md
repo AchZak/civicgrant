@@ -20,4 +20,4 @@ There's never a change without its history, nor history of a change that was rol
 
 A grant taken from a call's budget has no entry of its own: it's already in the approval's entry, with its amount. The database refuses a row with no subject or with more than one. Organisations registered on the test environment before the audit was switched on have no entry.
 
-The audit only listens: ArchUnit fails the build if anything else in the domain depends on it.
+The audit only listens: ArchUnit fails the build if anything else in the core depends on it.

@@ -1,6 +1,6 @@
 package be.achzak.civicgrant.persistence.organisation;
 
-import be.achzak.civicgrant.domain.organisation.model.LegalForm;
+import be.achzak.civicgrant.core.organisation.domain.LegalForm;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

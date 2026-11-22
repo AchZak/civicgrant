@@ -1,10 +1,10 @@
 package be.achzak.civicgrant.persistence.audit;
 
-import be.achzak.civicgrant.domain.audit.model.AuditEntry;
-import be.achzak.civicgrant.domain.audit.model.AuditSubject;
-import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
-import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
+import be.achzak.civicgrant.core.audit.domain.AuditEntry;
+import be.achzak.civicgrant.core.audit.domain.AuditSubject;
+import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
+import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
+import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 import java.util.UUID;
 
 final class AuditEventJpaMapper {

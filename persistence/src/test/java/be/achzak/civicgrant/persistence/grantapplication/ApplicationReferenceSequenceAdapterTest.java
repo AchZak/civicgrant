@@ -2,7 +2,7 @@ package be.achzak.civicgrant.persistence.grantapplication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import be.achzak.civicgrant.domain.grantapplication.port.out.ApplicationReferenceSequence;
+import be.achzak.civicgrant.core.grantapplication.application.port.out.ApplicationReferenceSequence;
 import be.achzak.civicgrant.persistence.PersistenceTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

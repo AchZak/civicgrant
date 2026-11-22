@@ -36,7 +36,7 @@ WORKDIR /workspace
 COPY --chmod=755 mvnw ./
 COPY .mvn .mvn
 COPY pom.xml ./
-COPY domain domain
+COPY core core
 COPY api api
 COPY persistence persistence
 COPY starter starter
@@ -48,7 +48,7 @@ COPY starter starter
 #    On GitHub runners it starts empty on every run.
 #
 #    -pl starter -am     build the starter module and the modules it depends on
-#                        ("also make"): domain, api, persistence.
+#                        ("also make"): core, api, persistence.
 #    -DskipTests         the tests already ran in the Verify job.
 #
 #    jarmode=tools extract --layers splits the Spring Boot JAR into folders, from

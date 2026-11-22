@@ -1,6 +1,6 @@
 package be.achzak.civicgrant.persistence.grantapplication;
 
-import be.achzak.civicgrant.domain.grantapplication.model.RejectionGround;
+import be.achzak.civicgrant.core.grantapplication.domain.RejectionGround;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

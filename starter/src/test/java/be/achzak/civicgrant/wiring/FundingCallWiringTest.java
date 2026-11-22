@@ -1,17 +1,17 @@
 package be.achzak.civicgrant.wiring;
 
-import static be.achzak.civicgrant.domain.shared.Money.euros;
+import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
-import be.achzak.civicgrant.domain.fundingcall.model.FundingCallReference;
-import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
-import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallCommand;
-import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallUseCase;
-import be.achzak.civicgrant.domain.shared.Actor;
-import be.achzak.civicgrant.domain.shared.LocalizedText;
-import be.achzak.civicgrant.domain.shared.Role;
-import be.achzak.civicgrant.domain.shared.UserId;
+import be.achzak.civicgrant.core.fundingcall.application.port.in.OpenFundingCallCommand;
+import be.achzak.civicgrant.core.fundingcall.application.port.in.OpenFundingCallUseCase;
+import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
+import be.achzak.civicgrant.core.fundingcall.domain.FundingCallReference;
+import be.achzak.civicgrant.core.fundingcall.domain.SubmissionPeriod;
+import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
+import be.achzak.civicgrant.core.sharedkernel.domain.LocalizedText;
+import be.achzak.civicgrant.core.sharedkernel.domain.Role;
+import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;

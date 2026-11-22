@@ -62,7 +62,7 @@ var scopeValue = 'access_as_user'
 // while it's enabled.
 var scopeId = guid('civicgrant-api', environmentName, scopeValue)
 
-// The app roles. Values equal the domain's Role enum (be.achzak.civicgrant.domain.shared.Role):
+// The app roles. Values equal the domain's Role enum (be.achzak.civicgrant.core.sharedkernel.domain.Role):
 // the API maps the token's roles claim onto it by name.
 var roles = [
   {

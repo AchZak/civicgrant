@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.persistence.audit;
 
-import be.achzak.civicgrant.domain.audit.model.AuditEntry;
-import be.achzak.civicgrant.domain.audit.port.out.AuditTrail;
+import be.achzak.civicgrant.core.audit.application.port.out.AuditTrail;
+import be.achzak.civicgrant.core.audit.domain.AuditEntry;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Component;
 

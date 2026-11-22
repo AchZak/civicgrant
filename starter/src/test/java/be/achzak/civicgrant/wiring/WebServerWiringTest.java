@@ -2,7 +2,7 @@ package be.achzak.civicgrant.wiring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
+import be.achzak.civicgrant.core.grantapplication.domain.SupportingDocument;
 import jakarta.servlet.MultipartConfigElement;
 import java.io.IOException;
 import java.net.URI;

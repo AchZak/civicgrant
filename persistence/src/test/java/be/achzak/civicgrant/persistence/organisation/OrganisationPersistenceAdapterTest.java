@@ -3,12 +3,12 @@ package be.achzak.civicgrant.persistence.organisation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
-import be.achzak.civicgrant.domain.organisation.model.LegalForm;
-import be.achzak.civicgrant.domain.organisation.model.Organisation;
-import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
-import be.achzak.civicgrant.domain.organisation.port.out.OrganisationRepository;
-import be.achzak.civicgrant.domain.shared.error.ConflictException;
+import be.achzak.civicgrant.core.organisation.application.port.out.OrganisationRepository;
+import be.achzak.civicgrant.core.organisation.domain.EnterpriseNumber;
+import be.achzak.civicgrant.core.organisation.domain.LegalForm;
+import be.achzak.civicgrant.core.organisation.domain.Organisation;
+import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
+import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import be.achzak.civicgrant.persistence.PersistenceTest;
 import java.time.Instant;
 import java.util.Optional;

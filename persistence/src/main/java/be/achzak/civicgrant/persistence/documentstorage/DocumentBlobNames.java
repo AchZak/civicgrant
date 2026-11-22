@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.persistence.documentstorage;
 
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
-import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
+import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
+import be.achzak.civicgrant.core.grantapplication.domain.DocumentId;
 
 // Public because the grant application mapper stores the same name in each document's row.
 public final class DocumentBlobNames {

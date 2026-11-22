@@ -1,8 +1,8 @@
 package be.achzak.civicgrant.api.security;
 
-import be.achzak.civicgrant.domain.shared.Actor;
-import be.achzak.civicgrant.domain.shared.Role;
-import be.achzak.civicgrant.domain.shared.UserId;
+import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
+import be.achzak.civicgrant.core.sharedkernel.domain.Role;
+import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;

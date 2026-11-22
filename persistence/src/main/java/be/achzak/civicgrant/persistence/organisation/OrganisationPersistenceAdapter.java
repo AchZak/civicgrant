@@ -1,12 +1,12 @@
 package be.achzak.civicgrant.persistence.organisation;
 
-import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_ALREADY_REGISTERED;
+import static be.achzak.civicgrant.core.organisation.domain.OrganisationErrorCode.ORGANISATION_ALREADY_REGISTERED;
 
-import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
-import be.achzak.civicgrant.domain.organisation.model.Organisation;
-import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
-import be.achzak.civicgrant.domain.organisation.port.out.OrganisationRepository;
-import be.achzak.civicgrant.domain.shared.error.ConflictException;
+import be.achzak.civicgrant.core.organisation.application.port.out.OrganisationRepository;
+import be.achzak.civicgrant.core.organisation.domain.EnterpriseNumber;
+import be.achzak.civicgrant.core.organisation.domain.Organisation;
+import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
+import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import jakarta.persistence.EntityManager;
 import java.util.Optional;
 import org.hibernate.exception.ConstraintViolationException;

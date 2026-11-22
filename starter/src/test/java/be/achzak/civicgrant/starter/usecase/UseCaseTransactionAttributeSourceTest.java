@@ -1,13 +1,13 @@
 package be.achzak.civicgrant.starter.usecase;
 
-import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_ALREADY_REGISTERED;
+import static be.achzak.civicgrant.core.organisation.domain.OrganisationErrorCode.ORGANISATION_ALREADY_REGISTERED;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import be.achzak.civicgrant.domain.fundingcall.port.in.ListOpenFundingCallsQuery;
-import be.achzak.civicgrant.domain.fundingcall.service.ListOpenFundingCallsService;
-import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationCommand;
-import be.achzak.civicgrant.domain.organisation.service.RegisterOrganisationService;
-import be.achzak.civicgrant.domain.shared.error.ConflictException;
+import be.achzak.civicgrant.core.fundingcall.application.port.in.ListOpenFundingCallsQuery;
+import be.achzak.civicgrant.core.fundingcall.application.service.ListOpenFundingCallsService;
+import be.achzak.civicgrant.core.organisation.application.port.in.RegisterOrganisationCommand;
+import be.achzak.civicgrant.core.organisation.application.service.RegisterOrganisationService;
+import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

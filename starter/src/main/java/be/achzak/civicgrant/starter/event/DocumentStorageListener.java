@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.starter.event;
 
-import be.achzak.civicgrant.domain.grantapplication.model.event.DocumentRemoved;
-import be.achzak.civicgrant.domain.grantapplication.port.out.DocumentStorage;
+import be.achzak.civicgrant.core.grantapplication.application.port.out.DocumentStorage;
+import be.achzak.civicgrant.core.grantapplication.domain.event.DocumentRemoved;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
