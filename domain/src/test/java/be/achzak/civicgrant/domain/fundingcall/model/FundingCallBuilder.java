@@ -60,7 +60,7 @@ public final class FundingCallBuilder {
     public FundingCall build() {
         return FundingCall.restore(
                 id,
-                reference,
+                new FundingCallReference(reference),
                 new LocalizedText("Buurtprojecten 2026", "Projets de quartier 2026"),
                 new SubmissionPeriod(opensAt, closesAt),
                 new BudgetEnvelope(totalBudget, committed, capPerApplication),

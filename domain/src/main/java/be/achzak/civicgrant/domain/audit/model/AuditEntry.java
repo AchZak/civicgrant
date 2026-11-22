@@ -56,7 +56,7 @@ public record AuditEntry(
                         subject,
                         opened,
                         AuditAction.FUNDING_CALL_OPENED,
-                        Map.of("reference", opened.reference(), "totalBudget", amount(opened.totalBudget()))));
+                        Map.of("reference", opened.reference().value(), "totalBudget", amount(opened.totalBudget()))));
             // Already recorded as APPLICATION_APPROVED, with the granted amount.
             case GrantCommitted _ -> Optional.empty();
         };

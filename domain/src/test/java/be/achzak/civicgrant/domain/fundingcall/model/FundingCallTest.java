@@ -20,8 +20,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayName("Funding call")
 class FundingCallTest {
@@ -116,20 +114,20 @@ class FundingCallTest {
 
         // The aggregate only records who opened the call; the use case checks the role.
         private static final Actor OPENED_BY = actor("programme-manager-1");
+        private static final FundingCallReference REFERENCE = new FundingCallReference("GRN-2027");
         private static final LocalizedText TITLE = new LocalizedText("Groene daken 2027", "Toitures vertes 2027");
         private static final SubmissionPeriod PERIOD =
                 new SubmissionPeriod(NOW.plus(Duration.ofDays(14)), NOW.plus(Duration.ofDays(120)));
 
-        private static FundingCall open(String reference, LocalizedText title, SubmissionPeriod period) {
-            return FundingCall.create(reference, title, period, euros("80000.00"), euros("20000.00"), OPENED_BY, NOW);
+        private static FundingCall open(LocalizedText title, SubmissionPeriod period) {
+            return FundingCall.create(REFERENCE, title, period, euros("80000.00"), euros("20000.00"), OPENED_BY, NOW);
         }
 
         @Test
-        @DisplayName("opens an unspent call, stored for the first time, with the trimmed reference and titles")
-        void opensAnUnspentCallWithTheTrimmedReferenceAndTitles() {
+        @DisplayName("opens an unspent call, stored for the first time, with the trimmed titles")
+        void opensAnUnspentCallWithTheTrimmedTitles() {
             // when
-            FundingCall call =
-                    open("  GRN-2027 ", new LocalizedText(" Groene daken 2027 ", "Toitures vertes 2027  "), PERIOD);
+            FundingCall call = open(new LocalizedText(" Groene daken 2027 ", "Toitures vertes 2027  "), PERIOD);
 
             // then
             assertThat(call)
@@ -141,7 +139,7 @@ class FundingCallTest {
                             FundingCall::version,
                             FundingCall::createdAt)
                     .containsExactly(
-                            "GRN-2027",
+                            REFERENCE,
                             TITLE,
                             PERIOD,
                             new BudgetEnvelope(euros("80000.00"), Money.ZERO, euros("20000.00")),
@@ -153,12 +151,12 @@ class FundingCallTest {
         @DisplayName("records FundingCallOpened with the reference, the total budget, the actor and the moment")
         void recordsFundingCallOpened() {
             // when
-            FundingCall call = open("GRN-2027", TITLE, PERIOD);
+            FundingCall call = open(TITLE, PERIOD);
 
             // then
             assertThat(call.pullEvents())
                     .containsExactly(
-                            new FundingCallOpened(call.id(), "GRN-2027", euros("80000.00"), OPENED_BY.id(), NOW));
+                            new FundingCallOpened(call.id(), REFERENCE, euros("80000.00"), OPENED_BY.id(), NOW));
         }
 
         @Test
@@ -168,7 +166,7 @@ class FundingCallTest {
             SubmissionPeriod openNow = new SubmissionPeriod(NOW.minus(Duration.ofDays(1)), NOW.plusSeconds(1));
 
             // when
-            FundingCall call = open("GRN-2027", TITLE, openNow);
+            FundingCall call = open(TITLE, openNow);
 
             // then
             assertThat(call.isOpenAt(NOW)).isTrue();
@@ -181,47 +179,10 @@ class FundingCallTest {
             SubmissionPeriod closingNow = new SubmissionPeriod(NOW.minus(Duration.ofDays(30)), NOW);
 
             // when
-            Throwable thrown = catchThrowable(() -> open("GRN-2027", TITLE, closingNow));
+            Throwable thrown = catchThrowable(() -> open(TITLE, closingNow));
 
             // then
             assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("FUNDING_CALL_ALREADY_CLOSED");
-        }
-
-        @ParameterizedTest(name = "\"{0}\"")
-        @ValueSource(strings = {"grn-2027", "GRN 2027", "GRN--2027", "-GRN", "GRN-", "GRN_2027", ""})
-        @DisplayName("rejects a reference that isn't capitals and digits in groups joined by single hyphens")
-        void rejectsReferenceThatIsntCapitalsAndDigitsJoinedByHyphens(String reference) {
-            // when
-            Throwable thrown = catchThrowable(() -> open(reference, TITLE, PERIOD));
-
-            // then
-            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("FUNDING_CALL_REFERENCE_INVALID");
-        }
-
-        @Test
-        @DisplayName("allows a reference of exactly 30 characters")
-        void allowsReferenceOfExactly30Characters() {
-            // given
-            String thirtyCharacters = "GRN-" + "A".repeat(26);
-
-            // when
-            FundingCall call = open(thirtyCharacters, TITLE, PERIOD);
-
-            // then
-            assertThat(call.reference()).hasSize(30);
-        }
-
-        @Test
-        @DisplayName("rejects a reference of 31 characters")
-        void rejectsReferenceOf31Characters() {
-            // given
-            String thirtyOneCharacters = "GRN-" + "A".repeat(27);
-
-            // when
-            Throwable thrown = catchThrowable(() -> open(thirtyOneCharacters, TITLE, PERIOD));
-
-            // then
-            assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("FUNDING_CALL_REFERENCE_INVALID");
         }
 
         @Test
@@ -231,7 +192,7 @@ class FundingCallTest {
             LocalizedText longest = new LocalizedText(" " + "d".repeat(200) + " ", "f".repeat(200));
 
             // when
-            FundingCall call = open("GRN-2027", longest, PERIOD);
+            FundingCall call = open(longest, PERIOD);
 
             // then
             assertThat(call.title()).isEqualTo(new LocalizedText("d".repeat(200), "f".repeat(200)));
@@ -241,8 +202,8 @@ class FundingCallTest {
         @DisplayName("rejects a Dutch title of 201 characters")
         void rejectsDutchTitleOf201Characters() {
             // when
-            Throwable thrown = catchThrowable(
-                    () -> open("GRN-2027", new LocalizedText("d".repeat(201), "Toitures vertes 2027"), PERIOD));
+            Throwable thrown =
+                    catchThrowable(() -> open(new LocalizedText("d".repeat(201), "Toitures vertes 2027"), PERIOD));
 
             // then
             assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("FUNDING_CALL_TITLE_TOO_LONG");
@@ -252,8 +213,8 @@ class FundingCallTest {
         @DisplayName("rejects a French title of 201 characters")
         void rejectsFrenchTitleOf201Characters() {
             // when
-            Throwable thrown = catchThrowable(
-                    () -> open("GRN-2027", new LocalizedText("Groene daken 2027", "f".repeat(201)), PERIOD));
+            Throwable thrown =
+                    catchThrowable(() -> open(new LocalizedText("Groene daken 2027", "f".repeat(201)), PERIOD));
 
             // then
             assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("FUNDING_CALL_TITLE_TOO_LONG");
@@ -263,8 +224,8 @@ class FundingCallTest {
         @DisplayName("rejects a cap per application above the total budget")
         void rejectsCapPerApplicationAboveTheTotalBudget() {
             // when
-            Throwable thrown = catchThrowable(() -> FundingCall.create(
-                    "GRN-2027", TITLE, PERIOD, euros("20000.00"), euros("20000.01"), OPENED_BY, NOW));
+            Throwable thrown = catchThrowable(() ->
+                    FundingCall.create(REFERENCE, TITLE, PERIOD, euros("20000.00"), euros("20000.01"), OPENED_BY, NOW));
 
             // then
             assertThatDomainException(thrown).isBusinessRuleViolation().hasCode("CAP_PER_APPLICATION_EXCEEDS_BUDGET");

@@ -1,7 +1,6 @@
 package be.achzak.civicgrant.domain.fundingcall.model;
 
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.FUNDING_CALL_ALREADY_CLOSED;
-import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.FUNDING_CALL_REFERENCE_INVALID;
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.FUNDING_CALL_TITLE_TOO_LONG;
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.GRANT_EXCEEDS_REMAINING_BUDGET;
 import static be.achzak.civicgrant.domain.shared.SharedErrorCode.GRANTED_AMOUNT_NOT_POSITIVE;
@@ -17,16 +16,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 public final class FundingCall {
 
-    private static final int MAX_REFERENCE_LENGTH = 30;
     private static final int MAX_TITLE_LENGTH = 200;
-    private static final Pattern REFERENCE_CHARACTERS = Pattern.compile("[A-Z0-9-]{1," + MAX_REFERENCE_LENGTH + "}");
 
     private final FundingCallId id;
-    private final String reference;
+    private final FundingCallReference reference;
     private final LocalizedText title;
     private final SubmissionPeriod submissionPeriod;
     private BudgetEnvelope budget;
@@ -36,7 +32,7 @@ public final class FundingCall {
 
     private FundingCall(
             FundingCallId id,
-            String reference,
+            FundingCallReference reference,
             LocalizedText title,
             SubmissionPeriod submissionPeriod,
             BudgetEnvelope budget,
@@ -52,7 +48,7 @@ public final class FundingCall {
     }
 
     public static FundingCall create(
-            String reference,
+            FundingCallReference reference,
             LocalizedText title,
             SubmissionPeriod submissionPeriod,
             Money totalBudget,
@@ -68,34 +64,10 @@ public final class FundingCall {
         }
         BudgetEnvelope budget = BudgetEnvelope.unspent(totalBudget, capPerApplication);
         FundingCall fundingCall = new FundingCall(
-                FundingCallId.generate(),
-                validReference(reference),
-                validTitle(title),
-                submissionPeriod,
-                budget,
-                0,
-                now);
+                FundingCallId.generate(), reference, validTitle(title), submissionPeriod, budget, 0, now);
         fundingCall.events.add(
                 new FundingCallOpened(fundingCall.id, fundingCall.reference, budget.total(), openedBy.id(), now));
         return fundingCall;
-    }
-
-    private static String validReference(String reference) {
-        String stripped = Objects.requireNonNull(reference, "reference").strip();
-        if (!isWellFormedReference(stripped)) {
-            throw new BusinessRuleViolationException(
-                    FUNDING_CALL_REFERENCE_INVALID,
-                    "A funding call reference is up to " + MAX_REFERENCE_LENGTH
-                            + " capitals and digits, in groups joined by hyphens: " + stripped);
-        }
-        return stripped;
-    }
-
-    private static boolean isWellFormedReference(String reference) {
-        return REFERENCE_CHARACTERS.matcher(reference).matches()
-                && !reference.startsWith("-")
-                && !reference.endsWith("-")
-                && !reference.contains("--");
     }
 
     private static LocalizedText validTitle(LocalizedText title) {
@@ -111,7 +83,7 @@ public final class FundingCall {
 
     public static FundingCall restore(
             FundingCallId id,
-            String reference,
+            FundingCallReference reference,
             LocalizedText title,
             SubmissionPeriod submissionPeriod,
             BudgetEnvelope budget,
@@ -132,7 +104,7 @@ public final class FundingCall {
             throw new BusinessRuleViolationException(
                     GRANT_EXCEEDS_REMAINING_BUDGET,
                     "Grant of " + amount.amount() + " exceeds the remaining budget of "
-                            + budget.remaining().amount() + " in call " + reference);
+                            + budget.remaining().amount() + " in call " + reference.value());
         }
         budget = budget.commit(amount);
         events.add(new GrantCommitted(id, amount, decidedBy.id(), now));
@@ -160,7 +132,7 @@ public final class FundingCall {
         return id;
     }
 
-    public String reference() {
+    public FundingCallReference reference() {
         return reference;
     }
 

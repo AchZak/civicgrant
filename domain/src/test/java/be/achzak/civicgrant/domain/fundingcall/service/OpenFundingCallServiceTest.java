@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallReference;
 import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
 import be.achzak.civicgrant.domain.fundingcall.model.event.FundingCallOpened;
 import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallCommand;
@@ -31,6 +32,7 @@ class OpenFundingCallServiceTest {
 
     private static final Instant NOW = Instant.parse("2026-11-19T10:00:00Z");
     private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);
+    private static final FundingCallReference REFERENCE = new FundingCallReference("GRN-2027");
     private static final LocalizedText TITLE = new LocalizedText("Groene daken 2027", "Toitures vertes 2027");
     private static final SubmissionPeriod PERIOD =
             new SubmissionPeriod(NOW.plus(Duration.ofDays(14)), NOW.plus(Duration.ofDays(120)));
@@ -40,7 +42,7 @@ class OpenFundingCallServiceTest {
     private final OpenFundingCallService service = new OpenFundingCallService(fundingCalls, events, CLOCK);
 
     private static OpenFundingCallCommand openingBy(Actor actor) {
-        return new OpenFundingCallCommand("GRN-2027", TITLE, PERIOD, euros("80000.00"), euros("20000.00"), actor);
+        return new OpenFundingCallCommand(REFERENCE, TITLE, PERIOD, euros("80000.00"), euros("20000.00"), actor);
     }
 
     @Test
@@ -57,7 +59,7 @@ class OpenFundingCallServiceTest {
                         FundingCall::title,
                         FundingCall::submissionPeriod,
                         FundingCall::createdAt)
-                .containsExactly("GRN-2027", TITLE, PERIOD, NOW);
+                .containsExactly(REFERENCE, TITLE, PERIOD, NOW);
     }
 
     @Test
@@ -69,7 +71,7 @@ class OpenFundingCallServiceTest {
         // then
         assertThat(events.published())
                 .containsExactly(new FundingCallOpened(
-                        id, "GRN-2027", euros("80000.00"), aProgrammeManager().id(), NOW));
+                        id, REFERENCE, euros("80000.00"), aProgrammeManager().id(), NOW));
     }
 
     @Test
@@ -77,7 +79,7 @@ class OpenFundingCallServiceTest {
     void savesAndPublishesNothingWhenARuleRefusesTheCall() {
         // given
         OpenFundingCallCommand alreadyClosed = new OpenFundingCallCommand(
-                "GRN-2027",
+                REFERENCE,
                 TITLE,
                 new SubmissionPeriod(NOW.minus(Duration.ofDays(30)), NOW),
                 euros("80000.00"),

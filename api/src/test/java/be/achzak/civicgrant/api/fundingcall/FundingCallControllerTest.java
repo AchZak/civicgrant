@@ -14,6 +14,7 @@ import be.achzak.civicgrant.api.security.ApiWebMvcTest;
 import be.achzak.civicgrant.domain.fundingcall.model.BudgetEnvelope;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallReference;
 import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
 import be.achzak.civicgrant.domain.fundingcall.port.in.GetFundingCallQuery;
 import be.achzak.civicgrant.domain.fundingcall.port.in.GetFundingCallUseCase;
@@ -66,7 +67,7 @@ class FundingCallControllerTest {
         private static final Instant NEW_CALL_CLOSES_AT = Instant.parse("2027-03-31T22:00:00Z");
 
         private final OpenFundingCallCommand command = new OpenFundingCallCommand(
-                "GRN-2027",
+                new FundingCallReference("GRN-2027"),
                 new LocalizedText("Groene daken 2027", "Toitures vertes 2027"),
                 new SubmissionPeriod(NEW_CALL_OPENS_AT, NEW_CALL_CLOSES_AT),
                 euros("80000.00"),
@@ -79,7 +80,7 @@ class FundingCallControllerTest {
             // given
             FundingCall opened = FundingCall.restore(
                     FundingCallId.generate(),
-                    "GRN-2027",
+                    new FundingCallReference("GRN-2027"),
                     command.title(),
                     command.submissionPeriod(),
                     BudgetEnvelope.unspent(euros("80000.00"), euros("20000.00")),
@@ -142,6 +143,22 @@ class FundingCallControllerTest {
                     .extractingPath("$.type")
                     .asString()
                     .isEqualTo("urn:problem-type:belgif:badRequest");
+            then(openFundingCall).shouldHaveNoInteractions();
+        }
+
+        @Test
+        @DisplayName("returns 400 fundingCallReferenceInvalid for a double hyphen, without calling the use case")
+        void returns400ForAReferenceWithADoubleHyphen() {
+            // when
+            MvcTestResult result = open("GRN--2027", NEW_CALL_CLOSES_AT);
+
+            // then
+            assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
+            assertThat(result)
+                    .bodyJson()
+                    .extractingPath("$.type")
+                    .asString()
+                    .isEqualTo("urn:problem-type:civicgrant:fundingCallReferenceInvalid");
             then(openFundingCall).shouldHaveNoInteractions();
         }
 
@@ -333,7 +350,7 @@ class FundingCallControllerTest {
     private static FundingCall fundingCall() {
         return FundingCall.restore(
                 FundingCallId.generate(),
-                "NBH-2026",
+                new FundingCallReference("NBH-2026"),
                 new LocalizedText("Buurtprojecten 2026", "Projets de quartier 2026"),
                 new SubmissionPeriod(Instant.parse("2026-03-01T08:00:00Z"), CLOSES_AT),
                 new BudgetEnvelope(euros("50000.00"), euros("12500.00"), euros("15000.00")),

@@ -62,7 +62,7 @@ class FundingCallPersistenceAdapter implements FundingCallRepository {
             }
             throw new ConflictException(
                     FUNDING_CALL_REFERENCE_TAKEN,
-                    "Funding call reference " + fundingCall.reference() + " is already taken");
+                    "Funding call reference " + fundingCall.reference().value() + " is already taken");
         }
     }
 
@@ -82,6 +82,6 @@ class FundingCallPersistenceAdapter implements FundingCallRepository {
     private static ConflictException concurrentUpdate(FundingCall fundingCall) {
         return new ConflictException(
                 CONCURRENT_UPDATE,
-                "Funding call " + fundingCall.reference() + " was changed by someone else since it was read");
+                "Funding call " + fundingCall.reference().value() + " was changed by someone else since it was read");
     }
 }

@@ -7,6 +7,7 @@ import be.achzak.civicgrant.api.generated.model.FundingCallDto;
 import be.achzak.civicgrant.api.generated.model.LocalizedTextDto;
 import be.achzak.civicgrant.api.generated.model.OpenFundingCallRequestDto;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallReference;
 import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
 import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallCommand;
 import be.achzak.civicgrant.domain.shared.Actor;
@@ -20,7 +21,7 @@ final class FundingCallApiMapper {
 
     static OpenFundingCallCommand toCommand(OpenFundingCallRequestDto request, Actor actor) {
         return new OpenFundingCallCommand(
-                request.getReference(),
+                FundingCallReference.parse(request.getReference()),
                 new LocalizedText(request.getTitle().getNl(), request.getTitle().getFr()),
                 new SubmissionPeriod(
                         request.getOpensAt().toInstant(), request.getClosesAt().toInstant()),
@@ -37,7 +38,7 @@ final class FundingCallApiMapper {
     static FundingCallDto toDto(FundingCall fundingCall) {
         return new FundingCallDto(
                 fundingCall.id().value(),
-                fundingCall.reference(),
+                fundingCall.reference().value(),
                 toDto(fundingCall.title()),
                 fundingCall.submissionPeriod().opensAt().atOffset(UTC),
                 fundingCall.submissionPeriod().closesAt().atOffset(UTC),

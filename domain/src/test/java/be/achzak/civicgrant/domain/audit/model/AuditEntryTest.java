@@ -8,6 +8,7 @@ import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallReference;
 import be.achzak.civicgrant.domain.fundingcall.model.event.FundingCallOpened;
 import be.achzak.civicgrant.domain.fundingcall.model.event.GrantCommitted;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
@@ -207,7 +208,11 @@ class AuditEntryTest {
 
         // when
         Optional<AuditEntry> entry = AuditEntry.from(new FundingCallOpened(
-                call, "GRN-2027", euros("80000.00"), aProgrammeManager().id(), NOW));
+                call,
+                new FundingCallReference("GRN-2027"),
+                euros("80000.00"),
+                aProgrammeManager().id(),
+                NOW));
 
         // then
         assertThat(entry)

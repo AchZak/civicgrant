@@ -9,6 +9,7 @@ import be.achzak.civicgrant.domain.audit.port.out.AuditTrail;
 import be.achzak.civicgrant.domain.fundingcall.model.BudgetEnvelope;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallReference;
 import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
 import be.achzak.civicgrant.domain.fundingcall.model.event.FundingCallOpened;
 import be.achzak.civicgrant.domain.fundingcall.port.out.FundingCallRepository;
@@ -85,14 +86,18 @@ class AuditTrailPersistenceAdapterTest {
         FundingCallId call = FundingCallId.generate();
         fundingCalls.save(FundingCall.restore(
                 call,
-                "GRN-2027",
+                new FundingCallReference("GRN-2027"),
                 new LocalizedText("Groene daken 2027", "Toitures vertes 2027"),
                 new SubmissionPeriod(NOW, NOW.plus(Duration.ofDays(90))),
                 BudgetEnvelope.unspent(euros("80000.00"), euros("20000.00")),
                 0,
                 NOW));
         AuditEntry entry = AuditEntry.from(new FundingCallOpened(
-                        call, "GRN-2027", euros("80000.00"), new UserId("programme-manager-1"), NOW))
+                        call,
+                        new FundingCallReference("GRN-2027"),
+                        euros("80000.00"),
+                        new UserId("programme-manager-1"),
+                        NOW))
                 .orElseThrow();
 
         // when

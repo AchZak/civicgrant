@@ -14,7 +14,7 @@ public class ListOpenFundingCallsService implements ListOpenFundingCallsUseCase 
 
     private static final Comparator<FundingCall> CLOSING_SOONEST_FIRST = Comparator.comparing(
                     (FundingCall call) -> call.submissionPeriod().closesAt())
-            .thenComparing(FundingCall::reference);
+            .thenComparing(call -> call.reference().value());
 
     private final FundingCallRepository fundingCalls;
     private final Clock clock;

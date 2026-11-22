@@ -223,12 +223,12 @@ public final class GrantApplication {
         if (period.isUpcomingAt(now)) {
             throw new BusinessRuleViolationException(
                     SUBMISSION_BEFORE_OPENING_DATE,
-                    "Funding call " + fundingCall.reference() + " opens at " + period.opensAt());
+                    "Funding call " + fundingCall.reference().value() + " opens at " + period.opensAt());
         }
         if (period.isClosedAt(now)) {
             throw new BusinessRuleViolationException(
                     SUBMISSION_AFTER_CLOSING_DATE,
-                    "Funding call " + fundingCall.reference() + " closed at " + period.closesAt());
+                    "Funding call " + fundingCall.reference().value() + " closed at " + period.closesAt());
         }
         if (documents.isEmpty()) {
             throw new BusinessRuleViolationException(
@@ -387,7 +387,7 @@ public final class GrantApplication {
         if (fundingCall.submissionPeriod().isClosedAt(now)) {
             throw new BusinessRuleViolationException(
                     FUNDING_CALL_CLOSED,
-                    "Funding call " + fundingCall.reference() + " closed at "
+                    "Funding call " + fundingCall.reference().value() + " closed at "
                             + fundingCall.submissionPeriod().closesAt());
         }
     }
@@ -397,7 +397,8 @@ public final class GrantApplication {
             throw new BusinessRuleViolationException(
                     REQUESTED_AMOUNT_EXCEEDS_CAP,
                     "Requested amount " + proposal.requestedAmount().amount() + " exceeds the cap of "
-                            + fundingCall.capPerApplication().amount() + " in call " + fundingCall.reference());
+                            + fundingCall.capPerApplication().amount() + " in call "
+                            + fundingCall.reference().value());
         }
     }
 

@@ -1,5 +1,6 @@
 package be.achzak.civicgrant.domain.fundingcall.port.in;
 
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallReference;
 import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.Command;
@@ -8,7 +9,7 @@ import be.achzak.civicgrant.domain.shared.Money;
 import java.util.Objects;
 
 public record OpenFundingCallCommand(
-        String reference,
+        FundingCallReference reference,
         LocalizedText title,
         SubmissionPeriod submissionPeriod,
         Money totalBudget,

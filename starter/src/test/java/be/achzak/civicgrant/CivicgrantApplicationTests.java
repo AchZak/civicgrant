@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallReference;
 import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
 import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallCommand;
 import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallUseCase;
@@ -187,7 +188,7 @@ class CivicgrantApplicationTests {
         Actor programmeManager = new Actor(new UserId("programme-manager-1"), Set.of(Role.PROGRAMME_MANAGER));
         Instant opensAt = Instant.now().plus(Duration.ofDays(14)).truncatedTo(ChronoUnit.SECONDS);
         OpenFundingCallCommand opening = new OpenFundingCallCommand(
-                "GRN-WIRING",
+                new FundingCallReference("GRN-WIRING"),
                 new LocalizedText("Groene daken 2027", "Toitures vertes 2027"),
                 new SubmissionPeriod(opensAt, opensAt.plus(Duration.ofDays(90))),
                 euros("80000.00"),
@@ -228,7 +229,7 @@ class CivicgrantApplicationTests {
         Actor programmeManager = new Actor(new UserId("programme-manager-1"), Set.of(Role.PROGRAMME_MANAGER));
         Instant opensAt = Instant.now().plus(Duration.ofDays(14));
         OpenFundingCallCommand opening = new OpenFundingCallCommand(
-                "GRN-AUDIT",
+                new FundingCallReference("GRN-AUDIT"),
                 new LocalizedText("Groene daken 2027", "Toitures vertes 2027"),
                 new SubmissionPeriod(opensAt, opensAt.plus(Duration.ofDays(90))),
                 euros("80000.00"),

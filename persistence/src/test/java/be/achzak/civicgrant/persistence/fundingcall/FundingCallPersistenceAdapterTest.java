@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import be.achzak.civicgrant.domain.fundingcall.model.BudgetEnvelope;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallReference;
 import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
 import be.achzak.civicgrant.domain.fundingcall.port.out.FundingCallRepository;
 import be.achzak.civicgrant.domain.shared.Actor;
@@ -200,7 +201,7 @@ class FundingCallPersistenceAdapterTest {
     private static FundingCall fundingCall(String reference, Instant opensAt, Instant closesAt) {
         return FundingCall.restore(
                 FundingCallId.generate(),
-                reference,
+                new FundingCallReference(reference),
                 new LocalizedText("Buurtprojecten 2026", "Projets de quartier 2026"),
                 new SubmissionPeriod(opensAt, closesAt),
                 new BudgetEnvelope(euros("50000.00"), euros("12500.00"), euros("15000.00")),
@@ -211,7 +212,7 @@ class FundingCallPersistenceAdapterTest {
     private static FundingCall newFundingCall(String reference) {
         return FundingCall.restore(
                 FundingCallId.generate(),
-                reference,
+                new FundingCallReference(reference),
                 new LocalizedText("Groene daken 2027", "Toitures vertes 2027"),
                 new SubmissionPeriod(NOW.plus(Duration.ofDays(14)), NOW.plus(Duration.ofDays(120))),
                 new BudgetEnvelope(euros("80000.00"), euros("0.00"), euros("20000.00")),
@@ -227,7 +228,7 @@ class FundingCallPersistenceAdapterTest {
                             :totalBudget, :committedAmount, :maxAmountPerApplication, :version, :createdAt)
                         """)
                 .param("id", fundingCall.id().value())
-                .param("reference", fundingCall.reference())
+                .param("reference", fundingCall.reference().value())
                 .param("titleNl", fundingCall.title().nl())
                 .param("titleFr", fundingCall.title().fr())
                 .param("opensAt", utc(fundingCall.submissionPeriod().opensAt()))

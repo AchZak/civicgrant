@@ -1,13 +1,18 @@
 package be.achzak.civicgrant.domain.fundingcall.model.event;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallReference;
 import be.achzak.civicgrant.domain.shared.Money;
 import be.achzak.civicgrant.domain.shared.UserId;
 import java.time.Instant;
 import java.util.Objects;
 
 public record FundingCallOpened(
-        FundingCallId fundingCallId, String reference, Money totalBudget, UserId actorId, Instant occurredAt)
+        FundingCallId fundingCallId,
+        FundingCallReference reference,
+        Money totalBudget,
+        UserId actorId,
+        Instant occurredAt)
         implements FundingCallEvent {
 
     public FundingCallOpened {
