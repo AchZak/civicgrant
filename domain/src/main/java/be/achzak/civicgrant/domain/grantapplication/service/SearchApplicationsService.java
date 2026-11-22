@@ -1,6 +1,7 @@
 package be.achzak.civicgrant.domain.grantapplication.service;
 
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSearchCriteria;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationVisibility;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQuery;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsUseCase;
@@ -20,11 +21,8 @@ public class SearchApplicationsService implements SearchApplicationsUseCase {
     public ApplicationPage search(SearchApplicationsQuery query) {
         Objects.requireNonNull(query, "query");
         query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER);
-        return applications.search(
-                ApplicationVisibility.of(query.actor()),
-                query.statuses(),
-                query.fundingCalls(),
-                query.page(),
-                query.pageSize());
+        ApplicationSearchCriteria criteria = new ApplicationSearchCriteria(
+                ApplicationVisibility.of(query.actor()), query.statuses(), query.fundingCalls());
+        return applications.search(criteria, query.page(), query.pageSize());
     }
 }

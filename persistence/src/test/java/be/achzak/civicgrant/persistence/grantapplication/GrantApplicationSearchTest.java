@@ -7,6 +7,7 @@ import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationReference;
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSearchCriteria;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationVisibility;
@@ -88,7 +89,8 @@ class GrantApplicationSearchTest {
         store(SOMEONE_ELSE, ApplicationStatus.SUBMITTED, WEDNESDAY);
 
         // when
-        ApplicationPage page = applications.search(AS_APPLICANT, ANY_STATUS, ANY_CALL, 1, 20);
+        ApplicationPage page =
+                applications.search(new ApplicationSearchCriteria(AS_APPLICANT, ANY_STATUS, ANY_CALL), 1, 20);
 
         // then
         assertThat(idsOf(page)).containsExactly(mySubmitted, myDraft);
@@ -104,7 +106,8 @@ class GrantApplicationSearchTest {
         ApplicationId othersSubmitted = store(SOMEONE_ELSE, ApplicationStatus.SUBMITTED, WEDNESDAY);
 
         // when
-        ApplicationPage page = applications.search(AS_STAFF, ANY_STATUS, ANY_CALL, 1, 20);
+        ApplicationPage page =
+                applications.search(new ApplicationSearchCriteria(AS_STAFF, ANY_STATUS, ANY_CALL), 1, 20);
 
         // then
         assertThat(idsOf(page)).containsExactly(othersSubmitted, myDraft);
@@ -119,7 +122,8 @@ class GrantApplicationSearchTest {
         ApplicationId submitted = store(ME, ApplicationStatus.SUBMITTED, TUESDAY);
 
         // when
-        ApplicationPage page = applications.search(AS_APPLICANT, Set.of(ApplicationStatus.SUBMITTED), ANY_CALL, 1, 20);
+        ApplicationPage page = applications.search(
+                new ApplicationSearchCriteria(AS_APPLICANT, Set.of(ApplicationStatus.SUBMITTED), ANY_CALL), 1, 20);
 
         // then
         assertThat(idsOf(page)).containsExactly(submitted);
@@ -134,7 +138,8 @@ class GrantApplicationSearchTest {
         ApplicationId toCulture = store(ApplicationId.generate(), ME, CULTURE_CALL, ApplicationStatus.DRAFT, TUESDAY);
 
         // when
-        ApplicationPage page = applications.search(AS_APPLICANT, ANY_STATUS, Set.of(CULTURE_CALL), 1, 20);
+        ApplicationPage page = applications.search(
+                new ApplicationSearchCriteria(AS_APPLICANT, ANY_STATUS, Set.of(CULTURE_CALL)), 1, 20);
 
         // then
         assertThat(idsOf(page)).containsExactly(toCulture);
@@ -148,7 +153,8 @@ class GrantApplicationSearchTest {
         ApplicationId submitted = store(ME, ApplicationStatus.SUBMITTED, TUESDAY);
 
         // when
-        ApplicationPage page = applications.search(AS_APPLICANT, ANY_STATUS, ANY_CALL, 1, 20);
+        ApplicationPage page =
+                applications.search(new ApplicationSearchCriteria(AS_APPLICANT, ANY_STATUS, ANY_CALL), 1, 20);
 
         // then
         assertThat(page.items())
@@ -176,7 +182,8 @@ class GrantApplicationSearchTest {
         ApplicationId newest = store(ME, ApplicationStatus.DRAFT, WEDNESDAY);
 
         // when
-        ApplicationPage page = applications.search(AS_APPLICANT, ANY_STATUS, ANY_CALL, 1, 20);
+        ApplicationPage page =
+                applications.search(new ApplicationSearchCriteria(AS_APPLICANT, ANY_STATUS, ANY_CALL), 1, 20);
 
         // then
         assertThat(idsOf(page)).containsExactly(newest, tiedLow, tiedHigh, oldest);
@@ -191,7 +198,8 @@ class GrantApplicationSearchTest {
         store(ME, ApplicationStatus.DRAFT, WEDNESDAY);
 
         // when
-        ApplicationPage page = applications.search(AS_APPLICANT, ANY_STATUS, ANY_CALL, 2, 2);
+        ApplicationPage page =
+                applications.search(new ApplicationSearchCriteria(AS_APPLICANT, ANY_STATUS, ANY_CALL), 2, 2);
 
         // then
         assertThat(idsOf(page)).containsExactly(oldest);
@@ -207,7 +215,8 @@ class GrantApplicationSearchTest {
         store(ME, ApplicationStatus.DRAFT, MONDAY);
 
         // when
-        ApplicationPage page = applications.search(AS_APPLICANT, ANY_STATUS, ANY_CALL, Integer.MAX_VALUE, 100);
+        ApplicationPage page = applications.search(
+                new ApplicationSearchCriteria(AS_APPLICANT, ANY_STATUS, ANY_CALL), Integer.MAX_VALUE, 100);
 
         // then
         assertThat(page.items()).isEmpty();

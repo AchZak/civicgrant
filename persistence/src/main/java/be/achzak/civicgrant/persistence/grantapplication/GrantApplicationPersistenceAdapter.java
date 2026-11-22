@@ -5,6 +5,7 @@ import static be.achzak.civicgrant.domain.shared.SharedErrorCode.CONCURRENT_UPDA
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSearchCriteria;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationVisibility;
@@ -20,7 +21,6 @@ import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -58,28 +58,22 @@ class GrantApplicationPersistenceAdapter implements GrantApplicationRepository {
     }
 
     @Override
-    public ApplicationPage search(
-            ApplicationVisibility visibility,
-            Set<ApplicationStatus> statuses,
-            Set<FundingCallId> fundingCalls,
-            int page,
-            int pageSize) {
-        SearchCriteria criteria = new SearchCriteria(visibility, statuses, fundingCalls);
+    public ApplicationPage search(ApplicationSearchCriteria criteria, int page, int pageSize) {
         long total = count(criteria);
         long offset = (long) (page - 1) * pageSize;
         List<ApplicationSummary> items = offset < total ? load(criteria, (int) offset, pageSize) : List.of();
         return new ApplicationPage(items, page, pageSize, total);
     }
 
-    private long count(SearchCriteria criteria) {
+    private long count(ApplicationSearchCriteria criteria) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> query = builder.createQuery(Long.class);
         Root<GrantApplicationJpaEntity> application = query.from(GrantApplicationJpaEntity.class);
-        query.select(builder.count(application)).where(criteria.predicates(builder, application));
+        query.select(builder.count(application)).where(predicates(criteria, builder, application));
         return entityManager.createQuery(query).getSingleResult();
     }
 
-    private List<ApplicationSummary> load(SearchCriteria criteria, int offset, int pageSize) {
+    private List<ApplicationSummary> load(ApplicationSearchCriteria criteria, int offset, int pageSize) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<GrantApplicationSummaryRow> query = builder.createQuery(GrantApplicationSummaryRow.class);
         Root<GrantApplicationJpaEntity> application = query.from(GrantApplicationJpaEntity.class);
@@ -94,7 +88,7 @@ class GrantApplicationPersistenceAdapter implements GrantApplicationRepository {
                         application.get(GrantApplicationJpaEntity_.requestedAmount),
                         application.get(GrantApplicationJpaEntity_.submittedAt),
                         application.get(GrantApplicationJpaEntity_.updatedAt)))
-                .where(criteria.predicates(builder, application))
+                .where(predicates(criteria, builder, application))
                 .orderBy(
                         builder.desc(application.get(GrantApplicationJpaEntity_.updatedAt)),
                         builder.asc(application.get(GrantApplicationJpaEntity_.id)));
@@ -113,27 +107,26 @@ class GrantApplicationPersistenceAdapter implements GrantApplicationRepository {
                 "Application " + application.reference().value() + " was changed by someone else since it was read");
     }
 
-    private record SearchCriteria(
-            ApplicationVisibility visibility, Set<ApplicationStatus> statuses, Set<FundingCallId> fundingCalls) {
-
-        Predicate[] predicates(CriteriaBuilder builder, Root<GrantApplicationJpaEntity> application) {
-            List<Predicate> predicates = new ArrayList<>();
-            Predicate own = builder.equal(
-                    application.get(GrantApplicationJpaEntity_.applicantOid),
-                    visibility.user().value());
-            Predicate leftDraft =
-                    builder.notEqual(application.get(GrantApplicationJpaEntity_.status), ApplicationStatus.DRAFT);
-            predicates.add(visibility.staff() ? builder.or(own, leftDraft) : own);
-            if (!statuses.isEmpty()) {
-                predicates.add(
-                        application.get(GrantApplicationJpaEntity_.status).in(statuses));
-            }
-            if (!fundingCalls.isEmpty()) {
-                predicates.add(application
-                        .get(GrantApplicationJpaEntity_.fundingCallId)
-                        .in(fundingCalls.stream().map(FundingCallId::value).toList()));
-            }
-            return predicates.toArray(Predicate[]::new);
+    private static Predicate[] predicates(
+            ApplicationSearchCriteria criteria, CriteriaBuilder builder, Root<GrantApplicationJpaEntity> application) {
+        List<Predicate> predicates = new ArrayList<>();
+        ApplicationVisibility visibility = criteria.visibility();
+        Predicate own = builder.equal(
+                application.get(GrantApplicationJpaEntity_.applicantOid),
+                visibility.user().value());
+        Predicate leftDraft =
+                builder.notEqual(application.get(GrantApplicationJpaEntity_.status), ApplicationStatus.DRAFT);
+        predicates.add(visibility.staff() ? builder.or(own, leftDraft) : own);
+        if (!criteria.statuses().isEmpty()) {
+            predicates.add(application.get(GrantApplicationJpaEntity_.status).in(criteria.statuses()));
         }
+        if (!criteria.fundingCalls().isEmpty()) {
+            predicates.add(application
+                    .get(GrantApplicationJpaEntity_.fundingCallId)
+                    .in(criteria.fundingCalls().stream()
+                            .map(FundingCallId::value)
+                            .toList()));
+        }
+        return predicates.toArray(Predicate[]::new);
     }
 }

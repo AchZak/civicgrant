@@ -3,9 +3,9 @@ package be.achzak.civicgrant.domain.grantapplication.port.out;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSearchCriteria;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationVisibility;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -35,14 +35,11 @@ public final class InMemoryGrantApplicationRepository implements GrantApplicatio
     }
 
     @Override
-    public ApplicationPage search(
-            ApplicationVisibility visibility,
-            Set<ApplicationStatus> statuses,
-            Set<FundingCallId> fundingCalls,
-            int page,
-            int pageSize) {
+    public ApplicationPage search(ApplicationSearchCriteria criteria, int page, int pageSize) {
+        Set<ApplicationStatus> statuses = criteria.statuses();
+        Set<FundingCallId> fundingCalls = criteria.fundingCalls();
         List<ApplicationSummary> matching = applications.values().stream()
-                .filter(application -> visibility.allows(application.applicant(), application.status()))
+                .filter(application -> criteria.visibility().allows(application.applicant(), application.status()))
                 .filter(application -> statuses.isEmpty() || statuses.contains(application.status()))
                 .filter(application -> fundingCalls.isEmpty() || fundingCalls.contains(application.fundingCallId()))
                 .sorted(Comparator.comparing(GrantApplication::updatedAt)
