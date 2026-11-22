@@ -20,6 +20,7 @@ A new decision gets the next number. An accepted decision isn't rewritten when i
 - [12. The audit trail is built from domain events, and holds no free text](0012-audit-trail-from-domain-events.md)
 - [13. No message broker](0013-no-message-broker.md)
 - [47. Every aggregate package has the same layout, and its events sit apart](0047-every-aggregate-package-has-the-same-layout.md)
+- [48. The read side of a search has its own package](0048-the-read-side-of-a-search-has-its-own-package.md)
 
 ## Data and consistency
 

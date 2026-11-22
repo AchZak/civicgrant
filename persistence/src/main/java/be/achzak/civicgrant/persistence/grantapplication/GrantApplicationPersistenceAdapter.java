@@ -4,12 +4,12 @@ import static be.achzak.civicgrant.domain.shared.SharedErrorCode.CONCURRENT_UPDA
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSearchCriteria;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationVisibility;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
+import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationPage;
+import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationSearchCriteria;
+import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationSummary;
 import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.domain.shared.error.ConflictException;
 import jakarta.persistence.EntityManager;

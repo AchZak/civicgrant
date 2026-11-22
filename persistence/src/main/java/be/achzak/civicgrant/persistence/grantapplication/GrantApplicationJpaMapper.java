@@ -3,7 +3,6 @@ package be.achzak.civicgrant.persistence.grantapplication;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationReference;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
 import be.achzak.civicgrant.domain.grantapplication.model.Assessment;
 import be.achzak.civicgrant.domain.grantapplication.model.Decision;
 import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
@@ -12,6 +11,7 @@ import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationSnapsh
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
 import be.achzak.civicgrant.domain.grantapplication.model.Recommendation;
 import be.achzak.civicgrant.domain.grantapplication.model.SupportingDocument;
+import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationSummary;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.Money;
 import be.achzak.civicgrant.domain.shared.UserId;

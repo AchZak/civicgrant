@@ -2,11 +2,11 @@ package be.achzak.civicgrant.domain.grantapplication.port.out;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSearchCriteria;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
+import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationPage;
+import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationSearchCriteria;
+import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationSummary;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;

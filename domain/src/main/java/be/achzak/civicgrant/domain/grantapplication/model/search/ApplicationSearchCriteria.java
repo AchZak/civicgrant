@@ -1,6 +1,8 @@
-package be.achzak.civicgrant.domain.grantapplication.model;
+package be.achzak.civicgrant.domain.grantapplication.model.search;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationVisibility;
 import java.util.Objects;
 import java.util.Set;
 

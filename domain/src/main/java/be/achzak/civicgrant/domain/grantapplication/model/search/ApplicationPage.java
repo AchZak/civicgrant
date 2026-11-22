@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.domain.grantapplication.model;
+package be.achzak.civicgrant.domain.grantapplication.model.search;
 
 import java.util.List;
 import java.util.Objects;

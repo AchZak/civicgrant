@@ -1,8 +1,8 @@
 package be.achzak.civicgrant.domain.grantapplication.service;
 
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSearchCriteria;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationVisibility;
+import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationPage;
+import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationSearchCriteria;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQuery;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRepository;

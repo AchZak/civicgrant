@@ -3,9 +3,9 @@ package be.achzak.civicgrant.domain.grantapplication.port.out;
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
 
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSearchCriteria;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
+import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationPage;
+import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationSearchCriteria;
 import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import java.util.Optional;
 
