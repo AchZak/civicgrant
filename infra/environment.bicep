@@ -1,45 +1,4 @@
-// ============================================================
-// ENVIRONMENT TEMPLATE
-// ============================================================
-//
-// Creates what one environment (tst, acc or prd) runs on, inside its resource
-// group rg-civicgrant-<env>:
-//
-//   log-civicgrant-<env>     Log Analytics workspace: stores logs and telemetry
-//   appi-civicgrant-<env>    Application Insights: the app's requests, errors and traces
-//     role assignment        the app identity may send telemetry
-//   cae-civicgrant-<env>     Container Apps environment: where the app runs
-//     diagnostic setting     its console and system logs go to the workspace
-//   ca-civicgrant-<env>      Container App: the application image, running
-//   alert-civicgrant-<env>-server-errors
-//                            alert rule: emails when the app answers with a 5xx
-//   CivicGrant <env>         workbook: traffic, errors, the grant workflow and problem logs
-//
-// Everything it builds on already exists, created by shared.bicep: the resource
-// group, the identities, the registry, the database, the documents container and
-// the action group the alerts notify. Their values arrive as
-// parameters, so whoever deploys this template needs no rights outside the
-// resource group.
-//
-// Deployed as a Deployment Stack by the pipeline's "Deploy to test" job.
-// From your machine, with the variables environment.tst.bicepparam reads already set:
-//
-//   az bicep lint --file infra/environment.bicep
-//   az deployment group what-if --resource-group rg-civicgrant-tst --parameters infra/environment.tst.bicepparam
-
-
-// ------------------------------------------------------------
-// SCOPE
-// ------------------------------------------------------------
-
-// Deployed into an existing resource group: rg-civicgrant-<env>, created by shared.bicep.
 targetScope = 'resourceGroup'
-
-
-// ------------------------------------------------------------
-// PARAMETERS
-// Values come from environment.<env>.bicepparam.
-// ------------------------------------------------------------
 
 @description('Environment name: tst, acc or prd.')
 param environmentName string
@@ -71,69 +30,39 @@ param appIdentityPrincipalId string
 @description('Load the demo data after the schema migrations. Never in production.')
 param loadDemoData bool
 
-// Only referenced: the deploy identity needs read access to it (Reader, granted in
-// shared.bicep), never write access.
 @description('Resource id of the shared action group the alert rules notify, ag-civicgrant-shared.')
 param alertActionGroupId string
 
-// Exactly a GUID's length. An empty value would leave the token audience
-// unchecked, so the deployment stops instead.
+// Exactly 36 characters: an empty client id would leave the token audience unchecked.
 @description('Client id of the environment\'s API registration (infra/entra.bicep): the audience every access token must carry.')
 @minLength(36)
 @maxLength(36)
 param apiClientId string
 
-
-// ------------------------------------------------------------
-// VARIABLES
-// ------------------------------------------------------------
-
-// Applied to every resource, like the shared ones.
 var tags = {
   project: 'civicgrant'
   environment: environmentName
   managedBy: 'bicep'
 }
 
-// The environment's database on the shared server, created by shared.bicep.
 var databaseName = 'civicgrant_${environmentName}'
 
-// The environment's container in the shared documents storage, created by shared.bicep.
 var documentsContainer = 'documents-${environmentName}'
 
-// The database role has the identity's name (see infra/bootstrap). The name is the
-// last segment of the identity's resource id.
 var databaseRole = last(split(appIdentityId, '/'))
 
-// Where valid access tokens come from: Microsoft Entra's v2 endpoint for this
-// tenant. environment() gives the sign-in host of the cloud being deployed to,
-// with a trailing slash, and tenant() the tenant the deployment runs in. The
-// result must match the iss claim of the tokens character for character.
 var tokenIssuer = '${environment().authentication.loginEndpoint}${tenant().tenantId}/v2.0'
 
-// Options of the JDBC URL, one per line.
 var jdbcOptions = [
-  // Encrypt, check the server's certificate chain, and check that the certificate
-  // was issued for this host name.
   'sslmode=verify-full'
 
-  // Check the certificate against the Java runtime's trust store, which already
-  // contains Azure's root certificates. The driver's default would look for a
-  // root.crt file that the image doesn't have.
+  // The driver's default looks for a root.crt the image doesn't have.
   'sslfactory=org.postgresql.ssl.DefaultJavaSSLFactory'
-
-  // Instead of a password, the driver asks Microsoft's plugin for one: a Microsoft
-  // Entra token, obtained by the managed identity below.
   'authenticationPluginClassName=com.azure.identity.extensions.jdbc.postgresql.AzurePostgresqlAuthenticationPlugin'
-
-  // Which identity: this user-assigned managed identity, directly, without trying
-  // other ways of signing in first.
   'azure.managedIdentityEnabled=true'
   'azure.clientId=${appIdentityClientId}'
 ]
 
-// Spring Boot reads these environment variables as configuration properties:
-// SPRING_DATASOURCE_URL is spring.datasource.url, and so on.
 var appSettings = [
   {
     name: 'SPRING_DATASOURCE_URL'
@@ -141,84 +70,57 @@ var appSettings = [
   }
   {
     name: 'SPRING_DATASOURCE_USERNAME'
-    value: databaseRole  // No password variable: the plugin above supplies a token instead.
+    value: databaseRole
   }
   {
-    // At most 5 connections per replica. The server allows 35 for every
-    // environment together, and the bootstrap needs a few too.
+    // The server allows 35 connections for all environments together.
     name: 'SPRING_DATASOURCE_HIKARI_MAXIMUMPOOLSIZE'
     value: '5'
   }
   {
-    // Where Flyway looks for migrations. db/seed holds the demo data.
     name: 'SPRING_FLYWAY_LOCATIONS'
     value: loadDemoData ? 'classpath:db/migration,classpath:db/seed' : 'classpath:db/migration'
   }
   {
-    // Starts the Application Insights agent the Dockerfile downloads. The JVM reads
-    // JAVA_TOOL_OPTIONS by itself, so the image's command stays unchanged.
     name: 'JAVA_TOOL_OPTIONS'
     value: '-javaagent:/application/applicationinsights-agent.jar'
   }
   {
-    // Where the agent sends telemetry. Not a secret here: the resource accepts only
-    // Entra-authenticated telemetry, so the key inside it is useless on its own.
+    // Not a secret: Application Insights only accepts Entra-authenticated telemetry.
     name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
     value: monitoring.outputs.connectionString
   }
   {
-    // How the agent authenticates: an Entra token from the same managed identity.
     name: 'APPLICATIONINSIGHTS_AUTHENTICATION_STRING'
     value: 'Authorization=AAD;ClientId=${appIdentityClientId}'
   }
   {
-    // Writes each console log line as one JSON object in the Elastic Common Schema
-    // (logging.structured.format.console), a format built into Spring Boot. Log
-    // Analytics stores what the app prints, so fields such as the level and the logger
-    // can be queried instead of parsed out of text. Set here, not in application.yaml,
-    // so logs stay readable text on a laptop and in tests.
+    // JSON logs on Azure only, so they stay plain text locally and in tests.
     name: 'LOGGING_STRUCTURED_FORMAT_CONSOLE'
     value: 'ecs'
   }
   {
-    // Who issues valid access tokens: spring.security.oauth2.resourceserver.jwt.issuer-uri.
-    // In environment variable names Spring drops the dashes: issuer-uri is ISSUERURI.
-    // Nothing is fetched at startup. On the first request, Spring reads
-    // <issuer>/.well-known/openid-configuration to find Entra's signing keys, and
-    // from then on rejects tokens whose iss claim is anything else.
     name: 'SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUERURI'
     value: tokenIssuer
   }
   {
-    // Who tokens must be meant for: this environment's API. A token the same tenant
-    // issued for any other application, or for another environment, is rejected.
     name: 'SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_AUDIENCES'
     value: apiClientId
   }
   {
-    // Where the supporting documents are stored: civicgrant.documents.endpoint.
     name: 'CIVICGRANT_DOCUMENTS_ENDPOINT'
     value: documentsEndpoint
   }
   {
-    // The environment's own container in that account: civicgrant.documents.container.
     name: 'CIVICGRANT_DOCUMENTS_CONTAINER'
     value: documentsContainer
   }
   {
-    // Which identity signs in to Blob Storage: the same managed identity, named by
-    // its client id, as for the database (civicgrant.documents.client-id).
     name: 'CIVICGRANT_DOCUMENTS_CLIENTID'
     value: appIdentityClientId
   }
 ]
 
-
-// ------------------------------------------------------------
-// RESOURCES
-// ------------------------------------------------------------
-
-// 1. Where logs and telemetry go, and the app identity's right to send telemetry.
 module monitoring 'modules/environment/monitoring.bicep' = {
   params: {
     workspaceName: 'log-civicgrant-${environmentName}'
@@ -230,7 +132,6 @@ module monitoring 'modules/environment/monitoring.bicep' = {
   }
 }
 
-// 2. The Container Apps environment, sending its logs to the workspace from step 1.
 module containerAppEnvironment 'modules/environment/container-app-environment.bicep' = {
   params: {
     name: 'cae-civicgrant-${environmentName}'
@@ -240,7 +141,6 @@ module containerAppEnvironment 'modules/environment/container-app-environment.bi
   }
 }
 
-// 3. The application itself, in the environment from step 2.
 module containerApp 'modules/environment/container-app.bicep' = {
   params: {
     name: 'ca-civicgrant-${environmentName}'
@@ -254,7 +154,6 @@ module containerApp 'modules/environment/container-app.bicep' = {
   }
 }
 
-// 4. The alert rules, watching the Application Insights from step 1.
 module alerts 'modules/environment/alerts.bicep' = {
   params: {
     environmentName: environmentName
@@ -264,7 +163,6 @@ module alerts 'modules/environment/alerts.bicep' = {
   }
 }
 
-// 5. The workbook, querying the workspace from step 1.
 module workbook 'modules/environment/workbook.bicep' = {
   params: {
     environmentName: environmentName
@@ -274,10 +172,5 @@ module workbook 'modules/environment/workbook.bicep' = {
   }
 }
 
-
-// ------------------------------------------------------------
-// OUTPUTS
-// ------------------------------------------------------------
-
-output appName string = containerApp.outputs.name           // The pipeline checks the new revision is ready.
-output appUrl string = 'https://${containerApp.outputs.fqdn}'  // The pipeline checks the app's health here.
+output appName string = containerApp.outputs.name
+output appUrl string = 'https://${containerApp.outputs.fqdn}'

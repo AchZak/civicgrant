@@ -1,69 +1,4 @@
-// ============================================================
-// SHARED INFRASTRUCTURE
-// ============================================================
-//
-// Creates the resources every environment shares:
-//
-//   rg-civicgrant-shared
-//     id-civicgrant-pipeline     identity GitHub Actions logs in to Azure with
-//       github-branch-develop    federated credential: runs on develop may log in
-//       github-branch-main       federated credential: runs on main may log in
-//     crcivicgrant<suffix>       container registry for the application image
-//       2 role assignments       the pipeline identity may push images
-//       2 role assignments       the person deploying may list and read images
-//     psql-civicgrant-<suffix>   PostgreSQL server shared by every environment, Entra sign-in only,
-//                                in its own region (postgresLocation)
-//       administrator            the person deploying administers it
-//       firewall rule            connections from Azure services are let in
-//       civicgrant_<env>         one database per environment
-//       delete lock              nobody can delete the server by mistake
-//     stcivicgrant<suffix>       storage account for the supporting documents, Entra sign-in only,
-//                                next to the server (postgresLocation)
-//       documents-<env>          one private container per environment, readable by its app only
-//       delete lock              nobody can delete the account by mistake
-//     id-civicgrant-deploy-<env> per environment: GitHub Actions deploys the environment with it
-//       github-environment-<env> federated credential: jobs in the GitHub Environment may log in
-//       role assignment          it may attach the app identity to a Container App
-//     id-civicgrant-app-<env>    per environment: the application runs with it
-//       role assignment          it may pull images, from the civicgrant repository only
-//     civicgrant-guardrails      policy assignment: the project's rules apply in this group
-//       role assignment          its identity may add missing tags here
-//     ag-civicgrant-shared       action group: every environment's alerts email the same address
-//       role assignment          per environment: its deploy identity may reference it in alert rules
-//
-//   rg-civicgrant-<env>          per environment, empty: its Deployment Stack fills it
-//     3 role assignments         the deploy identity may deploy here, and nowhere else
-//     civicgrant-guardrails      policy assignment, with its tag role, as above
-//
-//   subscription
-//     budget-civicgrant-monthly  emails when spending approaches or passes €5 a month
-//     civicgrant-guardrails      policy initiative: the project's rules, defined once
-//
-// Deployed by hand, from the project root. BUDGET_ALERT_EMAIL must be set, because
-// shared.bicepparam reads the address of the budget and monitoring alerts from it:
-//
-//   export BUDGET_ALERT_EMAIL=you@example.com
-//   az bicep lint --file infra/shared.bicep
-//   az deployment sub what-if --location belgiumcentral --name civicgrant-shared --parameters infra/shared.bicepparam
-//   az deployment sub create  --location belgiumcentral --name civicgrant-shared --parameters infra/shared.bicepparam
-//
-// The pipeline can't deploy this file: it creates the identity the pipeline logs in with.
-// Running it again is safe. It updates what already exists instead of duplicating it.
-
-
-// ------------------------------------------------------------
-// SCOPE
-// ------------------------------------------------------------
-
-// A deployment normally targets a resource group. This one targets the subscription,
-// because it creates the resource group itself.
 targetScope = 'subscription'
-
-
-// ------------------------------------------------------------
-// PARAMETERS
-// Values come from shared.bicepparam.
-// ------------------------------------------------------------
 
 @description('Azure region for the shared resources.')
 param location string
@@ -74,7 +9,6 @@ param githubSubjectPrefix string
 @description('Branches whose workflow runs may push images.')
 param publishBranches array
 
-// Premium is left out on purpose: it costs about $50 a month.
 @description('Container registry SKU.')
 @allowed([
   'Basic'
@@ -88,8 +22,6 @@ param budgetAlertEmail string
 @description('Major PostgreSQL version of the shared server.')
 param postgresVersion string
 
-// Separate from location: the server may have to live in another region than the
-// other shared resources, when location has no capacity for its size.
 @description('Azure region of the PostgreSQL server. The environments\' apps run in the same region, so their queries never cross regions.')
 param postgresLocation string
 
@@ -103,44 +35,24 @@ param environmentNames array
 ])
 param guardrailsEnforcementMode string
 
-
-// ------------------------------------------------------------
-// VARIABLES
-// ------------------------------------------------------------
-
-// Applied to every resource. The portal and the cost reports can filter on them.
 var tags = {
-  project: 'civicgrant'    // Which project the resource belongs to.
-  environment: 'shared'    // shared, tst, acc or prd.
-  managedBy: 'bicep'       // Change it through Bicep, not in the portal.
+  project: 'civicgrant'
+  environment: 'shared'
+  managedBy: 'bicep'
 }
 
-// The registry repository holding the application image.
 var imageRepository = 'civicgrant'
 
-// Each environment's app identity, by resource id. Computed from the names
-// environment-foundations.bicep gives the identities, so the role assignment names seeded with
-// them are known before deployment and what-if can show them.
 var appIdentityIds = [
   for environmentName in environmentNames: resourceId(subscription().subscriptionId, resourceGroup.name, 'Microsoft.ManagedIdentity/userAssignedIdentities', 'id-civicgrant-app-${environmentName}')
 ]
 
-
-// ------------------------------------------------------------
-// RESOURCES
-// ------------------------------------------------------------
-
-// 1. The resource group that holds everything below.
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: 'rg-civicgrant-shared'
   location: location
   tags: tags
 }
 
-// 2. The identity GitHub Actions logs in with, and its federated credentials.
-//    A module is another Bicep file, deployed as its own nested deployment.
-//    "scope: resourceGroup" deploys it into the group from step 1,
-//    so Azure waits until the group exists.
 module pipelineIdentity 'modules/shared/pipeline-identity.bicep' = {
   scope: resourceGroup
   params: {
@@ -152,42 +64,29 @@ module pipelineIdentity 'modules/shared/pipeline-identity.bicep' = {
   }
 }
 
-// 3. The container registry, with push rights for the identity from step 2
-//    and read rights for the person deploying this file.
 module registry 'modules/shared/container-registry.bicep' = {
   scope: resourceGroup
   params: {
-    // Registry names are global DNS names (<name>.azurecr.io), so they need a unique suffix.
-    // uniqueString() hashes the subscription id into 13 characters. The same subscription
-    // always gives the same suffix, so a redeploy finds the existing registry.
     name: 'crcivicgrant${uniqueString(subscription().subscriptionId)}'
     location: location
     tags: tags
     sku: registrySku
 
-    // Using an output of step 2 makes Azure finish step 2 first.
-    // No explicit dependsOn is needed.
     pushPrincipalIds: [
       pipelineIdentity.outputs.principalId
     ]
 
-    // deployer() is the identity running this deployment: you, from your machine.
-    // Its object id comes from your az login, so no personal id is stored in this
-    // public repository.
     viewerUserIds: [
       deployer().objectId
     ]
   }
 }
 
-// 4. The monthly budget. It watches the whole subscription, so every environment
-//    deployed later is covered too. No scope line: a module defaults to the scope
-//    of the file calling it, here the subscription.
 module budget 'modules/shared/budget.bicep' = {
   params: {
     name: 'budget-civicgrant-monthly'
     amount: 5
-    startDate: '2026-11-01T00:00:00Z' // Created in November 2026. Never change it.
+    startDate: '2026-11-01T00:00:00Z' // Never change it: a budget's start date is fixed once it exists.
     endDate: '2036-11-01T00:00:00Z'
     contactEmails: [
       budgetAlertEmail
@@ -195,26 +94,16 @@ module budget 'modules/shared/budget.bicep' = {
   }
 }
 
-// 5. The PostgreSQL server, its databases and its delete lock.
-//    It lives here, outside every environment, so deleting or recreating an
-//    environment can never touch the server or the data on it.
 module postgres 'modules/shared/postgresql-server.bicep' = {
   scope: resourceGroup
   params: {
-    // Server names are global DNS names (<name>.postgres.database.azure.com),
-    // so they get a unique suffix like the registry's. The region is part of the hash:
-    // a server in another region is a different server, so it gets a different name.
-    // A failed create in Belgium Central left its name reserved there.
+    // The region is part of the hash: a failed create left the Belgium Central name reserved.
     name: 'psql-civicgrant-${uniqueString(subscription().subscriptionId, postgresLocation)}'
     location: postgresLocation
     tags: tags
     version: postgresVersion
-
-    // One database per environment, named after it: civicgrant_tst, civicgrant_acc...
     databaseNames: [for environmentName in environmentNames: 'civicgrant_${environmentName}']
 
-    // You, from your az login, as with the registry viewer roles: no personal
-    // value is stored in this public repository.
     administrator: {
       objectId: deployer().objectId
       principalName: deployer().userPrincipalName
@@ -223,18 +112,13 @@ module postgres 'modules/shared/postgresql-server.bicep' = {
   }
 }
 
-// 6. The guardrails: the project's rules as one Azure Policy initiative. Defined once
-//    for the subscription, but applied only where it's assigned (steps 7 and 8), so
-//    other resource groups in the subscription are never affected.
 module guardrails 'modules/shared/guardrails-definition.bicep' = {
   params: {
-    // Exactly the regions this file deploys to, so a new region is a decision made here.
     allowedLocations: union([location], [postgresLocation])
     inheritedTagNames: objectKeys(tags)
   }
 }
 
-// 7. The guardrails on this resource group.
 module sharedGuardrails 'modules/shared/guardrails-assignment.bicep' = {
   scope: resourceGroup
   params: {
@@ -244,15 +128,12 @@ module sharedGuardrails 'modules/shared/guardrails-assignment.bicep' = {
   }
 }
 
-// 8. Each environment's foundations: its empty resource group, its deploy and app
-//    identities, their rights and the guardrails. One module per name in
-//    environmentNames. They sit next to the database, in postgresLocation.
 module environments 'modules/shared/environment-foundations.bicep' = [
   for environmentName in environmentNames: {
     params: {
       environmentName: environmentName
       location: postgresLocation
-      tags: union(tags, { environment: environmentName })  // Same tags, with the environment's name.
+      tags: union(tags, { environment: environmentName })
       sharedResourceGroupName: resourceGroup.name
       githubSubjectPrefix: githubSubjectPrefix
       registryName: registry.outputs.name
@@ -264,16 +145,9 @@ module environments 'modules/shared/environment-foundations.bicep' = [
   }
 ]
 
-
-// 9. The storage account for the supporting documents, with one container per
-//    environment that only the environment's app identity may read and write.
-//    Next to the database: documents are data too, so they live with the shared
-//    resources and outlast any environment.
 module documentsStorage 'modules/shared/documents-storage.bicep' = {
   scope: resourceGroup
   params: {
-    // Storage account names allow 24 lowercase letters and digits, no hyphens:
-    // 12 for stcivicgrant, 12 from the same kind of hash as the server's.
     name: 'stcivicgrant${take(uniqueString(subscription().subscriptionId, postgresLocation), 12)}'
     location: postgresLocation
     tags: tags
@@ -287,10 +161,6 @@ module documentsStorage 'modules/shared/documents-storage.bicep' = {
   }
 }
 
-// 10. Who the environments' alert rules notify: one email address, the budget's.
-//     Shared, so the address never travels through the pipeline: the environments
-//     only receive the group's resource id, which is no secret. Each environment's
-//     deploy identity gets read access to it in step 8.
 module alertActionGroup 'modules/shared/action-group.bicep' = {
   scope: resourceGroup
   params: {
@@ -301,25 +171,16 @@ module alertActionGroup 'modules/shared/action-group.bicep' = {
   }
 }
 
+output registryName string = registry.outputs.name
+output registryLoginServer string = registry.outputs.loginServer
+output pipelineClientId string = pipelineIdentity.outputs.clientId
+output tenantId string = tenant().tenantId
+output subscriptionId string = subscription().subscriptionId
+output postgresServerName string = postgres.outputs.name
+output postgresHost string = postgres.outputs.host
+output documentsEndpoint string = documentsStorage.outputs.blobEndpoint
+output alertActionGroupId string = alertActionGroup.outputs.id
 
-// ------------------------------------------------------------
-// OUTPUTS
-// Read after deployment with az deployment sub show, and stored as
-// GitHub repository variables. None of them is a secret.
-// ------------------------------------------------------------
-
-output registryName string = registry.outputs.name                  // ACR_NAME
-output registryLoginServer string = registry.outputs.loginServer    // <name>.azurecr.io
-output pipelineClientId string = pipelineIdentity.outputs.clientId  // AZURE_CLIENT_ID
-output tenantId string = tenant().tenantId                          // AZURE_TENANT_ID
-output subscriptionId string = subscription().subscriptionId        // AZURE_SUBSCRIPTION_ID
-output postgresServerName string = postgres.outputs.name            // For az postgres and the bootstrap runbook.
-output postgresHost string = postgres.outputs.host                  // Host of the JDBC URL.
-output documentsEndpoint string = documentsStorage.outputs.blobEndpoint  // DOCUMENTS_ENDPOINT
-output alertActionGroupId string = alertActionGroup.outputs.id      // ALERT_ACTION_GROUP_ID
-
-// Per environment: the deploy identity's client id becomes AZURE_CLIENT_ID of the
-// GitHub Environment; the app identity's values go into the environment template.
 output environments array = [
   for (environmentName, i) in environmentNames: {
     name: environmentName
