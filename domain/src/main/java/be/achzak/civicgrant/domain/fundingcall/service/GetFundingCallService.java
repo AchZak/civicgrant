@@ -6,8 +6,8 @@ import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.port.in.GetFundingCallQuery;
 import be.achzak.civicgrant.domain.fundingcall.port.in.GetFundingCallUseCase;
 import be.achzak.civicgrant.domain.fundingcall.port.out.FundingCallRepository;
-import be.achzak.civicgrant.domain.shared.NotFoundException;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import java.util.Objects;
 
 public class GetFundingCallService implements GetFundingCallUseCase {

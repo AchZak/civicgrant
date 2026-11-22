@@ -1,6 +1,6 @@
 package be.achzak.civicgrant.domain.organisation.model;
 
-import be.achzak.civicgrant.domain.shared.ErrorCode;
+import be.achzak.civicgrant.domain.shared.error.ErrorCode;
 
 public enum OrganisationErrorCode implements ErrorCode {
     ENTERPRISE_NUMBER_INVALID_CHECKSUM,

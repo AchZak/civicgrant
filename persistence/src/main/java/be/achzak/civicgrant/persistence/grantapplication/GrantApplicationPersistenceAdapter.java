@@ -10,7 +10,7 @@ import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSummary;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationVisibility;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRepository;
-import be.achzak.civicgrant.domain.shared.ConflictException;
+import be.achzak.civicgrant.domain.shared.error.ConflictException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.criteria.CriteriaBuilder;

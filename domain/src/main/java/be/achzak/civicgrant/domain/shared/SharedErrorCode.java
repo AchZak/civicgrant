@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.domain.shared;
 
+import be.achzak.civicgrant.domain.shared.error.ErrorCode;
+
 public enum SharedErrorCode implements ErrorCode {
     AMOUNT_NEGATIVE,
     AMOUNT_TOO_PRECISE,

@@ -2,6 +2,7 @@ package be.achzak.civicgrant.domain.shared;
 
 import static be.achzak.civicgrant.domain.shared.SharedErrorCode.TRANSLATION_MISSING;
 
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.util.Objects;
 
 public record LocalizedText(String nl, String fr) {

@@ -17,7 +17,7 @@
 
 // ------------------------------------------------------------
 // PARAMETERS
-// Values are passed by environment.bicep.
+// Values are passed by environment-foundations.bicep.
 // ------------------------------------------------------------
 
 @description('Environment name: tst, acc or prd.')

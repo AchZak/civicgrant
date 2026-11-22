@@ -3,7 +3,7 @@ package be.achzak.civicgrant.domain.organisation.model;
 import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ENTERPRISE_NUMBER_INVALID_CHECKSUM;
 import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ENTERPRISE_NUMBER_INVALID_FORMAT;
 
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Pattern;

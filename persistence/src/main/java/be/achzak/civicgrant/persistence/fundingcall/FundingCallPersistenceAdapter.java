@@ -6,7 +6,7 @@ import static be.achzak.civicgrant.domain.shared.SharedErrorCode.CONCURRENT_UPDA
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.fundingcall.port.out.FundingCallRepository;
-import be.achzak.civicgrant.domain.shared.ConflictException;
+import be.achzak.civicgrant.domain.shared.error.ConflictException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
 import java.time.Instant;

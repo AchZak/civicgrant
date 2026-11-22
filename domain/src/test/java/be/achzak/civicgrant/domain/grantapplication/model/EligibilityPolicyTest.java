@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.domain.grantapplication.model;
 
 import static be.achzak.civicgrant.domain.organisation.model.OrganisationBuilder.anOrganisation;
-import static be.achzak.civicgrant.domain.shared.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.domain.shared.error.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 

@@ -4,7 +4,7 @@ import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicatio
 
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;

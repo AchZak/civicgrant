@@ -7,7 +7,7 @@ import be.achzak.civicgrant.domain.fundingcall.port.in.ListOpenFundingCallsQuery
 import be.achzak.civicgrant.domain.fundingcall.service.ListOpenFundingCallsService;
 import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationCommand;
 import be.achzak.civicgrant.domain.organisation.service.RegisterOrganisationService;
-import be.achzak.civicgrant.domain.shared.ConflictException;
+import be.achzak.civicgrant.domain.shared.error.ConflictException;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

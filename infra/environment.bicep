@@ -24,7 +24,7 @@
 // Deployed as a Deployment Stack by the pipeline's "Deploy to test" job.
 // From your machine, with the variables tst.bicepparam reads already set:
 //
-//   az bicep lint --file infra/main.bicep
+//   az bicep lint --file infra/environment.bicep
 //   az deployment group what-if --resource-group rg-civicgrant-tst --parameters infra/tst.bicepparam
 
 
@@ -219,7 +219,7 @@ var appSettings = [
 // ------------------------------------------------------------
 
 // 1. Where logs and telemetry go, and the app identity's right to send telemetry.
-module monitoring 'modules/monitoring.bicep' = {
+module monitoring 'modules/environment/monitoring.bicep' = {
   params: {
     workspaceName: 'log-civicgrant-${environmentName}'
     applicationInsightsName: 'appi-civicgrant-${environmentName}'
@@ -231,7 +231,7 @@ module monitoring 'modules/monitoring.bicep' = {
 }
 
 // 2. The Container Apps environment, sending its logs to the workspace from step 1.
-module containerAppEnvironment 'modules/container-app-environment.bicep' = {
+module containerAppEnvironment 'modules/environment/container-app-environment.bicep' = {
   params: {
     name: 'cae-civicgrant-${environmentName}'
     location: location
@@ -241,7 +241,7 @@ module containerAppEnvironment 'modules/container-app-environment.bicep' = {
 }
 
 // 3. The application itself, in the environment from step 2.
-module containerApp 'modules/container-app.bicep' = {
+module containerApp 'modules/environment/container-app.bicep' = {
   params: {
     name: 'ca-civicgrant-${environmentName}'
     location: location
@@ -255,7 +255,7 @@ module containerApp 'modules/container-app.bicep' = {
 }
 
 // 4. The alert rules, watching the Application Insights from step 1.
-module alerts 'modules/alerts.bicep' = {
+module alerts 'modules/environment/alerts.bicep' = {
   params: {
     environmentName: environmentName
     tags: tags
@@ -265,7 +265,7 @@ module alerts 'modules/alerts.bicep' = {
 }
 
 // 5. The workbook, querying the workspace from step 1.
-module workbook 'modules/workbook.bicep' = {
+module workbook 'modules/environment/workbook.bicep' = {
   params: {
     environmentName: environmentName
     location: location

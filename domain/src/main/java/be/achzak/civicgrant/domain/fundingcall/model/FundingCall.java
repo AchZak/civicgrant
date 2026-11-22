@@ -7,9 +7,9 @@ import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode
 import static be.achzak.civicgrant.domain.shared.SharedErrorCode.GRANTED_AMOUNT_NOT_POSITIVE;
 
 import be.achzak.civicgrant.domain.shared.Actor;
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import be.achzak.civicgrant.domain.shared.LocalizedText;
 import be.achzak.civicgrant.domain.shared.Money;
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;

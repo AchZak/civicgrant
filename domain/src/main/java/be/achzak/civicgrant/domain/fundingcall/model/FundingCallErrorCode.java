@@ -1,6 +1,6 @@
 package be.achzak.civicgrant.domain.fundingcall.model;
 
-import be.achzak.civicgrant.domain.shared.ErrorCode;
+import be.achzak.civicgrant.domain.shared.error.ErrorCode;
 
 public enum FundingCallErrorCode implements ErrorCode {
     CAP_PER_APPLICATION_EXCEEDS_BUDGET,

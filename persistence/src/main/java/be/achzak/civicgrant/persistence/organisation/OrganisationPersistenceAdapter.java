@@ -6,7 +6,7 @@ import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.organisation.port.out.OrganisationRepository;
-import be.achzak.civicgrant.domain.shared.ConflictException;
+import be.achzak.civicgrant.domain.shared.error.ConflictException;
 import jakarta.persistence.EntityManager;
 import java.util.Optional;
 import org.hibernate.exception.ConstraintViolationException;

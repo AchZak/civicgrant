@@ -8,7 +8,7 @@ import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationVisibility;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
-import be.achzak.civicgrant.domain.shared.NotFoundException;
+import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import java.util.Optional;
 import java.util.Set;
 

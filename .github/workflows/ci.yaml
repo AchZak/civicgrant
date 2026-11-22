@@ -147,7 +147,7 @@ jobs:
       # 3. Log in to Azure as id-civicgrant-pipeline, without any password.
       #    GitHub's OIDC token is exchanged for an Azure token. Azure accepts it only for
       #    pushes to develop and main: the federated credentials in
-      #    infra/modules/pipeline-identity.bicep. Pull requests skip this step.
+      #    infra/modules/shared/pipeline-identity.bicep. Pull requests skip this step.
       #    The three ids are repository variables, not secrets: they say who logs in
       #    and where, but don't let anyone log in.
       - name: Log in to Azure
@@ -204,7 +204,7 @@ jobs:
 
   # ============================================================
   # JOB 3: DEPLOY TO TEST
-  # Preview, then apply infra/main.bicep to rg-civicgrant-tst as a Deployment
+  # Preview, then apply infra/environment.bicep to rg-civicgrant-tst as a Deployment
   # Stack, running the image Publish image just pushed. Then check the app.
   # ============================================================
 

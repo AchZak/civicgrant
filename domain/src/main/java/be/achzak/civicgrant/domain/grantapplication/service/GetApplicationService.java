@@ -6,8 +6,8 @@ import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationQuery;
 import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRepository;
-import be.achzak.civicgrant.domain.shared.NotFoundException;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import java.util.Objects;
 
 public class GetApplicationService implements GetApplicationUseCase {

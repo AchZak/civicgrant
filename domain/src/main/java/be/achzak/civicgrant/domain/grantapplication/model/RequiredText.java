@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.domain.grantapplication.model;
 
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
-import be.achzak.civicgrant.domain.shared.ErrorCode;
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.domain.shared.error.ErrorCode;
 
 final class RequiredText {
 

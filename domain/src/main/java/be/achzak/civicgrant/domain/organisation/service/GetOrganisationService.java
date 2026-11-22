@@ -6,8 +6,8 @@ import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.organisation.port.in.GetOrganisationQuery;
 import be.achzak.civicgrant.domain.organisation.port.in.GetOrganisationUseCase;
 import be.achzak.civicgrant.domain.organisation.port.out.OrganisationRepository;
-import be.achzak.civicgrant.domain.shared.NotFoundException;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import java.util.Objects;
 
 public class GetOrganisationService implements GetOrganisationUseCase {

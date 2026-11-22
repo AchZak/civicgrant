@@ -2,6 +2,7 @@ package be.achzak.civicgrant.domain.shared;
 
 import static be.achzak.civicgrant.domain.shared.SharedErrorCode.ROLE_REQUIRED;
 
+import be.achzak.civicgrant.domain.shared.error.ForbiddenException;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Objects;

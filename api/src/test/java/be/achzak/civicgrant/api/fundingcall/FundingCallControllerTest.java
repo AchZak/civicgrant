@@ -21,11 +21,11 @@ import be.achzak.civicgrant.domain.fundingcall.port.in.ListOpenFundingCallsQuery
 import be.achzak.civicgrant.domain.fundingcall.port.in.ListOpenFundingCallsUseCase;
 import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallCommand;
 import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallUseCase;
-import be.achzak.civicgrant.domain.shared.ConflictException;
-import be.achzak.civicgrant.domain.shared.ForbiddenException;
 import be.achzak.civicgrant.domain.shared.LocalizedText;
-import be.achzak.civicgrant.domain.shared.NotFoundException;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.error.ConflictException;
+import be.achzak.civicgrant.domain.shared.error.ForbiddenException;
+import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.OffsetDateTime;

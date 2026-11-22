@@ -16,8 +16,8 @@ import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRep
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.organisation.port.out.OrganisationRepository;
 import be.achzak.civicgrant.domain.shared.DomainEventPublisher;
-import be.achzak.civicgrant.domain.shared.NotFoundException;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.Year;

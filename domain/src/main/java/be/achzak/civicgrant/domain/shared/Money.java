@@ -3,6 +3,7 @@ package be.achzak.civicgrant.domain.shared;
 import static be.achzak.civicgrant.domain.shared.SharedErrorCode.AMOUNT_NEGATIVE;
 import static be.achzak.civicgrant.domain.shared.SharedErrorCode.AMOUNT_TOO_PRECISE;
 
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;

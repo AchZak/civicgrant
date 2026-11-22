@@ -17,8 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
-import be.achzak.civicgrant.domain.shared.ConflictException;
-import be.achzak.civicgrant.domain.shared.NotFoundException;
+import be.achzak.civicgrant.domain.shared.error.ConflictException;
+import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.function.Consumer;

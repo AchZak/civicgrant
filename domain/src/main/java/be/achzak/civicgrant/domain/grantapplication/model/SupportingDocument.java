@@ -5,8 +5,8 @@ import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicatio
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.DOCUMENT_NOT_PDF;
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.DOCUMENT_TOO_LARGE;
 
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import be.achzak.civicgrant.domain.shared.UserId;
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Arrays;

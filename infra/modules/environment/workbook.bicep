@@ -16,7 +16,7 @@
 
 // ------------------------------------------------------------
 // PARAMETERS
-// Values are passed by main.bicep.
+// Values are passed by environment.bicep.
 // ------------------------------------------------------------
 
 @description('Environment name: tst, acc or prd. Shown in the workbook\'s title.')
@@ -38,7 +38,7 @@ param workspaceId string
 
 // The JSON names its workspace with a placeholder, so the file holds no environment's
 // id. Bicep reads the file at build time and puts this environment's id in its place.
-var content = replace(loadTextContent('../workbooks/civicgrant.workbook.json'), '__WORKSPACE_ID__', workspaceId)
+var content = replace(loadTextContent('../../workbooks/civicgrant.workbook.json'), '__WORKSPACE_ID__', workspaceId)
 
 
 // ------------------------------------------------------------

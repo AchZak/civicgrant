@@ -17,7 +17,7 @@
 
 // ------------------------------------------------------------
 // PARAMETERS
-// Values are passed by shared.bicep and environment.bicep.
+// Values are passed by shared.bicep and environment-foundations.bicep.
 // ------------------------------------------------------------
 
 @description('Resource id of the guardrails initiative.')

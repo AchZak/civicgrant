@@ -18,7 +18,7 @@
 
 // ------------------------------------------------------------
 // PARAMETERS
-// Values are passed by main.bicep.
+// Values are passed by environment.bicep.
 // ------------------------------------------------------------
 
 @description('Name of the Log Analytics workspace.')

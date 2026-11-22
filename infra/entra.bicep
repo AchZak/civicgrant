@@ -63,7 +63,7 @@ param environments {
 // ------------------------------------------------------------
 
 // 1. One API registration and its service principal per environment.
-module apis 'modules/api-registration.bicep' = [
+module apis 'modules/entra/api-registration.bicep' = [
   for environment in environments: {
     name: 'api-registration-${environment.name}'  // Name of the nested deployment, shown in Azure's history.
     params: {

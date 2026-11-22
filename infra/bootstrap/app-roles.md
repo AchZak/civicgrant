@@ -1,6 +1,6 @@
 # Bootstrap: app roles
 
-Gives a user one of the CivicGrant API's app roles (`APPLICANT`, `ASSESSOR`, `DECISION_MAKER`, `PROGRAMME_MANAGER`) in one environment. Without a role, Entra issues that user no token for the API at all: the API's service principal requires an assignment (`appRoleAssignmentRequired` in `infra/modules/api-registration.bicep`).
+Gives a user one of the CivicGrant API's app roles (`APPLICANT`, `ASSESSOR`, `DECISION_MAKER`, `PROGRAMME_MANAGER`) in one environment. Without a role, Entra issues that user no token for the API at all: the API's service principal requires an assignment (`appRoleAssignmentRequired` in `infra/modules/entra/api-registration.bicep`).
 
 Bicep declares the roles, not who holds them: assignments change far more often than the API, and would put user ids in this public repository. Assigning a group instead of each user would need Microsoft Entra ID P1, a paid licence, so users are assigned one by one, which Entra ID Free allows.
 

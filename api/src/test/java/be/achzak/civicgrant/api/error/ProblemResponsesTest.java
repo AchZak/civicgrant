@@ -8,10 +8,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
-import be.achzak.civicgrant.domain.shared.ConflictException;
-import be.achzak.civicgrant.domain.shared.ForbiddenException;
-import be.achzak.civicgrant.domain.shared.NotFoundException;
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.domain.shared.error.ConflictException;
+import be.achzak.civicgrant.domain.shared.error.ForbiddenException;
+import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.DisplayName;

@@ -32,10 +32,10 @@ import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationUseCas
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQuery;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsUseCase;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode;
-import be.achzak.civicgrant.domain.shared.ConflictException;
-import be.achzak.civicgrant.domain.shared.ErrorCode;
-import be.achzak.civicgrant.domain.shared.NotFoundException;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.error.ConflictException;
+import be.achzak.civicgrant.domain.shared.error.ErrorCode;
+import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;

@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode;
-import be.achzak.civicgrant.domain.shared.ErrorCode;
+import be.achzak.civicgrant.domain.shared.error.ErrorCode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

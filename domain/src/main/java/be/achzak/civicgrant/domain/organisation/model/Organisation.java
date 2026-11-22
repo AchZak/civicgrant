@@ -4,7 +4,7 @@ import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCo
 import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_NAME_TOO_LONG;
 
 import be.achzak.civicgrant.domain.shared.Actor;
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;

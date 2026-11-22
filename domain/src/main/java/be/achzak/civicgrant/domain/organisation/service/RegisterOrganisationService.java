@@ -7,9 +7,9 @@ import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationCommand;
 import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationUseCase;
 import be.achzak.civicgrant.domain.organisation.port.out.OrganisationRepository;
-import be.achzak.civicgrant.domain.shared.ConflictException;
 import be.achzak.civicgrant.domain.shared.DomainEventPublisher;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.error.ConflictException;
 import java.time.Clock;
 import java.util.Objects;
 

@@ -8,7 +8,7 @@ import be.achzak.civicgrant.domain.organisation.model.LegalForm;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.organisation.port.out.OrganisationRepository;
-import be.achzak.civicgrant.domain.shared.ConflictException;
+import be.achzak.civicgrant.domain.shared.error.ConflictException;
 import be.achzak.civicgrant.persistence.PersistenceTest;
 import java.time.Instant;
 import java.util.Optional;

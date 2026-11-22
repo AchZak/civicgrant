@@ -7,8 +7,8 @@ import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicatio
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.REQUESTED_AMOUNT_EXCEEDS_PROJECT_BUDGET;
 import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.REQUESTED_AMOUNT_NOT_POSITIVE;
 
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import be.achzak.civicgrant.domain.shared.Money;
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.util.Objects;
 
 public record ProjectProposal(

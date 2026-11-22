@@ -2,7 +2,7 @@ package be.achzak.civicgrant.domain.fundingcall.model;
 
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.CLOSES_AT;
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.OPENS_AT;
-import static be.achzak.civicgrant.domain.shared.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.domain.shared.error.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 

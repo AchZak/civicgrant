@@ -20,7 +20,7 @@
 
 // ------------------------------------------------------------
 // PARAMETERS
-// Values are passed by main.bicep.
+// Values are passed by environment.bicep.
 // ------------------------------------------------------------
 
 @description('Environment name: tst, acc or prd. Part of the rule names.')

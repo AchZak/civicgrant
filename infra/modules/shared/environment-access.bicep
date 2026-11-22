@@ -14,7 +14,7 @@
 
 // ------------------------------------------------------------
 // PARAMETERS
-// Values are passed by environment.bicep.
+// Values are passed by environment-foundations.bicep.
 // ------------------------------------------------------------
 
 @description('Resource id of the environment\'s deploy identity. Seeds the role assignment names.')

@@ -18,8 +18,8 @@ import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationComm
 import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationUseCase;
 import be.achzak.civicgrant.domain.organisation.port.in.SearchOrganisationsQuery;
 import be.achzak.civicgrant.domain.organisation.port.in.SearchOrganisationsUseCase;
-import be.achzak.civicgrant.domain.shared.ConflictException;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.error.ConflictException;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

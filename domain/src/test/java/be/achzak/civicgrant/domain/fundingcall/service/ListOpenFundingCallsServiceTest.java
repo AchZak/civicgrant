@@ -5,7 +5,7 @@ import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallBuilder.a
 import static be.achzak.civicgrant.domain.shared.Actors.actor;
 import static be.achzak.civicgrant.domain.shared.Actors.anActorWithoutRoles;
 import static be.achzak.civicgrant.domain.shared.Actors.anApplicant;
-import static be.achzak.civicgrant.domain.shared.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.domain.shared.error.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 

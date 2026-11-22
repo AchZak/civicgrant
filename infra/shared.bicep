@@ -119,7 +119,7 @@ var tags = {
 var imageRepository = 'civicgrant'
 
 // Each environment's app identity, by resource id. Computed from the names
-// environment.bicep gives the identities, so the role assignment names seeded with
+// environment-foundations.bicep gives the identities, so the role assignment names seeded with
 // them are known before deployment and what-if can show them.
 var appIdentityIds = [
   for environmentName in environmentNames: resourceId(subscription().subscriptionId, resourceGroup.name, 'Microsoft.ManagedIdentity/userAssignedIdentities', 'id-civicgrant-app-${environmentName}')
@@ -141,7 +141,7 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
 //    A module is another Bicep file, deployed as its own nested deployment.
 //    "scope: resourceGroup" deploys it into the group from step 1,
 //    so Azure waits until the group exists.
-module pipelineIdentity 'modules/pipeline-identity.bicep' = {
+module pipelineIdentity 'modules/shared/pipeline-identity.bicep' = {
   scope: resourceGroup
   params: {
     name: 'id-civicgrant-pipeline'
@@ -154,7 +154,7 @@ module pipelineIdentity 'modules/pipeline-identity.bicep' = {
 
 // 3. The container registry, with push rights for the identity from step 2
 //    and read rights for the person deploying this file.
-module registry 'modules/container-registry.bicep' = {
+module registry 'modules/shared/container-registry.bicep' = {
   scope: resourceGroup
   params: {
     // Registry names are global DNS names (<name>.azurecr.io), so they need a unique suffix.
@@ -183,7 +183,7 @@ module registry 'modules/container-registry.bicep' = {
 // 4. The monthly budget. It watches the whole subscription, so every environment
 //    deployed later is covered too. No scope line: a module defaults to the scope
 //    of the file calling it, here the subscription.
-module budget 'modules/budget.bicep' = {
+module budget 'modules/shared/budget.bicep' = {
   params: {
     name: 'budget-civicgrant-monthly'
     amount: 5
@@ -198,7 +198,7 @@ module budget 'modules/budget.bicep' = {
 // 5. The PostgreSQL server, its databases and its delete lock.
 //    It lives here, outside every environment, so deleting or recreating an
 //    environment can never touch the server or the data on it.
-module postgres 'modules/postgresql-server.bicep' = {
+module postgres 'modules/shared/postgresql-server.bicep' = {
   scope: resourceGroup
   params: {
     // Server names are global DNS names (<name>.postgres.database.azure.com),
@@ -226,7 +226,7 @@ module postgres 'modules/postgresql-server.bicep' = {
 // 6. The guardrails: the project's rules as one Azure Policy initiative. Defined once
 //    for the subscription, but applied only where it's assigned (steps 7 and 8), so
 //    other resource groups in the subscription are never affected.
-module guardrails 'modules/guardrails-definition.bicep' = {
+module guardrails 'modules/shared/guardrails-definition.bicep' = {
   params: {
     // Exactly the regions this file deploys to, so a new region is a decision made here.
     allowedLocations: union([location], [postgresLocation])
@@ -235,7 +235,7 @@ module guardrails 'modules/guardrails-definition.bicep' = {
 }
 
 // 7. The guardrails on this resource group.
-module sharedGuardrails 'modules/guardrails-assignment.bicep' = {
+module sharedGuardrails 'modules/shared/guardrails-assignment.bicep' = {
   scope: resourceGroup
   params: {
     policySetDefinitionId: guardrails.outputs.id
@@ -247,7 +247,7 @@ module sharedGuardrails 'modules/guardrails-assignment.bicep' = {
 // 8. Each environment's foundations: its empty resource group, its deploy and app
 //    identities, their rights and the guardrails. One module per name in
 //    environmentNames. They sit next to the database, in postgresLocation.
-module environments 'modules/environment.bicep' = [
+module environments 'modules/shared/environment-foundations.bicep' = [
   for environmentName in environmentNames: {
     params: {
       environmentName: environmentName
@@ -269,7 +269,7 @@ module environments 'modules/environment.bicep' = [
 //    environment that only the environment's app identity may read and write.
 //    Next to the database: documents are data too, so they live with the shared
 //    resources and outlast any environment.
-module documentsStorage 'modules/documents-storage.bicep' = {
+module documentsStorage 'modules/shared/documents-storage.bicep' = {
   scope: resourceGroup
   params: {
     // Storage account names allow 24 lowercase letters and digits, no hyphens:
@@ -291,7 +291,7 @@ module documentsStorage 'modules/documents-storage.bicep' = {
 //     Shared, so the address never travels through the pipeline: the environments
 //     only receive the group's resource id, which is no secret. Each environment's
 //     deploy identity gets read access to it in step 8.
-module alertActionGroup 'modules/action-group.bicep' = {
+module alertActionGroup 'modules/shared/action-group.bicep' = {
   scope: resourceGroup
   params: {
     name: 'ag-civicgrant-shared'

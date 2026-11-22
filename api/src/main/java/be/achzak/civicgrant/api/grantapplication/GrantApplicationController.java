@@ -17,7 +17,7 @@ import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQu
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsUseCase;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode;
 import be.achzak.civicgrant.domain.shared.Actor;
-import be.achzak.civicgrant.domain.shared.NotFoundException;
+import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import io.github.belgif.rest.problem.BadRequestProblem;
 import io.github.belgif.rest.problem.api.InEnum;
 import io.github.belgif.rest.problem.api.InputValidationIssues;

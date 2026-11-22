@@ -1,11 +1,11 @@
 // ============================================================
-// PARAMETER VALUES FOR main.bicep, TEST ENVIRONMENT
+// PARAMETER VALUES FOR environment.bicep, TEST ENVIRONMENT
 // ============================================================
 //
 // "using" names the template these values belong to, so the deploy command
 // only needs --parameters infra/tst.bicepparam.
 
-using 'main.bicep'
+using 'environment.bicep'
 
 param environmentName = 'tst'
 

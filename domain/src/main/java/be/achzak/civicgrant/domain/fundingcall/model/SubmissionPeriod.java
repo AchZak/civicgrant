@@ -2,7 +2,7 @@ package be.achzak.civicgrant.domain.fundingcall.model;
 
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.SUBMISSION_PERIOD_CLOSES_BEFORE_OPENING;
 
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.time.Instant;
 import java.util.Objects;
 

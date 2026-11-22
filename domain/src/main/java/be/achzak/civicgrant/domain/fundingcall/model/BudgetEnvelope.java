@@ -4,8 +4,8 @@ import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.CAP_PER_APPLICATION_NOT_POSITIVE;
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.TOTAL_BUDGET_NOT_POSITIVE;
 
-import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import be.achzak.civicgrant.domain.shared.Money;
+import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.util.Objects;
 
 public record BudgetEnvelope(Money total, Money committed, Money capPerApplication) {

@@ -1,6 +1,6 @@
 package be.achzak.civicgrant.domain.grantapplication.model;
 
-import be.achzak.civicgrant.domain.shared.ErrorCode;
+import be.achzak.civicgrant.domain.shared.error.ErrorCode;
 
 public enum GrantApplicationErrorCode implements ErrorCode {
     APPLICATION_NOT_ASSESSED,
