@@ -1,5 +1,8 @@
 package be.achzak.civicgrant.domain.organisation.model;
 
+import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ENTERPRISE_NUMBER_INVALID_CHECKSUM;
+import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ENTERPRISE_NUMBER_INVALID_FORMAT;
+
 import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import java.util.Locale;
 import java.util.Objects;
@@ -13,14 +16,14 @@ public record EnterpriseNumber(String value) {
         Objects.requireNonNull(value, "value");
         if (!FORMAT.matcher(value).matches()) {
             throw new BusinessRuleViolationException(
-                    "ENTERPRISE_NUMBER_INVALID_FORMAT",
+                    ENTERPRISE_NUMBER_INVALID_FORMAT,
                     "Enterprise number must be 10 digits starting with 0 or 1: " + value);
         }
         long base = Long.parseLong(value.substring(0, 8));
         int checkDigits = Integer.parseInt(value.substring(8));
         if (checkDigits != 97 - base % 97) {
             throw new BusinessRuleViolationException(
-                    "ENTERPRISE_NUMBER_INVALID_CHECKSUM", "Enterprise number fails the mod-97 check: " + value);
+                    ENTERPRISE_NUMBER_INVALID_CHECKSUM, "Enterprise number fails the mod-97 check: " + value);
         }
     }
 

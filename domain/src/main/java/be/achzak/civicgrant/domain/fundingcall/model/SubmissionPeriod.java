@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.domain.fundingcall.model;
 
+import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.SUBMISSION_PERIOD_CLOSES_BEFORE_OPENING;
+
 import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import java.time.Instant;
 import java.util.Objects;
@@ -11,7 +13,7 @@ public record SubmissionPeriod(Instant opensAt, Instant closesAt) {
         Objects.requireNonNull(closesAt, "closesAt");
         if (!closesAt.isAfter(opensAt)) {
             throw new BusinessRuleViolationException(
-                    "SUBMISSION_PERIOD_CLOSES_BEFORE_OPENING", "A submission period closes after it opens");
+                    SUBMISSION_PERIOD_CLOSES_BEFORE_OPENING, "A submission period closes after it opens");
         }
     }
 

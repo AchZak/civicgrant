@@ -7,6 +7,7 @@ import be.achzak.civicgrant.api.generated.model.ApplicationStatusDto;
 import be.achzak.civicgrant.api.generated.model.CreateApplicationRequestDto;
 import be.achzak.civicgrant.api.generated.model.ProjectProposalDto;
 import be.achzak.civicgrant.api.security.CurrentActor;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.port.in.CreateApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationUseCase;
@@ -14,6 +15,7 @@ import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationQuery;
 import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQuery;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsUseCase;
+import be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode;
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.NotFoundException;
 import io.github.belgif.rest.problem.BadRequestProblem;
@@ -89,10 +91,10 @@ class GrantApplicationController implements ApplicationsApi {
     private static RuntimeException referenceNotFound(
             NotFoundException exception, CreateApplicationRequestDto request) {
         return switch (exception.code()) {
-            case "FUNDING_CALL_NOT_FOUND" ->
+            case FundingCallErrorCode.FUNDING_CALL_NOT_FOUND ->
                 new BadRequestProblem(InputValidationIssues.referencedResourceNotFound(
                         InEnum.BODY, "/fundingCallId", request.getFundingCallId()));
-            case "ORGANISATION_NOT_FOUND" ->
+            case OrganisationErrorCode.ORGANISATION_NOT_FOUND ->
                 new BadRequestProblem(InputValidationIssues.referencedResourceNotFound(
                         InEnum.BODY, "/organisationId", request.getOrganisationId()));
             default -> exception;

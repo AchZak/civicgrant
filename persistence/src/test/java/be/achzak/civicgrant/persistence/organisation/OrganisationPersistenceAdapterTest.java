@@ -83,7 +83,7 @@ class OrganisationPersistenceAdapterTest {
         assertThat(thrown)
                 .isInstanceOfSatisfying(
                         ConflictException.class,
-                        conflict -> assertThat(conflict.code()).isEqualTo("ORGANISATION_ALREADY_REGISTERED"));
+                        conflict -> assertThat(conflict.code().name()).isEqualTo("ORGANISATION_ALREADY_REGISTERED"));
     }
 
     private static Organisation organisation(EnterpriseNumber enterpriseNumber) {

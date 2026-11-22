@@ -7,7 +7,7 @@ public final class ConflictException extends DomainException {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public ConflictException(String code, String message) {
+    public ConflictException(ErrorCode code, String message) {
         super(code, message);
     }
 }

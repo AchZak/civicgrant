@@ -1,5 +1,6 @@
 package be.achzak.civicgrant.starter.usecase;
 
+import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_ALREADY_REGISTERED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import be.achzak.civicgrant.domain.fundingcall.port.in.ListOpenFundingCallsQuery;
@@ -39,7 +40,7 @@ class UseCaseTransactionAttributeSourceTest {
         TransactionAttribute attribute = source.getTransactionAttribute(register, RegisterOrganisationService.class);
 
         // when
-        boolean rollsBack = attribute.rollbackOn(new ConflictException("ORGANISATION_ALREADY_REGISTERED", "Duplicate"));
+        boolean rollsBack = attribute.rollbackOn(new ConflictException(ORGANISATION_ALREADY_REGISTERED, "Duplicate"));
 
         // then
         assertThat(rollsBack).isTrue();

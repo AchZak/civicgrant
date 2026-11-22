@@ -814,7 +814,11 @@ components:
 
   schemas:
     Amount:
-      description: An amount in euros, with at most two decimals
+      description: |
+        An amount in euros, with at most two decimals.
+
+        Problems: 400 `amountNegative` below zero, `amountTooPrecise` with more
+        than two decimals.
       type: number
       example: 8000.00
 

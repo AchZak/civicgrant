@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.domain.grantapplication.model;
 
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.LEGAL_FORM_NOT_ELIGIBLE;
+
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
@@ -25,7 +27,7 @@ public record EligibilityPolicy(Set<LegalForm> eligibleForms) {
         Objects.requireNonNull(organisation, "organisation");
         if (!eligibleForms.contains(organisation.legalForm())) {
             throw new BusinessRuleViolationException(
-                    "LEGAL_FORM_NOT_ELIGIBLE",
+                    LEGAL_FORM_NOT_ELIGIBLE,
                     "Legal form " + organisation.legalForm() + " of organisation "
                             + organisation.id().value() + " isn't eligible");
         }

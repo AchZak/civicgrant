@@ -7,7 +7,7 @@ public final class BusinessRuleViolationException extends DomainException {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public BusinessRuleViolationException(String code, String message) {
+    public BusinessRuleViolationException(ErrorCode code, String message) {
         super(code, message);
     }
 }

@@ -1,5 +1,10 @@
 package be.achzak.civicgrant.domain.grantapplication.model;
 
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.DOCUMENT_EMPTY;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.DOCUMENT_NAME_INVALID;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.DOCUMENT_NOT_PDF;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.DOCUMENT_TOO_LARGE;
+
 import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import be.achzak.civicgrant.domain.shared.UserId;
 import java.nio.charset.StandardCharsets;
@@ -31,19 +36,19 @@ public record SupportingDocument(
         String validFileName = validFileName(fileName);
         if (!CONTENT_TYPE.equalsIgnoreCase(declaredContentType.strip())) {
             throw new BusinessRuleViolationException(
-                    "DOCUMENT_NOT_PDF", "Only PDF documents are accepted, not " + declaredContentType);
+                    DOCUMENT_NOT_PDF, "Only PDF documents are accepted, not " + declaredContentType);
         }
         if (content.length == 0) {
-            throw new BusinessRuleViolationException("DOCUMENT_EMPTY", "Document " + validFileName + " is empty");
+            throw new BusinessRuleViolationException(DOCUMENT_EMPTY, "Document " + validFileName + " is empty");
         }
         if (content.length > MAX_SIZE_IN_BYTES) {
             throw new BusinessRuleViolationException(
-                    "DOCUMENT_TOO_LARGE",
+                    DOCUMENT_TOO_LARGE,
                     "Document " + validFileName + " has " + content.length + " bytes, more than " + MAX_SIZE_IN_BYTES);
         }
         if (!startsWithPdfSignature(content)) {
             throw new BusinessRuleViolationException(
-                    "DOCUMENT_NOT_PDF", "Document " + validFileName + " doesn't start with the PDF signature %PDF-");
+                    DOCUMENT_NOT_PDF, "Document " + validFileName + " doesn't start with the PDF signature %PDF-");
         }
         return new SupportingDocument(DocumentId.generate(), validFileName, content.length, uploadedBy, uploadedAt);
     }
@@ -60,7 +65,7 @@ public record SupportingDocument(
                 || stripped.chars().anyMatch(c -> c == '/' || c == '\\' || Character.isISOControl(c));
         if (invalid) {
             throw new BusinessRuleViolationException(
-                    "DOCUMENT_NAME_INVALID",
+                    DOCUMENT_NAME_INVALID,
                     "A file name has 1 to " + MAX_FILE_NAME_LENGTH + " characters, without path or control characters");
         }
         return stripped;

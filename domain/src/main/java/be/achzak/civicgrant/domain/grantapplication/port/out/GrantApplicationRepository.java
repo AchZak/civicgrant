@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.domain.grantapplication.port.out;
 
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
+
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
@@ -16,8 +18,8 @@ public interface GrantApplicationRepository {
 
     default GrantApplication getById(ApplicationId id) {
         return findById(id)
-                .orElseThrow(() ->
-                        new NotFoundException("APPLICATION_NOT_FOUND", "Application " + id.value() + " not found"));
+                .orElseThrow(
+                        () -> new NotFoundException(APPLICATION_NOT_FOUND, "Application " + id.value() + " not found"));
     }
 
     void save(GrantApplication application);

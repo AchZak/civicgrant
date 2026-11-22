@@ -3,6 +3,9 @@ package be.achzak.civicgrant.api.grantapplication;
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.APPLICATION_ID;
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_DRAFT;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.DOCUMENT_NOT_PDF;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -118,7 +121,7 @@ class SupportingDocumentControllerTest {
             // given
             given(attachDocument.attach(
                             new AttachDocumentCommand(APPLICATION_ID, "begroting.pdf", "", PDF, actor(Role.APPLICANT))))
-                    .willThrow(new BusinessRuleViolationException("DOCUMENT_NOT_PDF", "No content type declared"));
+                    .willThrow(new BusinessRuleViolationException(DOCUMENT_NOT_PDF, "No content type declared"));
 
             // when
             MvcTestResult result = upload(new MockMultipartFile("file", "begroting.pdf", null, PDF));
@@ -194,7 +197,7 @@ class SupportingDocumentControllerTest {
         void returns404WhenTheDocumentIsHiddenOrMissing() {
             // given
             given(getDocument.get(new GetDocumentQuery(APPLICATION_ID, DOCUMENT_ID, actor(Role.APPLICANT))))
-                    .willThrow(new NotFoundException("APPLICATION_NOT_FOUND", "Not found"));
+                    .willThrow(new NotFoundException(APPLICATION_NOT_FOUND, "Not found"));
 
             // when
             MvcTestResult result = mvc.get()
@@ -262,7 +265,7 @@ class SupportingDocumentControllerTest {
         @DisplayName("answers 409 applicationNotDraft once the application is submitted")
         void answers409OnceTheApplicationIsSubmitted() {
             // given
-            willThrow(new ConflictException("APPLICATION_NOT_DRAFT", "Application is SUBMITTED, not DRAFT"))
+            willThrow(new ConflictException(APPLICATION_NOT_DRAFT, "Application is SUBMITTED, not DRAFT"))
                     .given(removeDocument)
                     .remove(new RemoveDocumentCommand(APPLICATION_ID, DOCUMENT_ID, actor(Role.APPLICANT)));
 

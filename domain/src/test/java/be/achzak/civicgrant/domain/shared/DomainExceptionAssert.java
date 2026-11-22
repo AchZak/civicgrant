@@ -29,7 +29,7 @@ public final class DomainExceptionAssert extends AbstractThrowableAssert<DomainE
     }
 
     public DomainExceptionAssert hasCode(String expectedCode) {
-        String actualCode = ((DomainException) actual).code();
+        String actualCode = ((DomainException) actual).code().name();
         if (!actualCode.equals(expectedCode)) {
             failWithActualExpectedAndMessage(
                     actualCode, expectedCode, "Expecting code <%s> but was <%s>", expectedCode, actualCode);

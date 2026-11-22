@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.domain.organisation.service;
 
+import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_NOT_FOUND;
+
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.organisation.port.in.GetOrganisationQuery;
 import be.achzak.civicgrant.domain.organisation.port.in.GetOrganisationUseCase;
@@ -23,7 +25,7 @@ public class GetOrganisationService implements GetOrganisationUseCase {
         return organisations
                 .findById(query.organisationId())
                 .orElseThrow(() -> new NotFoundException(
-                        "ORGANISATION_NOT_FOUND",
+                        ORGANISATION_NOT_FOUND,
                         "Organisation " + query.organisationId().value() + " not found"));
     }
 }

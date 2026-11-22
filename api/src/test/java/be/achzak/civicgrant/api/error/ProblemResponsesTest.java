@@ -1,5 +1,9 @@
 package be.achzak.civicgrant.api.error;
 
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_DRAFT;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.SEPARATION_OF_DUTIES;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.SUBMISSION_AFTER_CLOSING_DATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
@@ -240,24 +244,24 @@ class ProblemResponsesTest {
 
         @GetMapping(BROKEN_RULE)
         void brokenRule() {
-            throw new BusinessRuleViolationException("SUBMISSION_AFTER_CLOSING_DATE", BROKEN_RULE_DETAIL);
+            throw new BusinessRuleViolationException(SUBMISSION_AFTER_CLOSING_DATE, BROKEN_RULE_DETAIL);
         }
 
         @GetMapping(FORBIDDEN)
         void forbidden() {
             throw new ForbiddenException(
-                    "SEPARATION_OF_DUTIES", "The assessor of application CG-2026-000042 can't decide on it");
+                    SEPARATION_OF_DUTIES, "The assessor of application CG-2026-000042 can't decide on it");
         }
 
         @GetMapping(CONFLICT)
         void conflict() {
-            throw new ConflictException("APPLICATION_NOT_DRAFT", "Application CG-2026-000042 is SUBMITTED, not DRAFT");
+            throw new ConflictException(APPLICATION_NOT_DRAFT, "Application CG-2026-000042 is SUBMITTED, not DRAFT");
         }
 
         @GetMapping(NOT_FOUND)
         void notFound() {
             throw new NotFoundException(
-                    "APPLICATION_NOT_FOUND", "Application 7b1e0c9a-3f2d-4e8b-9a6c-5d4e3f2a1b0c not found");
+                    APPLICATION_NOT_FOUND, "Application 7b1e0c9a-3f2d-4e8b-9a6c-5d4e3f2a1b0c not found");
         }
 
         @PostMapping(VALIDATED_BODY)

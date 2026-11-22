@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.persistence.grantapplication;
 
+import static be.achzak.civicgrant.domain.shared.SharedErrorCode.CONCURRENT_UPDATE;
+
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
@@ -105,7 +107,7 @@ class GrantApplicationPersistenceAdapter implements GrantApplicationRepository {
 
     private static ConflictException concurrentUpdate(GrantApplication application) {
         return new ConflictException(
-                "CONCURRENT_UPDATE",
+                CONCURRENT_UPDATE,
                 "Application " + application.reference().value() + " was changed by someone else since it was read");
     }
 

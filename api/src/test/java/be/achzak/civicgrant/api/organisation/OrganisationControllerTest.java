@@ -2,6 +2,7 @@ package be.achzak.civicgrant.api.organisation;
 
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
+import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_ALREADY_REGISTERED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -105,7 +106,7 @@ class OrganisationControllerTest {
         given(registerOrganisation.register(new RegisterOrganisationCommand(
                         ENTERPRISE_NUMBER, "Buurtwerk vzw", LegalForm.VZW_ASBL, actor(Role.APPLICANT))))
                 .willThrow(new ConflictException(
-                        "ORGANISATION_ALREADY_REGISTERED", "Enterprise number 0202239951 is already registered"));
+                        ORGANISATION_ALREADY_REGISTERED, "Enterprise number 0202239951 is already registered"));
 
         // when
         MvcTestResult result = register("0202239951");

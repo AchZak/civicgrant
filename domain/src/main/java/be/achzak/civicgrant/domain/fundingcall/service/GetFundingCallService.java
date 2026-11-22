@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.domain.fundingcall.service;
 
+import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.FUNDING_CALL_NOT_FOUND;
+
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.port.in.GetFundingCallQuery;
 import be.achzak.civicgrant.domain.fundingcall.port.in.GetFundingCallUseCase;
@@ -23,7 +25,7 @@ public class GetFundingCallService implements GetFundingCallUseCase {
         return fundingCalls
                 .findById(query.fundingCallId())
                 .orElseThrow(() -> new NotFoundException(
-                        "FUNDING_CALL_NOT_FOUND",
+                        FUNDING_CALL_NOT_FOUND,
                         "Funding call " + query.fundingCallId().value() + " not found"));
     }
 }

@@ -1,5 +1,8 @@
 package be.achzak.civicgrant.domain.grantapplication.service;
 
+import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.FUNDING_CALL_NOT_FOUND;
+import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_NOT_FOUND;
+
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.port.out.FundingCallRepository;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
@@ -52,12 +55,12 @@ public class CreateApplicationService implements CreateApplicationUseCase {
         FundingCall fundingCall = fundingCalls
                 .findById(command.fundingCallId())
                 .orElseThrow(() -> new NotFoundException(
-                        "FUNDING_CALL_NOT_FOUND",
+                        FUNDING_CALL_NOT_FOUND,
                         "Funding call " + command.fundingCallId().value() + " not found"));
         Organisation organisation = organisations
                 .findById(command.organisationId())
                 .orElseThrow(() -> new NotFoundException(
-                        "ORGANISATION_NOT_FOUND",
+                        ORGANISATION_NOT_FOUND,
                         "Organisation " + command.organisationId().value() + " not found"));
         Instant now = clock.instant();
         ApplicationReference reference =

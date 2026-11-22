@@ -7,6 +7,7 @@ import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.aSubmittedApplication;
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_DRAFT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -78,7 +79,7 @@ class SubmissionControllerTest {
         @DisplayName("answers 409 applicationNotDraft when the application was already submitted")
         void answers409WhenAlreadySubmitted() {
             // given
-            willThrow(new ConflictException("APPLICATION_NOT_DRAFT", "Application is SUBMITTED, not DRAFT"))
+            willThrow(new ConflictException(APPLICATION_NOT_DRAFT, "Application is SUBMITTED, not DRAFT"))
                     .given(submitApplication)
                     .submit(COMMAND);
 

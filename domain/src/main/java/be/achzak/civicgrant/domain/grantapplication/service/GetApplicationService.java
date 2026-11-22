@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.domain.grantapplication.service;
 
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
+
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationQuery;
 import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationUseCase;
@@ -24,7 +26,7 @@ public class GetApplicationService implements GetApplicationUseCase {
                 .findById(query.applicationId())
                 .filter(application -> application.isVisibleTo(query.actor()))
                 .orElseThrow(() -> new NotFoundException(
-                        "APPLICATION_NOT_FOUND",
+                        APPLICATION_NOT_FOUND,
                         "Application " + query.applicationId().value() + " not found"));
     }
 }

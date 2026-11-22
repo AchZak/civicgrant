@@ -7,7 +7,9 @@ import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.anAssessedApplication;
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.SEPARATION_OF_DUTIES;
 import static be.achzak.civicgrant.domain.shared.Money.euros;
+import static be.achzak.civicgrant.domain.shared.SharedErrorCode.CONCURRENT_UPDATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -189,7 +191,7 @@ class DecisionControllerTest {
         @DisplayName("answers 403 separationOfDuties when the decision maker assessed the application")
         void answers403WhenTheDecisionMakerAssessedTheApplication() {
             // given
-            willThrow(new ForbiddenException("SEPARATION_OF_DUTIES", "The assessor can't decide"))
+            willThrow(new ForbiddenException(SEPARATION_OF_DUTIES, "The assessor can't decide"))
                     .given(approveApplication)
                     .approve(APPROVE);
 
@@ -209,7 +211,7 @@ class DecisionControllerTest {
         @DisplayName("answers 409 concurrentUpdate when another decision changed the call's budget first")
         void answers409WhenAnotherDecisionChangedTheBudgetFirst() {
             // given
-            willThrow(new ConflictException("CONCURRENT_UPDATE", "Funding call NBH-2026 was changed meanwhile"))
+            willThrow(new ConflictException(CONCURRENT_UPDATE, "Funding call NBH-2026 was changed meanwhile"))
                     .given(approveApplication)
                     .approve(APPROVE);
 

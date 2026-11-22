@@ -1,5 +1,8 @@
 package be.achzak.civicgrant.domain.shared;
 
+import static be.achzak.civicgrant.domain.shared.SharedErrorCode.AMOUNT_NEGATIVE;
+import static be.achzak.civicgrant.domain.shared.SharedErrorCode.AMOUNT_TOO_PRECISE;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
@@ -12,13 +15,13 @@ public record Money(BigDecimal amount) implements Comparable<Money> {
         Objects.requireNonNull(amount, "amount");
         if (amount.signum() < 0) {
             throw new BusinessRuleViolationException(
-                    "AMOUNT_NEGATIVE", "Amount can't be negative: " + amount.toPlainString());
+                    AMOUNT_NEGATIVE, "Amount can't be negative: " + amount.toPlainString());
         }
         try {
             amount = amount.setScale(2, RoundingMode.UNNECESSARY);
         } catch (ArithmeticException e) {
             throw new BusinessRuleViolationException(
-                    "AMOUNT_TOO_PRECISE", "Amount has more than two decimals: " + amount.toPlainString());
+                    AMOUNT_TOO_PRECISE, "Amount has more than two decimals: " + amount.toPlainString());
         }
     }
 

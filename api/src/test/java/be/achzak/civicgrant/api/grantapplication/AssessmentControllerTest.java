@@ -3,6 +3,8 @@ package be.achzak.civicgrant.api.grantapplication;
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.APPLICATION_ID;
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.ASSESSMENT_NOT_FOUND;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.CONFLICT_OF_INTEREST;
 import static be.achzak.civicgrant.domain.shared.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -127,7 +129,7 @@ class AssessmentControllerTest {
         @DisplayName("answers 403 conflictOfInterest when the assessor is the applicant")
         void answers403WhenTheAssessorIsTheApplicant() {
             // given
-            willThrow(new ForbiddenException("CONFLICT_OF_INTEREST", "The applicant can't assess"))
+            willThrow(new ForbiddenException(CONFLICT_OF_INTEREST, "The applicant can't assess"))
                     .given(recordAssessment)
                     .record(COMMAND);
 
@@ -210,7 +212,7 @@ class AssessmentControllerTest {
         void returns404UntilTheApplicationIsAssessed() {
             // given
             given(getAssessment.get(new GetAssessmentQuery(APPLICATION_ID, actor(Role.ASSESSOR))))
-                    .willThrow(new NotFoundException("ASSESSMENT_NOT_FOUND", "Not assessed yet"));
+                    .willThrow(new NotFoundException(ASSESSMENT_NOT_FOUND, "Not assessed yet"));
 
             // when
             MvcTestResult result =

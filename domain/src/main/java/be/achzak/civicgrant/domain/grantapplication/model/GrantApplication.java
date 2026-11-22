@@ -1,5 +1,30 @@
 package be.achzak.civicgrant.domain.grantapplication.model;
 
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_ASSESSED;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_DRAFT;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_SUBMITTED;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPROVAL_RECOMMENDATION_REQUIRES_ELIGIBILITY;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.ASSESSMENT_COMMENT_REQUIRED;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.ASSESSMENT_COMMENT_TOO_LONG;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.ASSESSMENT_NOT_FOUND;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.CONFLICT_OF_INTEREST;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.DOCUMENT_NOT_FOUND;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.FUNDING_CALL_CLOSED;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.GRANTED_AMOUNT_EXCEEDS_REQUESTED;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.INELIGIBLE_APPLICATION_CANNOT_BE_APPROVED;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.MOTIVATION_REQUIRED;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.MOTIVATION_TOO_LONG;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.NOT_THE_APPLICANT;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.PROPOSED_AMOUNT_EXCEEDS_REQUESTED;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.PROPOSED_AMOUNT_NOT_POSITIVE;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.REQUESTED_AMOUNT_EXCEEDS_CAP;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.SEPARATION_OF_DUTIES;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.SUBMISSION_AFTER_CLOSING_DATE;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.SUBMISSION_BEFORE_OPENING_DATE;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.SUPPORTING_DOCUMENT_REQUIRED;
+import static be.achzak.civicgrant.domain.shared.SharedErrorCode.GRANTED_AMOUNT_NOT_POSITIVE;
+
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.fundingcall.model.SubmissionPeriod;
@@ -8,6 +33,7 @@ import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import be.achzak.civicgrant.domain.shared.ConflictException;
+import be.achzak.civicgrant.domain.shared.ErrorCode;
 import be.achzak.civicgrant.domain.shared.ForbiddenException;
 import be.achzak.civicgrant.domain.shared.Money;
 import be.achzak.civicgrant.domain.shared.NotFoundException;
@@ -103,7 +129,7 @@ public final class GrantApplication {
         Objects.requireNonNull(actor, "actor");
         Objects.requireNonNull(now, "now");
         ensureActingApplicant(actor);
-        ensureStatus(ApplicationStatus.DRAFT, "APPLICATION_NOT_DRAFT");
+        ensureStatus(ApplicationStatus.DRAFT, APPLICATION_NOT_DRAFT);
         ensureSameCall(fundingCall);
         ensureAcceptsDrafts(fundingCall, now);
         ensureWithinCap(newProposal, fundingCall);
@@ -126,7 +152,7 @@ public final class GrantApplication {
         Objects.requireNonNull(actor, "actor");
         Objects.requireNonNull(now, "now");
         ensureActingApplicant(actor);
-        ensureStatus(ApplicationStatus.DRAFT, "APPLICATION_NOT_DRAFT");
+        ensureStatus(ApplicationStatus.DRAFT, APPLICATION_NOT_DRAFT);
         ensureSameCall(fundingCall);
         ensureAcceptsDrafts(fundingCall, now);
         SupportingDocument document =
@@ -142,7 +168,7 @@ public final class GrantApplication {
         Objects.requireNonNull(actor, "actor");
         Objects.requireNonNull(now, "now");
         ensureActingApplicant(actor);
-        ensureStatus(ApplicationStatus.DRAFT, "APPLICATION_NOT_DRAFT");
+        ensureStatus(ApplicationStatus.DRAFT, APPLICATION_NOT_DRAFT);
         if (!documents.removeIf(document -> document.id().equals(documentId))) {
             throw documentNotFound(documentId);
         }
@@ -166,14 +192,14 @@ public final class GrantApplication {
         ensureNotTheApplicant(reader);
         if (assessment == null) {
             throw new NotFoundException(
-                    "ASSESSMENT_NOT_FOUND", "Application " + reference.value() + " hasn't been assessed");
+                    ASSESSMENT_NOT_FOUND, "Application " + reference.value() + " hasn't been assessed");
         }
         return assessment;
     }
 
     private NotFoundException documentNotFound(DocumentId documentId) {
         return new NotFoundException(
-                "DOCUMENT_NOT_FOUND",
+                DOCUMENT_NOT_FOUND,
                 "Document " + documentId.value() + " not found in application " + reference.value());
     }
 
@@ -182,22 +208,22 @@ public final class GrantApplication {
         Objects.requireNonNull(actor, "actor");
         Objects.requireNonNull(now, "now");
         ensureActingApplicant(actor);
-        ensureStatus(ApplicationStatus.DRAFT, "APPLICATION_NOT_DRAFT");
+        ensureStatus(ApplicationStatus.DRAFT, APPLICATION_NOT_DRAFT);
         ensureSameCall(fundingCall);
         SubmissionPeriod period = fundingCall.submissionPeriod();
         if (period.isUpcomingAt(now)) {
             throw new BusinessRuleViolationException(
-                    "SUBMISSION_BEFORE_OPENING_DATE",
+                    SUBMISSION_BEFORE_OPENING_DATE,
                     "Funding call " + fundingCall.reference() + " opens at " + period.opensAt());
         }
         if (period.isClosedAt(now)) {
             throw new BusinessRuleViolationException(
-                    "SUBMISSION_AFTER_CLOSING_DATE",
+                    SUBMISSION_AFTER_CLOSING_DATE,
                     "Funding call " + fundingCall.reference() + " closed at " + period.closesAt());
         }
         if (documents.isEmpty()) {
             throw new BusinessRuleViolationException(
-                    "SUPPORTING_DOCUMENT_REQUIRED",
+                    SUPPORTING_DOCUMENT_REQUIRED,
                     "Application " + reference.value() + " needs at least one supporting document");
         }
         ensureWithinCap(proposal, fundingCall);
@@ -215,9 +241,9 @@ public final class GrantApplication {
         Objects.requireNonNull(now, "now");
         ensureVisibleTo(assessor);
         ensureNotTheApplicant(assessor);
-        ensureStatus(ApplicationStatus.SUBMITTED, "APPLICATION_NOT_SUBMITTED");
+        ensureStatus(ApplicationStatus.SUBMITTED, APPLICATION_NOT_SUBMITTED);
         String validComment = RequiredText.strip(
-                comment, Assessment.MAX_COMMENT_LENGTH, "ASSESSMENT_COMMENT_REQUIRED", "ASSESSMENT_COMMENT_TOO_LONG");
+                comment, Assessment.MAX_COMMENT_LENGTH, ASSESSMENT_COMMENT_REQUIRED, ASSESSMENT_COMMENT_TOO_LONG);
         if (recommendation instanceof Recommendation.Approve(Money proposedAmount)) {
             ensureApprovalCanBeRecommended(eligible, proposedAmount);
         }
@@ -230,16 +256,16 @@ public final class GrantApplication {
     private void ensureApprovalCanBeRecommended(boolean eligible, Money proposedAmount) {
         if (!eligible) {
             throw new BusinessRuleViolationException(
-                    "APPROVAL_RECOMMENDATION_REQUIRES_ELIGIBILITY",
+                    APPROVAL_RECOMMENDATION_REQUIRES_ELIGIBILITY,
                     "Application " + reference.value() + " can't be recommended for approval when ineligible");
         }
         if (!proposedAmount.isPositive()) {
             throw new BusinessRuleViolationException(
-                    "PROPOSED_AMOUNT_NOT_POSITIVE", "A proposed amount is greater than zero");
+                    PROPOSED_AMOUNT_NOT_POSITIVE, "A proposed amount is greater than zero");
         }
         if (proposedAmount.isGreaterThan(proposal.requestedAmount())) {
             throw new BusinessRuleViolationException(
-                    "PROPOSED_AMOUNT_EXCEEDS_REQUESTED",
+                    PROPOSED_AMOUNT_EXCEEDS_REQUESTED,
                     "Proposed amount " + proposedAmount.amount() + " exceeds the requested amount of "
                             + proposal.requestedAmount().amount());
         }
@@ -254,16 +280,16 @@ public final class GrantApplication {
         String validMotivation = validMotivation(motivation);
         if (!recorded.eligible()) {
             throw new BusinessRuleViolationException(
-                    "INELIGIBLE_APPLICATION_CANNOT_BE_APPROVED",
+                    INELIGIBLE_APPLICATION_CANNOT_BE_APPROVED,
                     "Application " + reference.value() + " was assessed as ineligible");
         }
         if (!grantedAmount.isPositive()) {
             throw new BusinessRuleViolationException(
-                    "GRANTED_AMOUNT_NOT_POSITIVE", "A granted amount is greater than zero");
+                    GRANTED_AMOUNT_NOT_POSITIVE, "A granted amount is greater than zero");
         }
         if (grantedAmount.isGreaterThan(proposal.requestedAmount())) {
             throw new BusinessRuleViolationException(
-                    "GRANTED_AMOUNT_EXCEEDS_REQUESTED",
+                    GRANTED_AMOUNT_EXCEEDS_REQUESTED,
                     "Granted amount " + grantedAmount.amount() + " exceeds the requested amount of "
                             + proposal.requestedAmount().amount());
         }
@@ -289,16 +315,16 @@ public final class GrantApplication {
     private Assessment ensureDecidableBy(Actor decisionMaker) {
         ensureVisibleTo(decisionMaker);
         ensureNotTheApplicant(decisionMaker);
-        ensureStatus(ApplicationStatus.ASSESSED, "APPLICATION_NOT_ASSESSED");
+        ensureStatus(ApplicationStatus.ASSESSED, APPLICATION_NOT_ASSESSED);
         if (assessment.assessor().equals(decisionMaker.id())) {
             throw new ForbiddenException(
-                    "SEPARATION_OF_DUTIES", "The assessor of application " + reference.value() + " can't decide on it");
+                    SEPARATION_OF_DUTIES, "The assessor of application " + reference.value() + " can't decide on it");
         }
         return assessment;
     }
 
     private static String validMotivation(String motivation) {
-        return RequiredText.strip(motivation, MAX_MOTIVATION_LENGTH, "MOTIVATION_REQUIRED", "MOTIVATION_TOO_LONG");
+        return RequiredText.strip(motivation, MAX_MOTIVATION_LENGTH, MOTIVATION_REQUIRED, MOTIVATION_TOO_LONG);
     }
 
     public boolean isVisibleTo(Actor actor) {
@@ -311,7 +337,7 @@ public final class GrantApplication {
         }
         if (isVisibleTo(actor)) {
             throw new ForbiddenException(
-                    "NOT_THE_APPLICANT", "Only the applicant may change application " + reference.value());
+                    NOT_THE_APPLICANT, "Only the applicant may change application " + reference.value());
         }
         throw notFound();
     }
@@ -325,16 +351,16 @@ public final class GrantApplication {
     private void ensureNotTheApplicant(Actor actor) {
         if (applicant.equals(actor.id())) {
             throw new ForbiddenException(
-                    "CONFLICT_OF_INTEREST",
+                    CONFLICT_OF_INTEREST,
                     "The applicant of application " + reference.value() + " can't assess or decide on it");
         }
     }
 
     private NotFoundException notFound() {
-        return new NotFoundException("APPLICATION_NOT_FOUND", "Application " + id.value() + " not found");
+        return new NotFoundException(APPLICATION_NOT_FOUND, "Application " + id.value() + " not found");
     }
 
-    private void ensureStatus(ApplicationStatus expected, String code) {
+    private void ensureStatus(ApplicationStatus expected, ErrorCode code) {
         if (status != expected) {
             throw new ConflictException(
                     code, "Application " + reference.value() + " is " + status + ", not " + expected);
@@ -351,7 +377,7 @@ public final class GrantApplication {
     private static void ensureAcceptsDrafts(FundingCall fundingCall, Instant now) {
         if (fundingCall.submissionPeriod().isClosedAt(now)) {
             throw new BusinessRuleViolationException(
-                    "FUNDING_CALL_CLOSED",
+                    FUNDING_CALL_CLOSED,
                     "Funding call " + fundingCall.reference() + " closed at "
                             + fundingCall.submissionPeriod().closesAt());
         }
@@ -360,7 +386,7 @@ public final class GrantApplication {
     private static void ensureWithinCap(ProjectProposal proposal, FundingCall fundingCall) {
         if (proposal.requestedAmount().isGreaterThan(fundingCall.capPerApplication())) {
             throw new BusinessRuleViolationException(
-                    "REQUESTED_AMOUNT_EXCEEDS_CAP",
+                    REQUESTED_AMOUNT_EXCEEDS_CAP,
                     "Requested amount " + proposal.requestedAmount().amount() + " exceeds the cap of "
                             + fundingCall.capPerApplication().amount() + " in call " + fundingCall.reference());
         }

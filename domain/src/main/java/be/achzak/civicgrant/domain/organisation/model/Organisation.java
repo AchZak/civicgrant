@@ -1,5 +1,8 @@
 package be.achzak.civicgrant.domain.organisation.model;
 
+import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_NAME_REQUIRED;
+import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_NAME_TOO_LONG;
+
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import java.time.Instant;
@@ -44,11 +47,11 @@ public final class Organisation {
     private static String validName(String name) {
         String stripped = Objects.requireNonNull(name, "name").strip();
         if (stripped.isEmpty()) {
-            throw new BusinessRuleViolationException("ORGANISATION_NAME_REQUIRED", "Organisation name is blank");
+            throw new BusinessRuleViolationException(ORGANISATION_NAME_REQUIRED, "Organisation name is blank");
         }
         if (stripped.length() > MAX_NAME_LENGTH) {
             throw new BusinessRuleViolationException(
-                    "ORGANISATION_NAME_TOO_LONG", "Organisation name exceeds " + MAX_NAME_LENGTH + " characters");
+                    ORGANISATION_NAME_TOO_LONG, "Organisation name exceeds " + MAX_NAME_LENGTH + " characters");
         }
         return stripped;
     }

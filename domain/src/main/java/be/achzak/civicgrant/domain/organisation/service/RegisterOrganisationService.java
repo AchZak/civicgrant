@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.domain.organisation.service;
 
+import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_ALREADY_REGISTERED;
+
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.organisation.port.in.RegisterOrganisationCommand;
@@ -29,7 +31,7 @@ public class RegisterOrganisationService implements RegisterOrganisationUseCase 
         command.actor().requireAnyRole(Role.APPLICANT);
         if (organisations.findByEnterpriseNumber(command.enterpriseNumber()).isPresent()) {
             throw new ConflictException(
-                    "ORGANISATION_ALREADY_REGISTERED",
+                    ORGANISATION_ALREADY_REGISTERED,
                     "Enterprise number " + command.enterpriseNumber().value() + " is already registered");
         }
         Organisation organisation = Organisation.create(

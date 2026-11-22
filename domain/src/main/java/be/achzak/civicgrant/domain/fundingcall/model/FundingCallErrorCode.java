@@ -1,0 +1,16 @@
+package be.achzak.civicgrant.domain.fundingcall.model;
+
+import be.achzak.civicgrant.domain.shared.ErrorCode;
+
+public enum FundingCallErrorCode implements ErrorCode {
+    CAP_PER_APPLICATION_EXCEEDS_BUDGET,
+    CAP_PER_APPLICATION_NOT_POSITIVE,
+    FUNDING_CALL_ALREADY_CLOSED,
+    FUNDING_CALL_NOT_FOUND,
+    FUNDING_CALL_REFERENCE_INVALID,
+    FUNDING_CALL_REFERENCE_TAKEN,
+    FUNDING_CALL_TITLE_TOO_LONG,
+    GRANT_EXCEEDS_REMAINING_BUDGET,
+    SUBMISSION_PERIOD_CLOSES_BEFORE_OPENING,
+    TOTAL_BUDGET_NOT_POSITIVE
+}

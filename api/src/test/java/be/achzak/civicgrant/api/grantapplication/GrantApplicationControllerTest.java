@@ -10,12 +10,15 @@ import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.aSummary;
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_DRAFT;
+import static be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationPage;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.Language;
@@ -28,18 +31,22 @@ import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationQuery;
 import be.achzak.civicgrant.domain.grantapplication.port.in.GetApplicationUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsQuery;
 import be.achzak.civicgrant.domain.grantapplication.port.in.SearchApplicationsUseCase;
+import be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode;
 import be.achzak.civicgrant.domain.shared.ConflictException;
+import be.achzak.civicgrant.domain.shared.ErrorCode;
 import be.achzak.civicgrant.domain.shared.NotFoundException;
 import be.achzak.civicgrant.domain.shared.Role;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -105,10 +112,16 @@ class GrantApplicationControllerTest {
             assertThat(result).bodyJson().doesNotHavePath("$.submittedAt");
         }
 
+        static Stream<Arguments> unresolvedReferences() {
+            return Stream.of(
+                    Arguments.of(FundingCallErrorCode.FUNDING_CALL_NOT_FOUND, "/fundingCallId"),
+                    Arguments.of(OrganisationErrorCode.ORGANISATION_NOT_FOUND, "/organisationId"));
+        }
+
         @ParameterizedTest(name = "{0}")
-        @CsvSource({"FUNDING_CALL_NOT_FOUND, /fundingCallId", "ORGANISATION_NOT_FOUND, /organisationId"})
+        @MethodSource("unresolvedReferences")
         @DisplayName("answers 400 with a referencedResourceNotFound issue on the reference that doesn't resolve")
-        void answers400WithAReferencedResourceNotFoundIssue(String code, String field) {
+        void answers400WithAReferencedResourceNotFoundIssue(ErrorCode code, String field) {
             // given
             given(createApplication.create(COMMAND)).willThrow(new NotFoundException(code, "Not found"));
 
@@ -237,7 +250,7 @@ class GrantApplicationControllerTest {
         void answers404ForAnApplicationTheCallerMayNotSee() {
             // given
             given(getApplication.get(new GetApplicationQuery(APPLICATION_ID, actor(Role.APPLICANT))))
-                    .willThrow(new NotFoundException("APPLICATION_NOT_FOUND", "Application not found"));
+                    .willThrow(new NotFoundException(APPLICATION_NOT_FOUND, "Application not found"));
 
             // when
             MvcTestResult result = get(Role.APPLICANT);
@@ -291,7 +304,7 @@ class GrantApplicationControllerTest {
         @DisplayName("answers 409 applicationNotDraft for an application that was submitted")
         void answers409ForAnApplicationThatWasSubmitted() {
             // given
-            willThrow(new ConflictException("APPLICATION_NOT_DRAFT", "Application is SUBMITTED"))
+            willThrow(new ConflictException(APPLICATION_NOT_DRAFT, "Application is SUBMITTED"))
                     .given(editApplication)
                     .edit(COMMAND);
 

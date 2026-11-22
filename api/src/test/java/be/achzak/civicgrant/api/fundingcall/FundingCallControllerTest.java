@@ -2,7 +2,10 @@ package be.achzak.civicgrant.api.fundingcall;
 
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
+import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.FUNDING_CALL_NOT_FOUND;
+import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.FUNDING_CALL_REFERENCE_TAKEN;
 import static be.achzak.civicgrant.domain.shared.Money.euros;
+import static be.achzak.civicgrant.domain.shared.SharedErrorCode.ROLE_REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -148,7 +151,7 @@ class FundingCallControllerTest {
             // given
             given(openFundingCall.open(command))
                     .willThrow(new ConflictException(
-                            "FUNDING_CALL_REFERENCE_TAKEN", "Funding call reference GRN-2027 is already taken"));
+                            FUNDING_CALL_REFERENCE_TAKEN, "Funding call reference GRN-2027 is already taken"));
 
             // when
             MvcTestResult result = open("GRN-2027", NEW_CALL_CLOSES_AT);
@@ -275,7 +278,7 @@ class FundingCallControllerTest {
         // given
         FundingCallId unknown = FundingCallId.generate();
         given(getFundingCall.get(new GetFundingCallQuery(unknown, actor(Role.APPLICANT))))
-                .willThrow(new NotFoundException("FUNDING_CALL_NOT_FOUND", "Funding call not found"));
+                .willThrow(new NotFoundException(FUNDING_CALL_NOT_FOUND, "Funding call not found"));
 
         // when
         MvcTestResult result = mvc.get()
@@ -297,7 +300,7 @@ class FundingCallControllerTest {
     void returns403RoleRequiredWhenTheCallerHoldsNoneOfTheAcceptedRoles() {
         // given
         given(listOpenFundingCalls.list(new ListOpenFundingCallsQuery(actor())))
-                .willThrow(new ForbiddenException("ROLE_REQUIRED", "User has none of the roles"));
+                .willThrow(new ForbiddenException(ROLE_REQUIRED, "User has none of the roles"));
 
         // when
         MvcTestResult result =

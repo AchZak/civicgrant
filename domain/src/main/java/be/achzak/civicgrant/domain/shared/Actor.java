@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.domain.shared;
 
+import static be.achzak.civicgrant.domain.shared.SharedErrorCode.ROLE_REQUIRED;
+
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Objects;
@@ -19,7 +21,7 @@ public record Actor(UserId id, Set<Role> roles) {
     public void requireAnyRole(Role role, Role... otherRoles) {
         Set<Role> accepted = EnumSet.of(role, otherRoles);
         if (Collections.disjoint(roles, accepted)) {
-            throw new ForbiddenException("ROLE_REQUIRED", "User " + id.value() + " has none of the roles " + accepted);
+            throw new ForbiddenException(ROLE_REQUIRED, "User " + id.value() + " has none of the roles " + accepted);
         }
     }
 }

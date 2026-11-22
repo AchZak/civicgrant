@@ -1,5 +1,8 @@
 package be.achzak.civicgrant.persistence.fundingcall;
 
+import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.FUNDING_CALL_REFERENCE_TAKEN;
+import static be.achzak.civicgrant.domain.shared.SharedErrorCode.CONCURRENT_UPDATE;
+
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.fundingcall.port.out.FundingCallRepository;
@@ -58,7 +61,7 @@ class FundingCallPersistenceAdapter implements FundingCallRepository {
                 throw e;
             }
             throw new ConflictException(
-                    "FUNDING_CALL_REFERENCE_TAKEN",
+                    FUNDING_CALL_REFERENCE_TAKEN,
                     "Funding call reference " + fundingCall.reference() + " is already taken");
         }
     }
@@ -78,7 +81,7 @@ class FundingCallPersistenceAdapter implements FundingCallRepository {
 
     private static ConflictException concurrentUpdate(FundingCall fundingCall) {
         return new ConflictException(
-                "CONCURRENT_UPDATE",
+                CONCURRENT_UPDATE,
                 "Funding call " + fundingCall.reference() + " was changed by someone else since it was read");
     }
 }

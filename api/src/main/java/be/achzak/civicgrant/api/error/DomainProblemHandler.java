@@ -3,6 +3,7 @@ package be.achzak.civicgrant.api.error;
 import be.achzak.civicgrant.domain.shared.BusinessRuleViolationException;
 import be.achzak.civicgrant.domain.shared.ConflictException;
 import be.achzak.civicgrant.domain.shared.DomainException;
+import be.achzak.civicgrant.domain.shared.ErrorCode;
 import be.achzak.civicgrant.domain.shared.ForbiddenException;
 import be.achzak.civicgrant.domain.shared.NotFoundException;
 import io.github.belgif.rest.problem.DefaultProblem;
@@ -37,12 +38,9 @@ class DomainProblemHandler {
         return ProblemMediaType.INSTANCE.toResponse(problem);
     }
 
-    private static Problem businessProblem(String code, HttpStatus status) {
-        return new DefaultProblem(URI.create(TYPE_PREFIX + lowerCamelCase(code)), null, title(code), status.value());
-    }
-
-    private static String lowerCamelCase(String code) {
-        String[] words = code.toLowerCase(Locale.ROOT).split("_");
+    // The last segment of the problem type: SUBMISSION_AFTER_CLOSING_DATE becomes submissionAfterClosingDate.
+    static String problemName(ErrorCode code) {
+        String[] words = code.name().toLowerCase(Locale.ROOT).split("_");
         StringBuilder name = new StringBuilder(words[0]);
         for (int i = 1; i < words.length; i++) {
             name.append(Character.toUpperCase(words[i].charAt(0))).append(words[i].substring(1));
@@ -50,8 +48,12 @@ class DomainProblemHandler {
         return name.toString();
     }
 
-    private static String title(String code) {
-        String words = code.toLowerCase(Locale.ROOT).replace('_', ' ');
+    private static Problem businessProblem(ErrorCode code, HttpStatus status) {
+        return new DefaultProblem(URI.create(TYPE_PREFIX + problemName(code)), null, title(code), status.value());
+    }
+
+    private static String title(ErrorCode code) {
+        String words = code.name().toLowerCase(Locale.ROOT).replace('_', ' ');
         return Character.toUpperCase(words.charAt(0)) + words.substring(1);
     }
 }

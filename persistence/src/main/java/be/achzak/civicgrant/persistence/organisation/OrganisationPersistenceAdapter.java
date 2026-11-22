@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.persistence.organisation;
 
+import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_ALREADY_REGISTERED;
+
 import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
@@ -44,7 +46,7 @@ class OrganisationPersistenceAdapter implements OrganisationRepository {
                 throw e;
             }
             throw new ConflictException(
-                    "ORGANISATION_ALREADY_REGISTERED",
+                    ORGANISATION_ALREADY_REGISTERED,
                     "Enterprise number " + organisation.enterpriseNumber().value() + " is already registered");
         }
     }

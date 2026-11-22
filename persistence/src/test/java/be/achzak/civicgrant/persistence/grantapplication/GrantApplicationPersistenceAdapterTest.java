@@ -184,7 +184,7 @@ class GrantApplicationPersistenceAdapterTest {
         assertThat(thrown)
                 .isInstanceOfSatisfying(
                         ConflictException.class,
-                        conflict -> assertThat(conflict.code()).isEqualTo("CONCURRENT_UPDATE"));
+                        conflict -> assertThat(conflict.code().name()).isEqualTo("CONCURRENT_UPDATE"));
     }
 
     @Test
@@ -201,7 +201,7 @@ class GrantApplicationPersistenceAdapterTest {
         assertThat(thrown)
                 .isInstanceOfSatisfying(
                         ConflictException.class,
-                        conflict -> assertThat(conflict.code()).isEqualTo("CONCURRENT_UPDATE"));
+                        conflict -> assertThat(conflict.code().name()).isEqualTo("CONCURRENT_UPDATE"));
     }
 
     @Test
