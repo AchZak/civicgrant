@@ -14,7 +14,7 @@
 -- app owns its schema and everything in it. No other grant is ever needed.
 --
 -- Run by the server's Entra administrator, by hand, from Azure Cloud Shell, connected
--- to the postgres database: infra/bootstrap/README.md is the runbook. Bicep can't do
+-- to the postgres database: infra/bootstrap/database-role.md is the runbook. Bicep can't do
 -- this, because database roles live inside PostgreSQL, not in Azure Resource Manager.
 --
 -- Safe to run again: it checks what exists and changes only what differs. The changes
@@ -46,7 +46,7 @@
 SELECT :{?app_role} AND :{?app_object_id} AND :{?database} AS variables_set \gset
 \if :variables_set
 \else
-  \echo 'Pass -v app_role=... -v app_object_id=... -v database=... (see infra/bootstrap/README.md).'
+  \echo 'Pass -v app_role=... -v app_object_id=... -v database=... (see infra/bootstrap/database-role.md).'
   DO $$ BEGIN RAISE EXCEPTION 'missing psql variable'; END $$;
 \endif
 
@@ -76,7 +76,7 @@ SELECT pg_catalog.pg_get_userbyid(datdba) AS database_owner,
 \echo 'Signed in as' :USER '; database' :database 'is owned by' :database_owner
 \if :acts_as_owner
 \else
-  DO $$ BEGIN RAISE EXCEPTION 'you cannot act as the database owner: see Troubleshooting in infra/bootstrap/README.md'; END $$;
+  DO $$ BEGIN RAISE EXCEPTION 'you cannot act as the database owner: see Troubleshooting in infra/bootstrap/database-role.md'; END $$;
 \endif
 
 

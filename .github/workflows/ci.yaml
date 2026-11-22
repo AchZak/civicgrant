@@ -234,7 +234,7 @@ jobs:
       contents: read   # Check out the Bicep templates.
       id-token: write  # Request GitHub's OIDC token for the Azure login.
 
-    # Read by every step. The last seven are the values infra/tst.bicepparam reads
+    # Read by every step. The last seven are the values infra/environment.tst.bicepparam reads
     # with readEnvironmentVariable(), so the templates get them without any file
     # in the repository holding them.
     env:
@@ -288,7 +288,7 @@ jobs:
             --name "whatif-$GITHUB_RUN_ID" \
             --resource-group "$RESOURCE_GROUP" \
             --stack-id "$stack_id" \
-            --parameters infra/tst.bicepparam \
+            --parameters infra/environment.tst.bicepparam \
             --action-on-unmanage deleteAll \
             --deny-settings-mode denyDelete \
             --retention-interval PT1H \
@@ -316,7 +316,7 @@ jobs:
           az stack group create \
             --name "$STACK_NAME" \
             --resource-group "$RESOURCE_GROUP" \
-            --parameters infra/tst.bicepparam \
+            --parameters infra/environment.tst.bicepparam \
             --action-on-unmanage deleteAll \
             --deny-settings-mode denyDelete \
             --description "civicgrant tst, commit $GITHUB_SHA" \

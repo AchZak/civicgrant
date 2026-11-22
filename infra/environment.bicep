@@ -22,10 +22,10 @@
 // resource group.
 //
 // Deployed as a Deployment Stack by the pipeline's "Deploy to test" job.
-// From your machine, with the variables tst.bicepparam reads already set:
+// From your machine, with the variables environment.tst.bicepparam reads already set:
 //
 //   az bicep lint --file infra/environment.bicep
-//   az deployment group what-if --resource-group rg-civicgrant-tst --parameters infra/tst.bicepparam
+//   az deployment group what-if --resource-group rg-civicgrant-tst --parameters infra/environment.tst.bicepparam
 
 
 // ------------------------------------------------------------
@@ -38,7 +38,7 @@ targetScope = 'resourceGroup'
 
 // ------------------------------------------------------------
 // PARAMETERS
-// Values come from <env>.bicepparam.
+// Values come from environment.<env>.bicepparam.
 // ------------------------------------------------------------
 
 @description('Environment name: tst, acc or prd.')

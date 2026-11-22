@@ -8,22 +8,22 @@ The templates are split by who deploys them, because each deployer holds differe
 
 ```
 infra/
-├── shared.bicep          what every environment shares, deployed by hand
+├── shared.bicep                  what every environment shares, deployed by hand
 ├── shared.bicepparam
-├── entra.bicep           the API's app registrations, deployed by hand
+├── entra.bicep                   the API's app registrations, deployed by hand
 ├── entra.bicepparam
-├── environment.bicep     one environment, deployed by the pipeline
-├── tst.bicepparam        its values for the test environment
+├── environment.bicep             one environment, deployed by the pipeline
+├── environment.tst.bicepparam    its values for the test environment
 ├── modules/
-│   ├── shared/           used by shared.bicep
-│   ├── entra/            used by entra.bicep
-│   └── environment/      used by environment.bicep
-├── bootstrap/            what Bicep can't do, as runbooks
-├── workbooks/            the monitoring workbook, loaded by environment.bicep
-└── bicepconfig.json      linter rules and the Microsoft Graph extension
+│   ├── shared/                   used by shared.bicep
+│   ├── entra/                    used by entra.bicep
+│   └── environment/              used by environment.bicep
+├── bootstrap/                    what Bicep can't do, as runbooks
+├── workbooks/                    the monitoring workbook, loaded by environment.bicep
+└── bicepconfig.json              linter rules and the Microsoft Graph extension
 ```
 
-A module's folder is named after the entry point that uses it, so it also says who deploys it. That's why `modules/shared/` holds `environment-identities.bicep`: an environment's identities are created by the shared deployment, so the pipeline never creates the identity it logs in with.
+A parameter file starts with the name of its template, so acc and prd will sit next to `environment.tst.bicepparam`. A module's folder is named after the entry point that uses it, so it also says who deploys it. That's why `modules/shared/` holds `environment-identities.bicep`: an environment's identities are created by the shared deployment, so the pipeline never creates the identity it logs in with.
 
 ## Entry points
 
@@ -39,9 +39,9 @@ The pipeline's deploy identity has rights on its own environment's resource grou
 
 1. Deploy `shared.bicep`, with `BUDGET_ALERT_EMAIL` exported in your shell: the address the budget and the alerts write to, kept out of the repository.
 2. Deploy `entra.bicep`.
-3. Follow the runbooks in `bootstrap/`: [README.md](bootstrap/README.md) creates each environment's database role, [app-roles.md](bootstrap/app-roles.md) gives users their roles on the API.
+3. Follow the runbooks in `bootstrap/`: [database-role.md](bootstrap/database-role.md) creates each environment's database role, [app-roles.md](bootstrap/app-roles.md) gives users their roles on the API.
 4. Copy the deployments' outputs into GitHub variables: shared values at repository level, each environment's identities and API client id on its GitHub Environment. None of them is a secret.
-5. Push to `develop`. The pipeline previews the stack's changes, deploys `environment.bicep` with `tst.bicepparam`, and checks that the app is healthy.
+5. Push to `develop`. The pipeline previews the stack's changes, deploys `environment.bicep` with `environment.tst.bicepparam`, and checks that the app is healthy.
 
 The Bicep deployments can run again at any time: they update what exists instead of duplicating it.
 
@@ -52,10 +52,10 @@ Each parameter file gives every value its entry point takes. Values that come ou
 ```bash
 az bicep lint --file infra/environment.bicep
 az deployment sub what-if --location belgiumcentral --name civicgrant-shared --parameters infra/shared.bicepparam
-az deployment group what-if --resource-group rg-civicgrant-tst --parameters infra/tst.bicepparam
+az deployment group what-if --resource-group rg-civicgrant-tst --parameters infra/environment.tst.bicepparam
 ```
 
-Lint each entry point the same way. The tst what-if needs the variables `tst.bicepparam` reads, exported in your shell. `entra.bicep` has no what-if, because Azure can't preview Microsoft Graph resources: review the diff, deploy, then check the result with `az ad app show`.
+Lint each entry point the same way. The tst what-if needs the variables `environment.tst.bicepparam` reads, exported in your shell. `entra.bicep` has no what-if, because Azure can't preview Microsoft Graph resources: review the diff, deploy, then check the result with `az ad app show`.
 
 ## Conventions
 

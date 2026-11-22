@@ -3,7 +3,8 @@
 // ============================================================
 //
 // "using" names the template these values belong to, so the deploy command
-// only needs --parameters infra/tst.bicepparam.
+// only needs --parameters infra/environment.tst.bicepparam. The file name starts
+// with the template's, so each environment's values sort next to it.
 
 using 'environment.bicep'
 
