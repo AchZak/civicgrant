@@ -1,8 +1,5 @@
 package be.achzak.civicgrant.domain.grantapplication.service;
 
-import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.FUNDING_CALL_NOT_FOUND;
-import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_NOT_FOUND;
-
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.port.out.FundingCallRepository;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
@@ -16,7 +13,6 @@ import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRep
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.organisation.port.out.OrganisationRepository;
 import be.achzak.civicgrant.domain.shared.Role;
-import be.achzak.civicgrant.domain.shared.error.NotFoundException;
 import be.achzak.civicgrant.domain.shared.event.DomainEventPublisher;
 import java.time.Clock;
 import java.time.Instant;
@@ -52,16 +48,8 @@ public class CreateApplicationService implements CreateApplicationUseCase {
     public ApplicationId create(CreateApplicationCommand command) {
         Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.APPLICANT);
-        FundingCall fundingCall = fundingCalls
-                .findById(command.fundingCallId())
-                .orElseThrow(() -> new NotFoundException(
-                        FUNDING_CALL_NOT_FOUND,
-                        "Funding call " + command.fundingCallId().value() + " not found"));
-        Organisation organisation = organisations
-                .findById(command.organisationId())
-                .orElseThrow(() -> new NotFoundException(
-                        ORGANISATION_NOT_FOUND,
-                        "Organisation " + command.organisationId().value() + " not found"));
+        FundingCall fundingCall = fundingCalls.getById(command.fundingCallId());
+        Organisation organisation = organisations.getById(command.organisationId());
         Instant now = clock.instant();
         ApplicationReference reference =
                 ApplicationReference.of(Year.from(now.atZone(ZoneOffset.UTC)), references.nextNumber());
