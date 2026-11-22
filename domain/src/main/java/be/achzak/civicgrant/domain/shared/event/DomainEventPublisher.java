@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.domain.shared;
+package be.achzak.civicgrant.domain.shared.event;
 
 import java.util.List;
 

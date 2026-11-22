@@ -3,6 +3,8 @@ package be.achzak.civicgrant.domain.organisation.model;
 import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_NAME_REQUIRED;
 import static be.achzak.civicgrant.domain.organisation.model.OrganisationErrorCode.ORGANISATION_NAME_TOO_LONG;
 
+import be.achzak.civicgrant.domain.organisation.model.event.OrganisationEvent;
+import be.achzak.civicgrant.domain.organisation.model.event.OrganisationRegistered;
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.error.BusinessRuleViolationException;
 import java.time.Instant;

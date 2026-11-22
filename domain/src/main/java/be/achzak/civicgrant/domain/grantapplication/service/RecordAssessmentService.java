@@ -4,8 +4,8 @@ import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RecordAssessmentUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRepository;
-import be.achzak.civicgrant.domain.shared.DomainEventPublisher;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.event.DomainEventPublisher;
 import java.time.Clock;
 import java.util.Objects;
 

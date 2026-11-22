@@ -5,8 +5,8 @@ import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallCommand;
 import be.achzak.civicgrant.domain.fundingcall.port.in.OpenFundingCallUseCase;
 import be.achzak.civicgrant.domain.fundingcall.port.out.FundingCallRepository;
-import be.achzak.civicgrant.domain.shared.DomainEventPublisher;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.event.DomainEventPublisher;
 import java.time.Clock;
 import java.util.Objects;
 

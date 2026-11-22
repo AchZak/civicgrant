@@ -3,9 +3,9 @@ package be.achzak.civicgrant.starter.event;
 import be.achzak.civicgrant.domain.audit.model.AuditEntry;
 import be.achzak.civicgrant.domain.audit.port.in.RecordAuditEntryCommand;
 import be.achzak.civicgrant.domain.audit.port.in.RecordAuditEntryUseCase;
-import be.achzak.civicgrant.domain.fundingcall.model.FundingCallEvent;
-import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationEvent;
-import be.achzak.civicgrant.domain.organisation.model.OrganisationEvent;
+import be.achzak.civicgrant.domain.fundingcall.model.event.FundingCallEvent;
+import be.achzak.civicgrant.domain.grantapplication.model.event.GrantApplicationEvent;
+import be.achzak.civicgrant.domain.organisation.model.event.OrganisationEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 

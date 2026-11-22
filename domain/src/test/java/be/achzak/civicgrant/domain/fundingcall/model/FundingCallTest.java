@@ -8,6 +8,9 @@ import static be.achzak.civicgrant.domain.shared.error.DomainExceptionAssert.ass
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.domain.fundingcall.model.event.FundingCallEvent;
+import be.achzak.civicgrant.domain.fundingcall.model.event.FundingCallOpened;
+import be.achzak.civicgrant.domain.fundingcall.model.event.GrantCommitted;
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.LocalizedText;
 import be.achzak.civicgrant.domain.shared.Money;

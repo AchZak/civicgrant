@@ -1,13 +1,15 @@
-package be.achzak.civicgrant.domain.grantapplication.model;
+package be.achzak.civicgrant.domain.grantapplication.model.event;
 
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
+import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 import be.achzak.civicgrant.domain.shared.UserId;
 import java.time.Instant;
 import java.util.Objects;
 
-public record DocumentAttached(ApplicationId applicationId, DocumentId documentId, UserId actorId, Instant occurredAt)
+public record DocumentRemoved(ApplicationId applicationId, DocumentId documentId, UserId actorId, Instant occurredAt)
         implements GrantApplicationEvent {
 
-    public DocumentAttached {
+    public DocumentRemoved {
         Objects.requireNonNull(applicationId, "applicationId");
         Objects.requireNonNull(documentId, "documentId");
         Objects.requireNonNull(actorId, "actorId");

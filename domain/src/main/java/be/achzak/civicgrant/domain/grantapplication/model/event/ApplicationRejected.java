@@ -1,5 +1,7 @@
-package be.achzak.civicgrant.domain.grantapplication.model;
+package be.achzak.civicgrant.domain.grantapplication.model.event;
 
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
+import be.achzak.civicgrant.domain.grantapplication.model.RejectionGround;
 import be.achzak.civicgrant.domain.shared.UserId;
 import java.time.Instant;
 import java.util.Objects;

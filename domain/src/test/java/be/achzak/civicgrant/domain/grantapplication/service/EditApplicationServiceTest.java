@@ -14,14 +14,14 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.port.out.InMemoryFundingCallRepository;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationEdited;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.ProjectProposal;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationEdited;
 import be.achzak.civicgrant.domain.grantapplication.port.in.EditApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.out.InMemoryGrantApplicationRepository;
 import be.achzak.civicgrant.domain.shared.Actor;
-import be.achzak.civicgrant.domain.shared.RecordingDomainEventPublisher;
+import be.achzak.civicgrant.domain.shared.event.RecordingDomainEventPublisher;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;

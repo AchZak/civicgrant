@@ -9,8 +9,8 @@ import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentComman
 import be.achzak.civicgrant.domain.grantapplication.port.in.AttachDocumentUseCase;
 import be.achzak.civicgrant.domain.grantapplication.port.out.DocumentStorage;
 import be.achzak.civicgrant.domain.grantapplication.port.out.GrantApplicationRepository;
-import be.achzak.civicgrant.domain.shared.DomainEventPublisher;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.event.DomainEventPublisher;
 import java.io.ByteArrayInputStream;
 import java.time.Clock;
 import java.util.Objects;

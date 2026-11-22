@@ -19,6 +19,7 @@ A new decision gets the next number. An accepted decision isn't rewritten when i
 - [11. Domain exceptions become Belgif problems in the API, not in the domain](0011-domain-exceptions-become-belgif-problems-in-the-api.md)
 - [12. The audit trail is built from domain events, and holds no free text](0012-audit-trail-from-domain-events.md)
 - [13. No message broker](0013-no-message-broker.md)
+- [47. Every aggregate package has the same layout, and its events sit apart](0047-every-aggregate-package-has-the-same-layout.md)
 
 ## Data and consistency
 

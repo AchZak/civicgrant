@@ -25,6 +25,15 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCall;
 import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationApproved;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationCreated;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationEdited;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationRejected;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationSubmitted;
+import be.achzak.civicgrant.domain.grantapplication.model.event.AssessmentRecorded;
+import be.achzak.civicgrant.domain.grantapplication.model.event.DocumentAttached;
+import be.achzak.civicgrant.domain.grantapplication.model.event.DocumentRemoved;
+import be.achzak.civicgrant.domain.grantapplication.model.event.GrantApplicationEvent;
 import be.achzak.civicgrant.domain.organisation.model.LegalForm;
 import be.achzak.civicgrant.domain.organisation.model.Organisation;
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;

@@ -120,7 +120,7 @@ The pipeline authenticates to Azure with workload identity federation, so there 
 
 ## Decisions
 
-Every architectural decision is recorded in [docs/adr](docs/adr/README.md): the context that called for it, what was decided, the alternatives, and what it costs. There are 46, grouped by area. The ones that shape the code most:
+Every architectural decision is recorded in [docs/adr](docs/adr/README.md): the context that called for it, what was decided, the alternatives, and what it costs. There are 47, grouped by area. The ones that shape the code most:
 
 - [Aggregates guard their own rules](docs/adr/0002-aggregates-guard-their-own-rules.md)
 - [Roles are checked by the domain, and the build fails if a use case forgets](docs/adr/0005-roles-are-checked-by-the-domain.md)

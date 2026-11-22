@@ -6,6 +6,9 @@ import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode
 import static be.achzak.civicgrant.domain.fundingcall.model.FundingCallErrorCode.GRANT_EXCEEDS_REMAINING_BUDGET;
 import static be.achzak.civicgrant.domain.shared.SharedErrorCode.GRANTED_AMOUNT_NOT_POSITIVE;
 
+import be.achzak.civicgrant.domain.fundingcall.model.event.FundingCallEvent;
+import be.achzak.civicgrant.domain.fundingcall.model.event.FundingCallOpened;
+import be.achzak.civicgrant.domain.fundingcall.model.event.GrantCommitted;
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.LocalizedText;
 import be.achzak.civicgrant.domain.shared.Money;

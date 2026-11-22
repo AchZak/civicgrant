@@ -1,17 +1,17 @@
-package be.achzak.civicgrant.domain.grantapplication.model;
+package be.achzak.civicgrant.domain.grantapplication.model.event;
 
+import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.shared.Money;
 import be.achzak.civicgrant.domain.shared.UserId;
 import java.time.Instant;
 import java.util.Objects;
 
-public record ApplicationSubmitted(
-        ApplicationId applicationId, Money requestedAmount, UserId actorId, Instant occurredAt)
+public record ApplicationApproved(ApplicationId applicationId, Money grantedAmount, UserId actorId, Instant occurredAt)
         implements GrantApplicationEvent {
 
-    public ApplicationSubmitted {
+    public ApplicationApproved {
         Objects.requireNonNull(applicationId, "applicationId");
-        Objects.requireNonNull(requestedAmount, "requestedAmount");
+        Objects.requireNonNull(grantedAmount, "grantedAmount");
         Objects.requireNonNull(actorId, "actorId");
         Objects.requireNonNull(occurredAt, "occurredAt");
     }

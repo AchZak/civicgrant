@@ -1,14 +1,14 @@
 package be.achzak.civicgrant.starter.event;
 
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationApproved;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationCreated;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationEdited;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationRejected;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationSubmitted;
-import be.achzak.civicgrant.domain.grantapplication.model.AssessmentRecorded;
-import be.achzak.civicgrant.domain.grantapplication.model.DocumentAttached;
-import be.achzak.civicgrant.domain.grantapplication.model.DocumentRemoved;
-import be.achzak.civicgrant.domain.grantapplication.model.GrantApplicationEvent;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationApproved;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationCreated;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationEdited;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationRejected;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationSubmitted;
+import be.achzak.civicgrant.domain.grantapplication.model.event.AssessmentRecorded;
+import be.achzak.civicgrant.domain.grantapplication.model.event.DocumentAttached;
+import be.achzak.civicgrant.domain.grantapplication.model.event.DocumentRemoved;
+import be.achzak.civicgrant.domain.grantapplication.model.event.GrantApplicationEvent;
 import be.achzak.civicgrant.domain.shared.Money;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;

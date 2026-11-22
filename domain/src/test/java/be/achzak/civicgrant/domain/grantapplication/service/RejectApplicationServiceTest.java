@@ -9,16 +9,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
-import be.achzak.civicgrant.domain.grantapplication.model.ApplicationRejected;
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationStatus;
 import be.achzak.civicgrant.domain.grantapplication.model.Decision;
 import be.achzak.civicgrant.domain.grantapplication.model.GrantApplication;
 import be.achzak.civicgrant.domain.grantapplication.model.RejectionGround;
+import be.achzak.civicgrant.domain.grantapplication.model.event.ApplicationRejected;
 import be.achzak.civicgrant.domain.grantapplication.port.in.RejectApplicationCommand;
 import be.achzak.civicgrant.domain.grantapplication.port.out.InMemoryGrantApplicationRepository;
 import be.achzak.civicgrant.domain.shared.Actor;
-import be.achzak.civicgrant.domain.shared.RecordingDomainEventPublisher;
 import be.achzak.civicgrant.domain.shared.Role;
+import be.achzak.civicgrant.domain.shared.event.RecordingDomainEventPublisher;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;

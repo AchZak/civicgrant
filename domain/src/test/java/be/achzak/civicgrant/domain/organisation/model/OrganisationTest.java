@@ -5,6 +5,8 @@ import static be.achzak.civicgrant.domain.shared.error.DomainExceptionAssert.ass
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.domain.organisation.model.event.OrganisationEvent;
+import be.achzak.civicgrant.domain.organisation.model.event.OrganisationRegistered;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

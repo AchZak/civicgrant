@@ -1,5 +1,6 @@
-package be.achzak.civicgrant.domain.fundingcall.model;
+package be.achzak.civicgrant.domain.fundingcall.model.event;
 
+import be.achzak.civicgrant.domain.fundingcall.model.FundingCallId;
 import be.achzak.civicgrant.domain.shared.Money;
 import be.achzak.civicgrant.domain.shared.UserId;
 import java.time.Instant;

@@ -1,5 +1,7 @@
-package be.achzak.civicgrant.domain.organisation.model;
+package be.achzak.civicgrant.domain.organisation.model.event;
 
+import be.achzak.civicgrant.domain.organisation.model.EnterpriseNumber;
+import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.UserId;
 import java.time.Instant;
 import java.util.Objects;
