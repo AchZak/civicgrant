@@ -71,13 +71,25 @@ flowchart LR
     persistence --> blob[("Blob Storage")]
 ```
 
-`api` and `persistence` depend on `domain`, never on each other. `starter` puts everything together. The domain doesn't know about Spring, JPA or Azure, and ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the domain only through use cases, persistence only through outbound ports, each use case is an interface with one method taking one command or query, each service implements exactly one use case, JPA stays inside persistence, and outside the domain an aggregate is only ever read.
+`api` and `persistence` depend on `domain`, never on each other. `starter` puts everything together. The domain doesn't know about Spring, JPA or Azure, and ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the domain only through use cases, persistence only through outbound ports, each use case is an interface with one method taking one command or query, each service implements exactly one use case, JPA stays inside persistence, outside the domain an aggregate is only ever read, and only persistence rebuilds one from storage.
 
 The API is contract-first: `api/src/main/openapi/openapi.yaml` is written by hand and is the single source of truth. The Spring interfaces and the Angular client are generated from it, and the pipeline lints it with Redocly on every change. The application serves the API only, not its documentation.
 
 **Backend:** Java 25, Spring Boot 4, Spring Security (OAuth2 resource server), Spring Data JPA, Flyway, PostgreSQL
 **Frontend:** Angular with standalone components, signals, zoneless change detection, Dutch and French
 **Testing:** JUnit, Testcontainers, ArchUnit, Playwright
+
+### Where to look first
+
+If you only have a few minutes, these files show how the pieces fit:
+
+- [GrantApplication](domain/src/main/java/be/achzak/civicgrant/domain/grantapplication/model/GrantApplication.java): the aggregate. Every step of the workflow is a method named after it, and each one checks who acts, the status and the data, or throws.
+- [ApproveApplicationService](domain/src/main/java/be/achzak/civicgrant/domain/grantapplication/service/ApproveApplicationService.java): a use case from start to end. It checks the role, changes two aggregates in one transaction so the budget can't be overspent, saves, then publishes the events.
+- [ArchitectureTest](starter/src/test/java/be/achzak/civicgrant/ArchitectureTest.java): the conventions above as rules that fail the build, including that every use case checks the actor's role.
+- [UseCaseTransactionAttributeSource](starter/src/main/java/be/achzak/civicgrant/starter/usecase/UseCaseTransactionAttributeSource.java): how a domain without annotations still runs in transactions. A command gets a read-write one, a query a read-only one.
+- [GrantApplicationPersistenceAdapter](persistence/src/main/java/be/achzak/civicgrant/persistence/grantapplication/GrantApplicationPersistenceAdapter.java): optimistic locking that turns a lost race into a 409, and the paged search.
+- [DomainProblemHandler](api/src/main/java/be/achzak/civicgrant/api/error/DomainProblemHandler.java): how domain exceptions become Belgif problems, in one exhaustive switch.
+- [openapi.yaml](api/src/main/openapi/openapi.yaml): the contract the controllers implement.
 
 ## Azure
 
