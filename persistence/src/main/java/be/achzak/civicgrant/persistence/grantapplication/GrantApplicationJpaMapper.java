@@ -15,6 +15,7 @@ import be.achzak.civicgrant.domain.grantapplication.model.search.ApplicationSumm
 import be.achzak.civicgrant.domain.organisation.model.OrganisationId;
 import be.achzak.civicgrant.domain.shared.Money;
 import be.achzak.civicgrant.domain.shared.UserId;
+import be.achzak.civicgrant.persistence.documentstorage.DocumentBlobNames;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.UUID;

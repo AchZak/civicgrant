@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.persistence.grantapplication;
+package be.achzak.civicgrant.persistence.documentstorage;
 
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;

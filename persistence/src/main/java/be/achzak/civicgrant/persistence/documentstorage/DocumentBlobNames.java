@@ -1,13 +1,14 @@
-package be.achzak.civicgrant.persistence.grantapplication;
+package be.achzak.civicgrant.persistence.documentstorage;
 
 import be.achzak.civicgrant.domain.grantapplication.model.ApplicationId;
 import be.achzak.civicgrant.domain.grantapplication.model.DocumentId;
 
-final class DocumentBlobNames {
+// Public because the grant application mapper stores the same name in each document's row.
+public final class DocumentBlobNames {
 
     private DocumentBlobNames() {}
 
-    static String of(ApplicationId applicationId, DocumentId documentId) {
+    public static String of(ApplicationId applicationId, DocumentId documentId) {
         return "applications/%s/%s.pdf".formatted(applicationId.value(), documentId.value());
     }
 }

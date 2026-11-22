@@ -41,6 +41,7 @@ A new decision gets the next number. An accepted decision isn't rewritten when i
 
 - [23. Documents live in Blob Storage, named by ids and reached with the app's identity](0023-documents-live-in-blob-storage.md)
 - [24. A file and its row stay in step without a distributed transaction](0024-a-file-and-its-row-stay-in-step.md)
+- [49. Blob Storage has its own package in persistence](0049-blob-storage-has-its-own-package-in-persistence.md)
 
 ## Identity and access
 

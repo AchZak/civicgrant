@@ -9,6 +9,7 @@ import be.achzak.civicgrant.domain.audit.service.RecordAuditEntryService;
 import be.achzak.civicgrant.domain.shared.Actor;
 import be.achzak.civicgrant.domain.shared.Command;
 import be.achzak.civicgrant.domain.shared.Query;
+import be.achzak.civicgrant.persistence.documentstorage.DocumentBlobNames;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -148,6 +149,8 @@ class ArchitectureTest {
             .resideInAPackage("..civicgrant.persistence..")
             .and()
             .areNotAnnotatedWith(StaticMetamodel.class)
+            .and()
+            .doNotBelongToAnyOf(DocumentBlobNames.class)
             .should()
             .notBePublic();
 
