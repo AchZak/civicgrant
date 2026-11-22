@@ -1,4 +1,4 @@
-package be.achzak.civicgrant;
+package be.achzak.civicgrant.wiring;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
