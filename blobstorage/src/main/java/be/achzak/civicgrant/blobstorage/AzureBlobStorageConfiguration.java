@@ -8,15 +8,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(DocumentStorageProperties.class)
-class DocumentStorageConfiguration {
+@EnableConfigurationProperties(AzureBlobStorageProperties.class)
+class AzureBlobStorageConfiguration {
 
     @Bean
-    BlobContainerClient documentsContainer(DocumentStorageProperties properties) {
+    BlobContainerClient documentsContainer(AzureBlobStorageProperties properties) {
         return properties.usesEmulator() ? onEmulator(properties) : onAzure(properties);
     }
 
-    private static BlobContainerClient onAzure(DocumentStorageProperties properties) {
+    private static BlobContainerClient onAzure(AzureBlobStorageProperties properties) {
         return new BlobServiceClientBuilder()
                 .endpoint(properties.endpoint())
                 .credential(new ManagedIdentityCredentialBuilder()
@@ -26,7 +26,7 @@ class DocumentStorageConfiguration {
                 .getBlobContainerClient(properties.container());
     }
 
-    private static BlobContainerClient onEmulator(DocumentStorageProperties properties) {
+    private static BlobContainerClient onEmulator(AzureBlobStorageProperties properties) {
         BlobContainerClient container = new BlobServiceClientBuilder()
                 .connectionString(properties.connectionString())
                 .buildClient()

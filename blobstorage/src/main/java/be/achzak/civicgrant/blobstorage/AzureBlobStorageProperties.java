@@ -5,13 +5,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 // Either an emulator connection string (local, tests) or an endpoint with the identity's client id (Azure).
 @ConfigurationProperties("civicgrant.documents")
-record DocumentStorageProperties(
+record AzureBlobStorageProperties(
         @Nullable String endpoint,
         String container,
         @Nullable String clientId,
         @Nullable String connectionString) {
 
-    DocumentStorageProperties {
+    AzureBlobStorageProperties {
         if (isBlank(container)) {
             throw new IllegalStateException("civicgrant.documents.container must be set");
         }

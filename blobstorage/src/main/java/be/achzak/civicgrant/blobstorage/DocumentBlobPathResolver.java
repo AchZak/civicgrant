@@ -3,11 +3,11 @@ package be.achzak.civicgrant.blobstorage;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.grantapplication.domain.DocumentId;
 
-final class DocumentBlobNames {
+final class DocumentBlobPathResolver {
 
-    private DocumentBlobNames() {}
+    private DocumentBlobPathResolver() {}
 
-    static String of(ApplicationId applicationId, DocumentId documentId) {
+    static String resolve(ApplicationId applicationId, DocumentId documentId) {
         return "applications/%s/%s.pdf".formatted(applicationId.value(), documentId.value());
     }
 }

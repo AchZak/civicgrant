@@ -20,8 +20,8 @@ import org.springframework.context.annotation.Import;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-@DisplayName("Document storage in Blob Storage")
-class BlobDocumentStorageTest {
+@DisplayName("Document storage in Azure Blob Storage")
+class AzureBlobDocumentStorageTest {
 
     private static final byte[] PDF =
             "%PDF-1.7\nbegroting van het buurtproject\n%%EOF".getBytes(StandardCharsets.US_ASCII);
@@ -75,7 +75,7 @@ class BlobDocumentStorageTest {
 
         // then
         assertThat(container
-                        .getBlobClient(DocumentBlobNames.of(applicationId, documentId))
+                        .getBlobClient(DocumentBlobPathResolver.resolve(applicationId, documentId))
                         .exists())
                 .isFalse();
     }

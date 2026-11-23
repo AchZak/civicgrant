@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-class BlobDocumentStorage implements DocumentStorage {
+class AzureBlobDocumentStorage implements DocumentStorage {
 
     private final BlobContainerClient documents;
 
@@ -38,6 +38,6 @@ class BlobDocumentStorage implements DocumentStorage {
     }
 
     private BlobClient blob(ApplicationId applicationId, DocumentId documentId) {
-        return documents.getBlobClient(DocumentBlobNames.of(applicationId, documentId));
+        return documents.getBlobClient(DocumentBlobPathResolver.resolve(applicationId, documentId));
     }
 }
