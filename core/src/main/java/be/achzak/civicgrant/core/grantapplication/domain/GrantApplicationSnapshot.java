@@ -8,6 +8,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 public record GrantApplicationSnapshot(
         ApplicationId id,
@@ -18,9 +19,9 @@ public record GrantApplicationSnapshot(
         ProjectProposal proposal,
         List<SupportingDocument> documents,
         ApplicationStatus status,
-        Instant submittedAt,
-        Assessment assessment,
-        Decision decision,
+        @Nullable Instant submittedAt,
+        @Nullable Assessment assessment,
+        @Nullable Decision decision,
         Instant createdAt,
         Instant updatedAt,
         long version) {

@@ -15,6 +15,7 @@ import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(name = "assessment")
@@ -36,7 +37,7 @@ class AssessmentJpaEntity {
     @Enumerated(EnumType.STRING)
     private AssessmentRecommendation recommendation;
 
-    private BigDecimal proposedAmount;
+    private @Nullable BigDecimal proposedAmount;
     private String comment;
     private Instant assessedAt;
 
@@ -45,7 +46,7 @@ class AssessmentJpaEntity {
             String assessorOid,
             boolean eligible,
             AssessmentRecommendation recommendation,
-            BigDecimal proposedAmount,
+            @Nullable BigDecimal proposedAmount,
             String comment,
             Instant assessedAt) {
         this.grantApplication = grantApplication;

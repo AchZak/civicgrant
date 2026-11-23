@@ -44,21 +44,22 @@ class ArchitectureTest {
     private static final Set<String> ADAPTERS = Set.of("api", "persistence", "documentstorage");
 
     @ArchTest
-    static final ArchRule the_domain_depends_only_on_the_jdk = classes()
+    static final ArchRule the_domain_depends_only_on_the_jdk_and_jspecify = classes()
             .that()
             .resideInAPackage(DOMAIN)
             .should()
             .onlyDependOnClassesThat()
-            .resideInAnyPackage("java..", "..civicgrant.core..");
+            .resideInAnyPackage("java..", "org.jspecify..", "..civicgrant.core..");
 
     @ArchTest
     static final ArchRule the_application_uses_spring_only_for_service_and_transactional = classes()
             .that()
             .resideInAPackage(APPLICATION)
             .should()
-            .onlyDependOnClassesThat(JavaClass.Predicates.resideInAnyPackage("java..", "..civicgrant.core..")
-                    .or(JavaClass.Predicates.belongToAnyOf(
-                            Service.class, Transactional.class, Propagation.class, Isolation.class)));
+            .onlyDependOnClassesThat(
+                    JavaClass.Predicates.resideInAnyPackage("java..", "org.jspecify..", "..civicgrant.core..")
+                            .or(JavaClass.Predicates.belongToAnyOf(
+                                    Service.class, Transactional.class, Propagation.class, Isolation.class)));
 
     @ArchTest
     static final ArchRule every_core_class_belongs_to_the_domain_or_the_application =

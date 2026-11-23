@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.IntFunction;
+import org.jspecify.annotations.Nullable;
 
 final class GrantApplicationApiMapper {
 
@@ -47,7 +48,7 @@ final class GrantApplicationApiMapper {
     }
 
     static SearchApplicationsQuery toQuery(
-            ApplicationStatusDto status, UUID fundingCallId, int page, int pageSize, Actor actor) {
+            @Nullable ApplicationStatusDto status, @Nullable UUID fundingCallId, int page, int pageSize, Actor actor) {
         Set<ApplicationStatus> statuses = status == null ? Set.of() : Set.of(ApplicationStatus.valueOf(status.name()));
         Set<FundingCallId> fundingCalls = fundingCallId == null ? Set.of() : Set.of(new FundingCallId(fundingCallId));
         return new SearchApplicationsQuery(statuses, fundingCalls, page, pageSize, actor);

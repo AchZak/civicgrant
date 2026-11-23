@@ -22,6 +22,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(name = "grant_application")
@@ -58,7 +59,7 @@ class GrantApplicationJpaEntity {
     private ApplicationStatus status;
 
     @Setter(AccessLevel.PACKAGE)
-    private Instant submittedAt;
+    private @Nullable Instant submittedAt;
 
     @Version
     private long version;
@@ -77,11 +78,11 @@ class GrantApplicationJpaEntity {
     // inserted after this one.
     @Setter(AccessLevel.PACKAGE)
     @OneToOne(mappedBy = "grantApplication", cascade = CascadeType.ALL)
-    private AssessmentJpaEntity assessment;
+    private @Nullable AssessmentJpaEntity assessment;
 
     @Setter(AccessLevel.PACKAGE)
     @OneToOne(mappedBy = "grantApplication", cascade = CascadeType.ALL)
-    private DecisionJpaEntity decision;
+    private @Nullable DecisionJpaEntity decision;
 
     GrantApplicationJpaEntity(
             UUID id,

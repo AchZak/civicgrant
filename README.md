@@ -82,7 +82,7 @@ Each adapter depends on `core`, never on another adapter, and brings only its ow
 
 The API is contract-first: `api/src/main/openapi/openapi.yaml` is written by hand and is the single source of truth. The Spring interfaces and the Angular client are generated from it, and the pipeline lints it with Redocly on every change. The application serves the API only, not its documentation.
 
-**Backend:** Java 25, Spring Boot 4, Spring Security (OAuth2 resource server), Spring Data JPA, Flyway, PostgreSQL
+**Backend:** Java 25, Spring Boot 4, Spring Security (OAuth2 resource server), Spring Data JPA, Flyway, PostgreSQL, JSpecify with NullAway
 **Frontend:** Angular with standalone components, signals, zoneless change detection, Dutch and French
 **Testing:** JUnit, Testcontainers, ArchUnit, Playwright
 
@@ -144,6 +144,8 @@ The choices that shape the code and the Azure setup most.
 **The domain doesn't depend on the application.** Each aggregate package in `core` has two layers. The domain layer holds the aggregate, its value objects, its rules and its events. The application layer holds the use cases, the ports in both directions and the services that load an aggregate, call it, save it and publish its events. A repository is something a use case needs, not something an aggregate uses, so the domain declares nothing an adapter implements. ArchUnit fails the build if the domain uses anything from the application, or if a class sits in neither layer.
 
 **The domain is plain Java; the application layer is ordinary Spring.** Aggregates, value objects and events use nothing but the JDK, so every rule is tested without a framework. Each use case is a Spring `@Service` whose one method is `@Transactional`, read-only for a query. Those two annotations are all the application layer takes from Spring, and ArchUnit fails the build if a service misses them or uses anything else from Spring.
+
+**Nothing is null unless its type says so.** All code is non-null by default, and `@Nullable` from JSpecify, the annotations Spring Framework 7 uses too, marks the few values that can be missing, such as a draft's submission time or an optional search filter. NullAway checks this as the code compiles, so passing a possible null where none is expected fails the build. Generated code and JPA entities, which frameworks fill by reflection, are outside the check.
 
 **Aggregates guard their own rules.** A grant application changes only through methods named after what happens, such as `submit`, `recordAssessment` or `approve`, never through setters. Each method checks who is acting, then the status and dates, then the data, and either succeeds completely or throws. `create` runs the creation rules; `restore` rebuilds an aggregate from storage without running any, because data that was valid when it was saved must stay readable when a rule changes later. Outside the core an aggregate is only read, and only persistence may restore one.
 

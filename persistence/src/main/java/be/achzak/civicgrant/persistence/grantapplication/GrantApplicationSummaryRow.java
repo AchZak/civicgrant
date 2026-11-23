@@ -4,6 +4,7 @@ import be.achzak.civicgrant.core.grantapplication.domain.ApplicationStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 
 record GrantApplicationSummaryRow(
         UUID id,
@@ -13,5 +14,5 @@ record GrantApplicationSummaryRow(
         ApplicationStatus status,
         String projectTitle,
         BigDecimal requestedAmount,
-        Instant submittedAt,
+        @Nullable Instant submittedAt,
         Instant updatedAt) {}

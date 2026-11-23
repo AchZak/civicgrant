@@ -6,6 +6,7 @@ import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 
 final class AuditEventJpaMapper {
 
@@ -20,7 +21,10 @@ final class AuditEventJpaMapper {
     }
 
     private static AuditEventJpaEntity entity(
-            UUID grantApplicationId, UUID organisationId, UUID fundingCallId, AuditEntry entry) {
+            @Nullable UUID grantApplicationId,
+            @Nullable UUID organisationId,
+            @Nullable UUID fundingCallId,
+            AuditEntry entry) {
         return new AuditEventJpaEntity(
                 grantApplicationId,
                 organisationId,

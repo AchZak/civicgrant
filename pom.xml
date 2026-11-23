@@ -33,6 +33,8 @@
         <openapi-generator.version>7.26.0</openapi-generator.version>
         <belgif-rest-problem.version>0.24.0</belgif-rest-problem.version>
         <archunit.version>1.5.1</archunit.version>
+        <error-prone.version>2.53.0</error-prone.version>
+        <nullaway.version>0.14.4</nullaway.version>
         <jacoco.version>0.8.16</jacoco.version>
         <sonar-maven-plugin.version>5.8.0.7211</sonar-maven-plugin.version>
         <spotless.version>3.10.4</spotless.version>
@@ -134,10 +136,33 @@
                             <goal>compile</goal>
                         </goals>
                         <configuration>
+                            <!-- NullAway on main code: everything is non-null unless @Nullable says otherwise -->
+                            <compilerArgs>
+                                <arg>-XDcompilePolicy=simple</arg>
+                                <arg>--should-stop=ifError=FLOW</arg>
+                                <arg>
+                                    -Xplugin:ErrorProne
+                                    -XepDisableAllChecks
+                                    -Xep:NullAway:ERROR
+                                    -XepOpt:NullAway:AnnotatedPackages=be.achzak.civicgrant
+                                    -XepOpt:NullAway:UnannotatedSubPackages=be.achzak.civicgrant.api.generated
+                                    -XepOpt:NullAway:ExcludedClassAnnotations=lombok.Generated,jakarta.persistence.Entity,jakarta.persistence.metamodel.StaticMetamodel
+                                </arg>
+                            </compilerArgs>
                             <annotationProcessorPaths>
                                 <path>
                                     <groupId>org.projectlombok</groupId>
                                     <artifactId>lombok</artifactId>
+                                </path>
+                                <path>
+                                    <groupId>com.google.errorprone</groupId>
+                                    <artifactId>error_prone_core</artifactId>
+                                    <version>${error-prone.version}</version>
+                                </path>
+                                <path>
+                                    <groupId>com.uber.nullaway</groupId>
+                                    <artifactId>nullaway</artifactId>
+                                    <version>${nullaway.version}</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>

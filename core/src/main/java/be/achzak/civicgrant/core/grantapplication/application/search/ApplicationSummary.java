@@ -8,6 +8,7 @@ import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 import be.achzak.civicgrant.core.sharedkernel.domain.Money;
 import java.time.Instant;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 public record ApplicationSummary(
         ApplicationId id,
@@ -17,7 +18,7 @@ public record ApplicationSummary(
         ApplicationStatus status,
         String projectTitle,
         Money requestedAmount,
-        Instant submittedAt,
+        @Nullable Instant submittedAt,
         Instant updatedAt) {
 
     public ApplicationSummary {

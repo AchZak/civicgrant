@@ -3,6 +3,7 @@ package be.achzak.civicgrant.api.security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -24,11 +25,11 @@ final class UserAccessTokenValidator implements OAuth2TokenValidator<Jwt> {
     }
 
     // Entra sends scp as one space-separated string, and app-only tokens have no scp at all.
-    private static boolean grantsApiScope(Object scopes) {
+    private static boolean grantsApiScope(@Nullable Object scopes) {
         return scopes instanceof String value && Arrays.asList(value.split(" ")).contains(EntraAccessToken.API_SCOPE);
     }
 
-    private static boolean isText(Object value) {
+    private static boolean isText(@Nullable Object value) {
         return value instanceof String text && !text.isBlank();
     }
 

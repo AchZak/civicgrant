@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 public final class GrantApplication {
 
@@ -54,9 +55,9 @@ public final class GrantApplication {
     private ProjectProposal proposal;
     private final List<SupportingDocument> documents;
     private ApplicationStatus status;
-    private Instant submittedAt;
-    private Assessment assessment;
-    private Decision decision;
+    private @Nullable Instant submittedAt;
+    private @Nullable Assessment assessment;
+    private @Nullable Decision decision;
     private final Instant createdAt;
     private Instant updatedAt;
     private final long version;
@@ -280,11 +281,12 @@ public final class GrantApplication {
         ensureVisibleTo(decisionMaker);
         ensureNotTheApplicant(decisionMaker);
         ensureStatus(ApplicationStatus.ASSESSED, APPLICATION_NOT_ASSESSED);
-        if (assessment.assessor().equals(decisionMaker.id())) {
+        Assessment recorded = Objects.requireNonNull(assessment, "an assessed application has its assessment");
+        if (recorded.assessor().equals(decisionMaker.id())) {
             throw new ForbiddenException(
                     SEPARATION_OF_DUTIES, "The assessor of application " + reference.value() + " can't decide on it");
         }
-        return assessment;
+        return recorded;
     }
 
     public boolean isVisibleTo(Actor actor) {

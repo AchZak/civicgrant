@@ -16,9 +16,11 @@ import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 import be.achzak.civicgrant.core.sharedkernel.domain.Money;
 import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 
 final class GrantApplicationJpaMapper {
 
@@ -124,10 +126,19 @@ final class GrantApplicationJpaMapper {
         return switch (entity.getOutcome()) {
             case APPROVED ->
                 new Decision.Approval(
-                        new Money(entity.getGrantedAmount()), decidedBy, entity.getMotivation(), entity.getDecidedAt());
+                        new Money(Objects.requireNonNull(
+                                entity.getGrantedAmount(),
+                                "an approval has a granted amount (ck_decision_consistency)")),
+                        decidedBy,
+                        entity.getMotivation(),
+                        entity.getDecidedAt());
             case REJECTED ->
                 new Decision.Rejection(
-                        entity.getRejectionGround(), decidedBy, entity.getMotivation(), entity.getDecidedAt());
+                        Objects.requireNonNull(
+                                entity.getRejectionGround(), "a rejection has a ground (ck_decision_consistency)"),
+                        decidedBy,
+                        entity.getMotivation(),
+                        entity.getDecidedAt());
         };
     }
 
@@ -143,7 +154,7 @@ final class GrantApplicationJpaMapper {
             GrantApplicationJpaEntity application,
             Assessment assessment,
             AssessmentRecommendation recommendation,
-            BigDecimal proposedAmount) {
+            @Nullable BigDecimal proposedAmount) {
         return new AssessmentJpaEntity(
                 application,
                 assessment.assessor().value(),
@@ -156,7 +167,9 @@ final class GrantApplicationJpaMapper {
 
     private static Assessment toDomain(AssessmentJpaEntity entity) {
         Recommendation recommendation = switch (entity.getRecommendation()) {
-            case APPROVE -> new Recommendation.Approve(new Money(entity.getProposedAmount()));
+            case APPROVE ->
+                new Recommendation.Approve(new Money(Objects.requireNonNull(
+                        entity.getProposedAmount(), "an APPROVE has a proposed amount (ck_assessment_consistency)")));
             case REJECT -> new Recommendation.Reject();
         };
         return new Assessment(

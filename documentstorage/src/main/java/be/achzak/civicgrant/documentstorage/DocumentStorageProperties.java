@@ -1,10 +1,15 @@
 package be.achzak.civicgrant.documentstorage;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 // Either an emulator connection string (local, tests) or an endpoint with the identity's client id (Azure).
 @ConfigurationProperties("civicgrant.documents")
-record DocumentStorageProperties(String endpoint, String container, String clientId, String connectionString) {
+record DocumentStorageProperties(
+        @Nullable String endpoint,
+        String container,
+        @Nullable String clientId,
+        @Nullable String connectionString) {
 
     DocumentStorageProperties {
         if (isBlank(container)) {
@@ -20,7 +25,7 @@ record DocumentStorageProperties(String endpoint, String container, String clien
         return !isBlank(connectionString);
     }
 
-    private static boolean isBlank(String value) {
+    private static boolean isBlank(@Nullable String value) {
         return value == null || value.isBlank();
     }
 }

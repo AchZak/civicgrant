@@ -25,6 +25,7 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.IntFunction;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -112,7 +113,8 @@ class GrantApplicationController implements ApplicationsApi {
                 .toUri();
     }
 
-    private static IntFunction<URI> linkToPage(ApplicationStatusDto status, UUID fundingCallId, int pageSize) {
+    private static IntFunction<URI> linkToPage(
+            @Nullable ApplicationStatusDto status, @Nullable UUID fundingCallId, int pageSize) {
         return page -> ServletUriComponentsBuilder.fromCurrentRequestUri()
                 .queryParamIfPresent("status", Optional.ofNullable(status))
                 .queryParamIfPresent("fundingCallId", Optional.ofNullable(fundingCallId))

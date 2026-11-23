@@ -16,6 +16,7 @@ import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(name = "decision")
@@ -36,10 +37,10 @@ class DecisionJpaEntity {
     @Enumerated(EnumType.STRING)
     private DecisionOutcome outcome;
 
-    private BigDecimal grantedAmount;
+    private @Nullable BigDecimal grantedAmount;
 
     @Enumerated(EnumType.STRING)
-    private RejectionGround rejectionGround;
+    private @Nullable RejectionGround rejectionGround;
 
     private String motivation;
     private Instant decidedAt;
@@ -48,8 +49,8 @@ class DecisionJpaEntity {
             GrantApplicationJpaEntity grantApplication,
             String decisionMakerOid,
             DecisionOutcome outcome,
-            BigDecimal grantedAmount,
-            RejectionGround rejectionGround,
+            @Nullable BigDecimal grantedAmount,
+            @Nullable RejectionGround rejectionGround,
             String motivation,
             Instant decidedAt) {
         this.grantApplication = grantApplication;

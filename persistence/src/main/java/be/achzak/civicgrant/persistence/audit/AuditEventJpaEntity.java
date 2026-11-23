@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(name = "audit_event")
@@ -27,9 +28,9 @@ class AuditEventJpaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private UUID grantApplicationId;
-    private UUID organisationId;
-    private UUID fundingCallId;
+    private @Nullable UUID grantApplicationId;
+    private @Nullable UUID organisationId;
+    private @Nullable UUID fundingCallId;
 
     @Enumerated(EnumType.STRING)
     private AuditAction eventType;
@@ -41,9 +42,9 @@ class AuditEventJpaEntity {
     private Map<String, String> details;
 
     AuditEventJpaEntity(
-            UUID grantApplicationId,
-            UUID organisationId,
-            UUID fundingCallId,
+            @Nullable UUID grantApplicationId,
+            @Nullable UUID organisationId,
+            @Nullable UUID fundingCallId,
             AuditAction eventType,
             String actorOid,
             Instant occurredAt,
