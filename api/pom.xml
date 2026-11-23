@@ -13,7 +13,6 @@
     <name>CivicGrant :: API</name>
 
     <properties>
-        <sonar.coverage.exclusions>**/*</sonar.coverage.exclusions>
         <sonar.exclusions>**/generated/**</sonar.exclusions>
     </properties>
 

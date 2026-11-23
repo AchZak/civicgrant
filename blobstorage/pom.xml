@@ -12,10 +12,6 @@
     <artifactId>civicgrant-blobstorage</artifactId>
     <name>CivicGrant :: Blob storage</name>
 
-    <properties>
-        <sonar.coverage.exclusions>**/*</sonar.coverage.exclusions>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>be.achzak</groupId>

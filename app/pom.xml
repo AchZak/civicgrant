@@ -12,10 +12,6 @@
     <artifactId>civicgrant-app</artifactId>
     <name>CivicGrant :: App</name>
 
-    <properties>
-        <sonar.coverage.exclusions>**/*</sonar.coverage.exclusions>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>be.achzak</groupId>
@@ -93,6 +89,22 @@
                 <configuration>
                     <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>report-aggregate</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report-aggregate</goal>
+                        </goals>
+                        <configuration>
+                            <includeCurrentProject>true</includeCurrentProject>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

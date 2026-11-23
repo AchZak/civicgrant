@@ -103,6 +103,8 @@ jobs:
 
       # 5. Compile, run the unit and integration tests, and package every module.
       #    Testcontainers starts PostgreSQL on the Docker engine already on the runner.
+      #    JaCoCo fails the build when a module breaks its coverage rule (see the poms),
+      #    and app writes the aggregate report that step 6 sends to SonarQube.
       #    The JAR built here stays on this runner: Publish image builds its own.
       - name: Compile and test
         run: ./mvnw verify

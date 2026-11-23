@@ -232,6 +232,20 @@ class GrantApplicationTest {
         }
 
         @Test
+        @DisplayName("refuses a stored approved application without a decision")
+        void refusesStoredApprovedApplicationWithoutDecision() {
+            // given
+            Assessment assessment =
+                    new Assessment(anAssessor().id(), true, new Recommendation.Reject(), "Onvolledig.", NOW);
+
+            // when
+            Throwable thrown = catchThrowable(() -> snapshot(ApplicationStatus.APPROVED, NOW, assessment, null));
+
+            // then
+            assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
         @DisplayName("refuses a stored approved application with a rejection")
         void refusesStoredApprovedApplicationWithRejection() {
             // given
