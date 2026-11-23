@@ -7,19 +7,16 @@ import be.achzak.civicgrant.core.grantapplication.application.port.out.DocumentS
 import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.core.grantapplication.domain.SupportingDocument;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class DownloadDocumentService implements DownloadDocumentUseCase {
 
     private final GrantApplicationRepository applications;
     private final DocumentStorage documents;
-
-    public DownloadDocumentService(GrantApplicationRepository applications, DocumentStorage documents) {
-        this.applications = applications;
-        this.documents = documents;
-    }
 
     @Override
     @Transactional(readOnly = true)

@@ -9,21 +9,18 @@ import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import jakarta.persistence.EntityManager;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class OrganisationPersistenceAdapter implements OrganisationRepository {
 
     private static final String UNIQUE_ENTERPRISE_NUMBER = "uq_organisation_enterprise_number";
 
     private final OrganisationJpaRepository organisations;
     private final EntityManager entityManager;
-
-    OrganisationPersistenceAdapter(OrganisationJpaRepository organisations, EntityManager entityManager) {
-        this.organisations = organisations;
-        this.entityManager = entityManager;
-    }
 
     @Override
     public Optional<Organisation> findById(OrganisationId id) {

@@ -18,10 +18,12 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.Year;
 import java.time.ZoneOffset;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class CreateApplicationService implements CreateApplicationUseCase {
 
     private final GrantApplicationRepository applications;
@@ -30,21 +32,6 @@ public class CreateApplicationService implements CreateApplicationUseCase {
     private final ApplicationReferenceSequence references;
     private final DomainEventPublisher events;
     private final Clock clock;
-
-    public CreateApplicationService(
-            GrantApplicationRepository applications,
-            FundingCallRepository fundingCalls,
-            OrganisationRepository organisations,
-            ApplicationReferenceSequence references,
-            DomainEventPublisher events,
-            Clock clock) {
-        this.applications = applications;
-        this.fundingCalls = fundingCalls;
-        this.organisations = organisations;
-        this.references = references;
-        this.events = events;
-        this.clock = clock;
-    }
 
     @Override
     @Transactional

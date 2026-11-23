@@ -25,12 +25,14 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.IntFunction;
+import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
+@RequiredArgsConstructor
 class GrantApplicationController implements ApplicationsApi {
 
     private final CreateApplicationUseCase createApplication;
@@ -38,19 +40,6 @@ class GrantApplicationController implements ApplicationsApi {
     private final GetApplicationUseCase getApplication;
     private final SearchApplicationsUseCase searchApplications;
     private final CurrentActor currentActor;
-
-    GrantApplicationController(
-            CreateApplicationUseCase createApplication,
-            EditApplicationUseCase editApplication,
-            GetApplicationUseCase getApplication,
-            SearchApplicationsUseCase searchApplications,
-            CurrentActor currentActor) {
-        this.createApplication = createApplication;
-        this.editApplication = editApplication;
-        this.getApplication = getApplication;
-        this.searchApplications = searchApplications;
-        this.currentActor = currentActor;
-    }
 
     @Override
     public ResponseEntity<ApplicationDto> createApplication(CreateApplicationRequestDto request) {

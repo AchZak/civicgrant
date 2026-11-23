@@ -8,10 +8,12 @@ import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.util.Comparator;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class ListOpenFundingCallsService implements ListOpenFundingCallsUseCase {
 
     private static final Comparator<FundingCall> CLOSING_SOONEST_FIRST = Comparator.comparing(
@@ -20,11 +22,6 @@ public class ListOpenFundingCallsService implements ListOpenFundingCallsUseCase 
 
     private final FundingCallRepository fundingCalls;
     private final Clock clock;
-
-    public ListOpenFundingCallsService(FundingCallRepository fundingCalls, Clock clock) {
-        this.fundingCalls = fundingCalls;
-        this.clock = clock;
-    }
 
     @Override
     @Transactional(readOnly = true)

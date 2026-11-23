@@ -12,21 +12,18 @@ import jakarta.persistence.OptimisticLockException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class FundingCallPersistenceAdapter implements FundingCallRepository {
 
     private static final String UNIQUE_REFERENCE = "uq_funding_call_reference";
 
     private final FundingCallJpaRepository fundingCalls;
     private final EntityManager entityManager;
-
-    FundingCallPersistenceAdapter(FundingCallJpaRepository fundingCalls, EntityManager entityManager) {
-        this.fundingCalls = fundingCalls;
-        this.entityManager = entityManager;
-    }
 
     @Override
     public Optional<FundingCall> findById(FundingCallId id) {

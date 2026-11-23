@@ -11,25 +11,18 @@ import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import io.github.belgif.rest.problem.ResourceNotFoundProblem;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
+@RequiredArgsConstructor
 class SubmissionController implements SubmissionsApi {
 
     private final SubmitApplicationUseCase submitApplication;
     private final GetApplicationUseCase getApplication;
     private final CurrentActor currentActor;
-
-    SubmissionController(
-            SubmitApplicationUseCase submitApplication,
-            GetApplicationUseCase getApplication,
-            CurrentActor currentActor) {
-        this.submitApplication = submitApplication;
-        this.getApplication = getApplication;
-        this.currentActor = currentActor;
-    }
 
     @Override
     public ResponseEntity<SubmissionDto> submitApplication(UUID applicationId) {

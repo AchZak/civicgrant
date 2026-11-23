@@ -13,10 +13,12 @@ import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPu
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.io.ByteArrayInputStream;
 import java.time.Clock;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class AttachDocumentService implements AttachDocumentUseCase {
 
     private final GrantApplicationRepository applications;
@@ -24,19 +26,6 @@ public class AttachDocumentService implements AttachDocumentUseCase {
     private final DocumentStorage documents;
     private final DomainEventPublisher events;
     private final Clock clock;
-
-    public AttachDocumentService(
-            GrantApplicationRepository applications,
-            FundingCallRepository fundingCalls,
-            DocumentStorage documents,
-            DomainEventPublisher events,
-            Clock clock) {
-        this.applications = applications;
-        this.fundingCalls = fundingCalls;
-        this.documents = documents;
-        this.events = events;
-        this.clock = clock;
-    }
 
     @Override
     @Transactional

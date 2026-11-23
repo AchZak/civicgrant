@@ -17,6 +17,7 @@ import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -28,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
+@RequiredArgsConstructor
 class SupportingDocumentController implements SupportingDocumentsApi {
 
     private final AttachDocumentUseCase attachDocument;
@@ -35,19 +37,6 @@ class SupportingDocumentController implements SupportingDocumentsApi {
     private final DownloadDocumentUseCase downloadDocument;
     private final RemoveDocumentUseCase removeDocument;
     private final CurrentActor currentActor;
-
-    SupportingDocumentController(
-            AttachDocumentUseCase attachDocument,
-            GetDocumentUseCase getDocument,
-            DownloadDocumentUseCase downloadDocument,
-            RemoveDocumentUseCase removeDocument,
-            CurrentActor currentActor) {
-        this.attachDocument = attachDocument;
-        this.getDocument = getDocument;
-        this.downloadDocument = downloadDocument;
-        this.removeDocument = removeDocument;
-        this.currentActor = currentActor;
-    }
 
     @Override
     public ResponseEntity<SupportingDocumentDto> attachDocument(UUID applicationId, MultipartFile file) {

@@ -21,16 +21,14 @@ import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class GrantApplicationPersistenceAdapter implements GrantApplicationRepository {
 
     private final EntityManager entityManager;
-
-    GrantApplicationPersistenceAdapter(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
 
     @Override
     public Optional<GrantApplication> findById(ApplicationId id) {

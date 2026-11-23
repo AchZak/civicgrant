@@ -7,17 +7,15 @@ import be.achzak.civicgrant.core.grantapplication.application.search.Application
 import be.achzak.civicgrant.core.grantapplication.application.search.ApplicationSearchCriteria;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationVisibility;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class SearchApplicationsService implements SearchApplicationsUseCase {
 
     private final GrantApplicationRepository applications;
-
-    public SearchApplicationsService(GrantApplicationRepository applications) {
-        this.applications = applications;
-    }
 
     @Override
     @Transactional(readOnly = true)

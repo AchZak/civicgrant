@@ -11,16 +11,14 @@ import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobHttpHeaders;
 import com.azure.storage.blob.options.BlobParallelUploadOptions;
 import java.io.InputStream;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class BlobDocumentStorage implements DocumentStorage {
 
     private final BlobContainerClient documents;
-
-    BlobDocumentStorage(BlobContainerClient documents) {
-        this.documents = documents;
-    }
 
     @Override
     public void store(ApplicationId applicationId, DocumentId documentId, InputStream content, long sizeInBytes) {

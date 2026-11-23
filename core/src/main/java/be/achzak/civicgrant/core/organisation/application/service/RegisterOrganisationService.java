@@ -11,21 +11,17 @@ import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPu
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import java.time.Clock;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class RegisterOrganisationService implements RegisterOrganisationUseCase {
 
     private final OrganisationRepository organisations;
     private final DomainEventPublisher events;
     private final Clock clock;
-
-    public RegisterOrganisationService(OrganisationRepository organisations, DomainEventPublisher events, Clock clock) {
-        this.organisations = organisations;
-        this.events = events;
-        this.clock = clock;
-    }
 
     @Override
     @Transactional

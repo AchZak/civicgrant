@@ -6,17 +6,15 @@ import be.achzak.civicgrant.core.organisation.application.port.out.OrganisationR
 import be.achzak.civicgrant.core.organisation.domain.Organisation;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class SearchOrganisationsService implements SearchOrganisationsUseCase {
 
     private final OrganisationRepository organisations;
-
-    public SearchOrganisationsService(OrganisationRepository organisations) {
-        this.organisations = organisations;
-    }
 
     @Override
     @Transactional(readOnly = true)

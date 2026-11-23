@@ -8,21 +8,17 @@ import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPublisher;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class OpenFundingCallService implements OpenFundingCallUseCase {
 
     private final FundingCallRepository fundingCalls;
     private final DomainEventPublisher events;
     private final Clock clock;
-
-    public OpenFundingCallService(FundingCallRepository fundingCalls, DomainEventPublisher events, Clock clock) {
-        this.fundingCalls = fundingCalls;
-        this.events = events;
-        this.clock = clock;
-    }
 
     // A reference that's already taken is refused by the repository's save, as FUNDING_CALL_REFERENCE_TAKEN.
     @Override

@@ -5,17 +5,15 @@ import be.achzak.civicgrant.core.organisation.application.port.in.GetOrganisatio
 import be.achzak.civicgrant.core.organisation.application.port.out.OrganisationRepository;
 import be.achzak.civicgrant.core.organisation.domain.Organisation;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class GetOrganisationService implements GetOrganisationUseCase {
 
     private final OrganisationRepository organisations;
-
-    public GetOrganisationService(OrganisationRepository organisations) {
-        this.organisations = organisations;
-    }
 
     @Override
     @Transactional(readOnly = true)

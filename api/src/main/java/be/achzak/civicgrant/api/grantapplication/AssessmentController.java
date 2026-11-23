@@ -10,23 +10,18 @@ import be.achzak.civicgrant.core.grantapplication.application.port.in.RecordAsse
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
+@RequiredArgsConstructor
 class AssessmentController implements AssessmentsApi {
 
     private final RecordAssessmentUseCase recordAssessment;
     private final GetAssessmentUseCase getAssessment;
     private final CurrentActor currentActor;
-
-    AssessmentController(
-            RecordAssessmentUseCase recordAssessment, GetAssessmentUseCase getAssessment, CurrentActor currentActor) {
-        this.recordAssessment = recordAssessment;
-        this.getAssessment = getAssessment;
-        this.currentActor = currentActor;
-    }
 
     @Override
     public ResponseEntity<AssessmentDto> recordAssessment(UUID applicationId, AssessmentRequestDto assessmentRequest) {

@@ -14,28 +14,19 @@ import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import java.net.URI;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
+@RequiredArgsConstructor
 class FundingCallController implements FundingCallsApi {
 
     private final OpenFundingCallUseCase openFundingCall;
     private final ListOpenFundingCallsUseCase listOpenFundingCalls;
     private final GetFundingCallUseCase getFundingCall;
     private final CurrentActor currentActor;
-
-    FundingCallController(
-            OpenFundingCallUseCase openFundingCall,
-            ListOpenFundingCallsUseCase listOpenFundingCalls,
-            GetFundingCallUseCase getFundingCall,
-            CurrentActor currentActor) {
-        this.openFundingCall = openFundingCall;
-        this.listOpenFundingCalls = listOpenFundingCalls;
-        this.getFundingCall = getFundingCall;
-        this.currentActor = currentActor;
-    }
 
     @Override
     public ResponseEntity<FundingCallDto> openFundingCall(OpenFundingCallRequestDto request) {

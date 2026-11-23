@@ -7,21 +7,17 @@ import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
 import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPublisher;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class RemoveDocumentService implements RemoveDocumentUseCase {
 
     private final GrantApplicationRepository applications;
     private final DomainEventPublisher events;
     private final Clock clock;
-
-    public RemoveDocumentService(GrantApplicationRepository applications, DomainEventPublisher events, Clock clock) {
-        this.applications = applications;
-        this.events = events;
-        this.clock = clock;
-    }
 
     @Override
     @Transactional

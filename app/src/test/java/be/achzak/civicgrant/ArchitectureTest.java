@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import lombok.Generated;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -53,15 +54,16 @@ class ArchitectureTest {
             .onlyDependOnClassesThat()
             .resideInAnyPackage("java..", "org.jspecify..", "..civicgrant.core..");
 
+    // ArchUnit also counts the annotations' member types and Lombok's marker on generated constructors.
     @ArchTest
     static final ArchRule the_application_uses_spring_only_for_service_and_transactional = classes()
             .that()
             .resideInAPackage(APPLICATION)
             .should()
-            .onlyDependOnClassesThat(
-                    JavaClass.Predicates.resideInAnyPackage("java..", "org.jspecify..", "..civicgrant.core..")
-                            .or(JavaClass.Predicates.belongToAnyOf(
-                                    Service.class, Transactional.class, Propagation.class, Isolation.class)));
+            .onlyDependOnClassesThat(JavaClass.Predicates.resideInAnyPackage(
+                            "java..", "org.jspecify..", "..civicgrant.core..")
+                    .or(JavaClass.Predicates.belongToAnyOf(
+                            Service.class, Transactional.class, Propagation.class, Isolation.class, Generated.class)));
 
     @ArchTest
     static final ArchRule the_application_and_events_leave_null_checks_to_nullaway = noClasses()

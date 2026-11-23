@@ -5,17 +5,15 @@ import be.achzak.civicgrant.core.fundingcall.application.port.in.GetFundingCallU
 import be.achzak.civicgrant.core.fundingcall.application.port.out.FundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class GetFundingCallService implements GetFundingCallUseCase {
 
     private final FundingCallRepository fundingCalls;
-
-    public GetFundingCallService(FundingCallRepository fundingCalls) {
-        this.fundingCalls = fundingCalls;
-    }
 
     @Override
     @Transactional(readOnly = true)

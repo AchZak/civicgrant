@@ -29,6 +29,11 @@
             <groupId>org.jspecify</groupId>
             <artifactId>jspecify</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
         <!-- Netty excluded from both, so the JDK HTTP client stays the only transport -->
         <dependency>
             <groupId>com.azure</groupId>

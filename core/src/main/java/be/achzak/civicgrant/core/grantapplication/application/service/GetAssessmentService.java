@@ -5,17 +5,15 @@ import be.achzak.civicgrant.core.grantapplication.application.port.in.GetAssessm
 import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.core.grantapplication.domain.Assessment;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class GetAssessmentService implements GetAssessmentUseCase {
 
     private final GrantApplicationRepository applications;
-
-    public GetAssessmentService(GrantApplicationRepository applications) {
-        this.applications = applications;
-    }
 
     @Override
     @Transactional(readOnly = true)

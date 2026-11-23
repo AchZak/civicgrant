@@ -10,27 +10,18 @@ import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPu
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.time.Instant;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class ApproveApplicationService implements ApproveApplicationUseCase {
 
     private final GrantApplicationRepository applications;
     private final FundingCallRepository fundingCalls;
     private final DomainEventPublisher events;
     private final Clock clock;
-
-    public ApproveApplicationService(
-            GrantApplicationRepository applications,
-            FundingCallRepository fundingCalls,
-            DomainEventPublisher events,
-            Clock clock) {
-        this.applications = applications;
-        this.fundingCalls = fundingCalls;
-        this.events = events;
-        this.clock = clock;
-    }
 
     @Override
     @Transactional

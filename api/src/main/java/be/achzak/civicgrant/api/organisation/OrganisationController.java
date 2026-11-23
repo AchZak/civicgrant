@@ -15,28 +15,19 @@ import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import java.net.URI;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
+@RequiredArgsConstructor
 class OrganisationController implements OrganisationsApi {
 
     private final RegisterOrganisationUseCase registerOrganisation;
     private final GetOrganisationUseCase getOrganisation;
     private final SearchOrganisationsUseCase searchOrganisations;
     private final CurrentActor currentActor;
-
-    OrganisationController(
-            RegisterOrganisationUseCase registerOrganisation,
-            GetOrganisationUseCase getOrganisation,
-            SearchOrganisationsUseCase searchOrganisations,
-            CurrentActor currentActor) {
-        this.registerOrganisation = registerOrganisation;
-        this.getOrganisation = getOrganisation;
-        this.searchOrganisations = searchOrganisations;
-        this.currentActor = currentActor;
-    }
 
     @Override
     public ResponseEntity<OrganisationDto> registerOrganisation(RegisterOrganisationRequestDto request) {

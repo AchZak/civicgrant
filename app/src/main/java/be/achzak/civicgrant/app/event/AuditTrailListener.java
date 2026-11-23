@@ -6,17 +6,15 @@ import be.achzak.civicgrant.core.audit.domain.AuditEntry;
 import be.achzak.civicgrant.core.fundingcall.domain.event.FundingCallEvent;
 import be.achzak.civicgrant.core.grantapplication.domain.event.GrantApplicationEvent;
 import be.achzak.civicgrant.core.organisation.domain.event.OrganisationEvent;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class AuditTrailListener {
 
     private final RecordAuditEntryUseCase recordAuditEntry;
-
-    AuditTrailListener(RecordAuditEntryUseCase recordAuditEntry) {
-        this.recordAuditEntry = recordAuditEntry;
-    }
 
     @EventListener
     void on(OrganisationEvent event) {

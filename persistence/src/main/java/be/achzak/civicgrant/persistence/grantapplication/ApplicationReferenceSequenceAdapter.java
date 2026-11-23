@@ -1,17 +1,15 @@
 package be.achzak.civicgrant.persistence.grantapplication;
 
 import be.achzak.civicgrant.core.grantapplication.application.port.out.ApplicationReferenceSequence;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 class ApplicationReferenceSequenceAdapter implements ApplicationReferenceSequence {
 
     private final JdbcClient jdbc;
-
-    ApplicationReferenceSequenceAdapter(JdbcClient jdbc) {
-        this.jdbc = jdbc;
-    }
 
     @Override
     public long nextNumber() {

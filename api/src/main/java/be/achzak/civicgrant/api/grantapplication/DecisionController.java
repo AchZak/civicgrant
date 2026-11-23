@@ -12,28 +12,19 @@ import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import io.github.belgif.rest.problem.ResourceNotFoundProblem;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
+@RequiredArgsConstructor
 class DecisionController implements DecisionsApi {
 
     private final ApproveApplicationUseCase approveApplication;
     private final RejectApplicationUseCase rejectApplication;
     private final GetApplicationUseCase getApplication;
     private final CurrentActor currentActor;
-
-    DecisionController(
-            ApproveApplicationUseCase approveApplication,
-            RejectApplicationUseCase rejectApplication,
-            GetApplicationUseCase getApplication,
-            CurrentActor currentActor) {
-        this.approveApplication = approveApplication;
-        this.rejectApplication = rejectApplication;
-        this.getApplication = getApplication;
-        this.currentActor = currentActor;
-    }
 
     @Override
     public ResponseEntity<DecisionDto> decideApplication(UUID applicationId, DecisionRequestDto decisionRequest) {

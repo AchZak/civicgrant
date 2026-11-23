@@ -8,17 +8,15 @@ import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantAppl
 import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import be.achzak.civicgrant.core.sharedkernel.domain.error.NotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class GetApplicationService implements GetApplicationUseCase {
 
     private final GrantApplicationRepository applications;
-
-    public GetApplicationService(GrantApplicationRepository applications) {
-        this.applications = applications;
-    }
 
     @Override
     @Transactional(readOnly = true)
