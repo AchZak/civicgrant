@@ -16,7 +16,6 @@ public record ApplicationReference(String value) {
     }
 
     public static ApplicationReference of(Year year, long number) {
-        Objects.requireNonNull(year, "year");
         return new ApplicationReference("CG-%d-%06d".formatted(year.getValue(), number));
     }
 }

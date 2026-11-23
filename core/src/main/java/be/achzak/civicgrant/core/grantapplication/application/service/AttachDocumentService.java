@@ -13,7 +13,6 @@ import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPu
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.io.ByteArrayInputStream;
 import java.time.Clock;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,17 +31,16 @@ public class AttachDocumentService implements AttachDocumentUseCase {
             DocumentStorage documents,
             DomainEventPublisher events,
             Clock clock) {
-        this.applications = Objects.requireNonNull(applications, "applications");
-        this.fundingCalls = Objects.requireNonNull(fundingCalls, "fundingCalls");
-        this.documents = Objects.requireNonNull(documents, "documents");
-        this.events = Objects.requireNonNull(events, "events");
-        this.clock = Objects.requireNonNull(clock, "clock");
+        this.applications = applications;
+        this.fundingCalls = fundingCalls;
+        this.documents = documents;
+        this.events = events;
+        this.clock = clock;
     }
 
     @Override
     @Transactional
     public DocumentId attach(AttachDocumentCommand command) {
-        Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.APPLICANT);
         GrantApplication application = applications.getById(command.applicationId());
         // The foreign key guarantees the call exists, so a missing one is a bug.

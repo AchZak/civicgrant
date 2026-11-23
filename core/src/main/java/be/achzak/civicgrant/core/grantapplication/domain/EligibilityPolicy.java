@@ -24,7 +24,6 @@ public record EligibilityPolicy(Set<LegalForm> eligibleForms) {
     }
 
     public void ensureEligible(Organisation organisation) {
-        Objects.requireNonNull(organisation, "organisation");
         if (!eligibleForms.contains(organisation.legalForm())) {
             throw new BusinessRuleViolationException(
                     LEGAL_FORM_NOT_ELIGIBLE,

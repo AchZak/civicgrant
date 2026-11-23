@@ -4,7 +4,6 @@ import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationStatus;
 import be.achzak.civicgrant.core.sharedkernel.application.Query;
 import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import java.util.Objects;
 import java.util.Set;
 
 public record SearchApplicationsQuery(
@@ -14,9 +13,8 @@ public record SearchApplicationsQuery(
     public static final int MAX_PAGE_SIZE = 100;
 
     public SearchApplicationsQuery {
-        statuses = Set.copyOf(Objects.requireNonNull(statuses, "statuses"));
-        fundingCalls = Set.copyOf(Objects.requireNonNull(fundingCalls, "fundingCalls"));
-        Objects.requireNonNull(actor, "actor");
+        statuses = Set.copyOf(statuses);
+        fundingCalls = Set.copyOf(fundingCalls);
         if (page < 1) {
             throw new IllegalArgumentException("Page " + page + " is below 1");
         }

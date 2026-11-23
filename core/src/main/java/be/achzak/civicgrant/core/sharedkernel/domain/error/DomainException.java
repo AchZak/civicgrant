@@ -1,7 +1,6 @@
 package be.achzak.civicgrant.core.sharedkernel.domain.error;
 
 import java.io.Serial;
-import java.util.Objects;
 
 public abstract sealed class DomainException extends RuntimeException
         permits NotFoundException, ForbiddenException, BusinessRuleViolationException, ConflictException {
@@ -12,8 +11,8 @@ public abstract sealed class DomainException extends RuntimeException
     private final ErrorCode code;
 
     protected DomainException(ErrorCode code, String message) {
-        super(Objects.requireNonNull(message, "message"));
-        this.code = Objects.requireNonNull(code, "code");
+        super(message);
+        this.code = code;
     }
 
     public ErrorCode code() {

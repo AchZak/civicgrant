@@ -7,7 +7,6 @@ import be.achzak.civicgrant.core.grantapplication.application.port.out.DocumentS
 import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.core.grantapplication.domain.SupportingDocument;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,14 +17,13 @@ public class DownloadDocumentService implements DownloadDocumentUseCase {
     private final DocumentStorage documents;
 
     public DownloadDocumentService(GrantApplicationRepository applications, DocumentStorage documents) {
-        this.applications = Objects.requireNonNull(applications, "applications");
-        this.documents = Objects.requireNonNull(documents, "documents");
+        this.applications = applications;
+        this.documents = documents;
     }
 
     @Override
     @Transactional(readOnly = true)
     public DocumentDownload download(DownloadDocumentQuery query) {
-        Objects.requireNonNull(query, "query");
         query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER);
         SupportingDocument document =
                 applications.getById(query.applicationId()).document(query.documentId(), query.actor());

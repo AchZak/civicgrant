@@ -10,7 +10,6 @@ import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPu
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,16 +26,15 @@ public class ApproveApplicationService implements ApproveApplicationUseCase {
             FundingCallRepository fundingCalls,
             DomainEventPublisher events,
             Clock clock) {
-        this.applications = Objects.requireNonNull(applications, "applications");
-        this.fundingCalls = Objects.requireNonNull(fundingCalls, "fundingCalls");
-        this.events = Objects.requireNonNull(events, "events");
-        this.clock = Objects.requireNonNull(clock, "clock");
+        this.applications = applications;
+        this.fundingCalls = fundingCalls;
+        this.events = events;
+        this.clock = clock;
     }
 
     @Override
     @Transactional
     public void approve(ApproveApplicationCommand command) {
-        Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.DECISION_MAKER);
         GrantApplication application = applications.getById(command.applicationId());
         // The foreign key guarantees the call exists, so a missing one is a bug.

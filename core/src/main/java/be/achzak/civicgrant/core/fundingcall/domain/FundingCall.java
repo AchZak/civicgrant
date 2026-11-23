@@ -15,7 +15,6 @@ import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolation
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public final class FundingCall {
 
@@ -38,13 +37,13 @@ public final class FundingCall {
             BudgetEnvelope budget,
             long version,
             Instant createdAt) {
-        this.id = Objects.requireNonNull(id, "id");
-        this.reference = Objects.requireNonNull(reference, "reference");
-        this.title = Objects.requireNonNull(title, "title");
-        this.submissionPeriod = Objects.requireNonNull(submissionPeriod, "submissionPeriod");
-        this.budget = Objects.requireNonNull(budget, "budget");
+        this.id = id;
+        this.reference = reference;
+        this.title = title;
+        this.submissionPeriod = submissionPeriod;
+        this.budget = budget;
         this.version = version;
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt");
+        this.createdAt = createdAt;
     }
 
     public static FundingCall create(
@@ -55,9 +54,6 @@ public final class FundingCall {
             Money capPerApplication,
             Actor openedBy,
             Instant now) {
-        Objects.requireNonNull(submissionPeriod, "submissionPeriod");
-        Objects.requireNonNull(openedBy, "openedBy");
-        Objects.requireNonNull(now, "now");
         if (submissionPeriod.isClosedAt(now)) {
             throw new BusinessRuleViolationException(
                     FUNDING_CALL_ALREADY_CLOSED, "A new funding call closes in the future");
@@ -71,7 +67,6 @@ public final class FundingCall {
     }
 
     private static LocalizedText validTitle(LocalizedText title) {
-        Objects.requireNonNull(title, "title");
         LocalizedText stripped =
                 new LocalizedText(title.nl().strip(), title.fr().strip());
         if (stripped.nl().length() > MAX_TITLE_LENGTH || stripped.fr().length() > MAX_TITLE_LENGTH) {
@@ -93,9 +88,6 @@ public final class FundingCall {
     }
 
     public void commitGrant(Money amount, Actor decidedBy, Instant now) {
-        Objects.requireNonNull(amount, "amount");
-        Objects.requireNonNull(decidedBy, "decidedBy");
-        Objects.requireNonNull(now, "now");
         if (!amount.isPositive()) {
             throw new BusinessRuleViolationException(
                     GRANTED_AMOUNT_NOT_POSITIVE, "A granted amount is greater than zero");

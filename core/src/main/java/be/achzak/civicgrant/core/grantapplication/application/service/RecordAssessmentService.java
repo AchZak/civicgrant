@@ -7,7 +7,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
 import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPublisher;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,15 +18,14 @@ public class RecordAssessmentService implements RecordAssessmentUseCase {
     private final Clock clock;
 
     public RecordAssessmentService(GrantApplicationRepository applications, DomainEventPublisher events, Clock clock) {
-        this.applications = Objects.requireNonNull(applications, "applications");
-        this.events = Objects.requireNonNull(events, "events");
-        this.clock = Objects.requireNonNull(clock, "clock");
+        this.applications = applications;
+        this.events = events;
+        this.clock = clock;
     }
 
     @Override
     @Transactional
     public void record(RecordAssessmentCommand command) {
-        Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.ASSESSOR);
         GrantApplication application = applications.getById(command.applicationId());
         application.recordAssessment(

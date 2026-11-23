@@ -5,7 +5,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import java.time.Instant;
-import java.util.Objects;
 
 public record ApplicationCreated(
         ApplicationId applicationId,
@@ -13,13 +12,4 @@ public record ApplicationCreated(
         OrganisationId organisationId,
         UserId actorId,
         Instant occurredAt)
-        implements GrantApplicationEvent {
-
-    public ApplicationCreated {
-        Objects.requireNonNull(applicationId, "applicationId");
-        Objects.requireNonNull(fundingCallId, "fundingCallId");
-        Objects.requireNonNull(organisationId, "organisationId");
-        Objects.requireNonNull(actorId, "actorId");
-        Objects.requireNonNull(occurredAt, "occurredAt");
-    }
-}
+        implements GrantApplicationEvent {}

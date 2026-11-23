@@ -24,6 +24,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import jakarta.persistence.metamodel.StaticMetamodel;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 class ArchitectureTest {
 
     private static final String DOMAIN = "..civicgrant.core.*.domain..";
+    private static final String EVENTS = "..civicgrant.core.*.domain.event..";
     private static final String APPLICATION = "..civicgrant.core.*.application..";
     private static final String INBOUND_PORTS = "..civicgrant.core.*.application.port.in..";
     private static final String OUTBOUND_PORTS = "..civicgrant.core.*.application.port.out..";
@@ -60,6 +62,16 @@ class ArchitectureTest {
                     JavaClass.Predicates.resideInAnyPackage("java..", "org.jspecify..", "..civicgrant.core..")
                             .or(JavaClass.Predicates.belongToAnyOf(
                                     Service.class, Transactional.class, Propagation.class, Isolation.class)));
+
+    @ArchTest
+    static final ArchRule the_application_and_events_leave_null_checks_to_nullaway = noClasses()
+            .that()
+            .resideInAnyPackage(APPLICATION, EVENTS)
+            .should()
+            .callMethodWhere(DescribedPredicate.describe(
+                    "Objects.requireNonNull",
+                    call -> call.getTargetOwner().isEquivalentTo(Objects.class)
+                            && call.getTarget().getName().equals("requireNonNull")));
 
     @ArchTest
     static final ArchRule every_core_class_belongs_to_the_domain_or_the_application =

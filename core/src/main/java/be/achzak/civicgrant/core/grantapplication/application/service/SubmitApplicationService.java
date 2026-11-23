@@ -9,7 +9,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
 import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPublisher;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,16 +25,15 @@ public class SubmitApplicationService implements SubmitApplicationUseCase {
             FundingCallRepository fundingCalls,
             DomainEventPublisher events,
             Clock clock) {
-        this.applications = Objects.requireNonNull(applications, "applications");
-        this.fundingCalls = Objects.requireNonNull(fundingCalls, "fundingCalls");
-        this.events = Objects.requireNonNull(events, "events");
-        this.clock = Objects.requireNonNull(clock, "clock");
+        this.applications = applications;
+        this.fundingCalls = fundingCalls;
+        this.events = events;
+        this.clock = clock;
     }
 
     @Override
     @Transactional
     public void submit(SubmitApplicationCommand command) {
-        Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.APPLICANT);
         GrantApplication application = applications.getById(command.applicationId());
         // The foreign key guarantees the call exists, so a missing one is a bug.

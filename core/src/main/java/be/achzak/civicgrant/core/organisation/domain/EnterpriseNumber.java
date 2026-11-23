@@ -28,7 +28,6 @@ public record EnterpriseNumber(String value) {
     }
 
     public static EnterpriseNumber parse(String input) {
-        Objects.requireNonNull(input, "input");
         String normalized = input.strip().toUpperCase(Locale.ROOT);
         if (normalized.startsWith("BE")) {
             normalized = normalized.substring(2);

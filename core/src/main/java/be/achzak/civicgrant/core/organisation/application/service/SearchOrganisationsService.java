@@ -6,7 +6,6 @@ import be.achzak.civicgrant.core.organisation.application.port.out.OrganisationR
 import be.achzak.civicgrant.core.organisation.domain.Organisation;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.util.List;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,13 +15,12 @@ public class SearchOrganisationsService implements SearchOrganisationsUseCase {
     private final OrganisationRepository organisations;
 
     public SearchOrganisationsService(OrganisationRepository organisations) {
-        this.organisations = Objects.requireNonNull(organisations, "organisations");
+        this.organisations = organisations;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Organisation> search(SearchOrganisationsQuery query) {
-        Objects.requireNonNull(query, "query");
         query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER);
         return organisations.findByEnterpriseNumber(query.enterpriseNumber()).stream()
                 .toList();

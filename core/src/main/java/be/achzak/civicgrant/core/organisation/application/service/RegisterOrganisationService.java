@@ -11,7 +11,6 @@ import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPu
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import java.time.Clock;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,15 +22,14 @@ public class RegisterOrganisationService implements RegisterOrganisationUseCase 
     private final Clock clock;
 
     public RegisterOrganisationService(OrganisationRepository organisations, DomainEventPublisher events, Clock clock) {
-        this.organisations = Objects.requireNonNull(organisations, "organisations");
-        this.events = Objects.requireNonNull(events, "events");
-        this.clock = Objects.requireNonNull(clock, "clock");
+        this.organisations = organisations;
+        this.events = events;
+        this.clock = clock;
     }
 
     @Override
     @Transactional
     public OrganisationId register(RegisterOrganisationCommand command) {
-        Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.APPLICANT);
         if (organisations.findByEnterpriseNumber(command.enterpriseNumber()).isPresent()) {
             throw new ConflictException(

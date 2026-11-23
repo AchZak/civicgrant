@@ -12,14 +12,11 @@ public record ApplicationVisibility(UserId user, boolean staff) {
     }
 
     public static ApplicationVisibility of(Actor actor) {
-        Objects.requireNonNull(actor, "actor");
         return new ApplicationVisibility(
                 actor.id(), actor.hasRole(Role.ASSESSOR) || actor.hasRole(Role.DECISION_MAKER));
     }
 
     public boolean allows(UserId applicant, ApplicationStatus status) {
-        Objects.requireNonNull(applicant, "applicant");
-        Objects.requireNonNull(status, "status");
         return user.equals(applicant) || (staff && status != ApplicationStatus.DRAFT);
     }
 }

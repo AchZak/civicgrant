@@ -30,9 +30,6 @@ public record SupportingDocument(
 
     static SupportingDocument upload(
             String fileName, String declaredContentType, byte[] content, UserId uploadedBy, Instant uploadedAt) {
-        Objects.requireNonNull(fileName, "fileName");
-        Objects.requireNonNull(declaredContentType, "declaredContentType");
-        Objects.requireNonNull(content, "content");
         String validFileName = validFileName(fileName);
         if (!CONTENT_TYPE.equalsIgnoreCase(declaredContentType.strip())) {
             throw new BusinessRuleViolationException(

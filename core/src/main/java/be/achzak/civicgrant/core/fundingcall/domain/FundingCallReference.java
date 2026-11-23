@@ -22,7 +22,7 @@ public record FundingCallReference(String value) {
     }
 
     public static FundingCallReference parse(String input) {
-        return new FundingCallReference(Objects.requireNonNull(input, "input").strip());
+        return new FundingCallReference(input.strip());
     }
 
     // Checked in steps rather than as one repeated group, which Java's regex engine would recurse on.

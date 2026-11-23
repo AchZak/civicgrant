@@ -5,7 +5,6 @@ import be.achzak.civicgrant.core.fundingcall.domain.FundingCallReference;
 import be.achzak.civicgrant.core.sharedkernel.domain.Money;
 import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import java.time.Instant;
-import java.util.Objects;
 
 public record FundingCallOpened(
         FundingCallId fundingCallId,
@@ -13,13 +12,4 @@ public record FundingCallOpened(
         Money totalBudget,
         UserId actorId,
         Instant occurredAt)
-        implements FundingCallEvent {
-
-    public FundingCallOpened {
-        Objects.requireNonNull(fundingCallId, "fundingCallId");
-        Objects.requireNonNull(reference, "reference");
-        Objects.requireNonNull(totalBudget, "totalBudget");
-        Objects.requireNonNull(actorId, "actorId");
-        Objects.requireNonNull(occurredAt, "occurredAt");
-    }
-}
+        implements FundingCallEvent {}

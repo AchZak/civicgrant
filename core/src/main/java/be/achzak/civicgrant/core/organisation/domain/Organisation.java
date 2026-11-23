@@ -10,7 +10,6 @@ import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolation
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public final class Organisation {
 
@@ -25,16 +24,15 @@ public final class Organisation {
 
     private Organisation(
             OrganisationId id, EnterpriseNumber enterpriseNumber, String name, LegalForm legalForm, Instant createdAt) {
-        this.id = Objects.requireNonNull(id, "id");
-        this.enterpriseNumber = Objects.requireNonNull(enterpriseNumber, "enterpriseNumber");
-        this.name = Objects.requireNonNull(name, "name");
-        this.legalForm = Objects.requireNonNull(legalForm, "legalForm");
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt");
+        this.id = id;
+        this.enterpriseNumber = enterpriseNumber;
+        this.name = name;
+        this.legalForm = legalForm;
+        this.createdAt = createdAt;
     }
 
     public static Organisation create(
             EnterpriseNumber enterpriseNumber, String name, LegalForm legalForm, Actor registeredBy, Instant now) {
-        Objects.requireNonNull(registeredBy, "registeredBy");
         Organisation organisation =
                 new Organisation(OrganisationId.generate(), enterpriseNumber, validName(name), legalForm, now);
         organisation.events.add(new OrganisationRegistered(organisation.id, enterpriseNumber, registeredBy.id(), now));
@@ -47,7 +45,7 @@ public final class Organisation {
     }
 
     private static String validName(String name) {
-        String stripped = Objects.requireNonNull(name, "name").strip();
+        String stripped = name.strip();
         if (stripped.isEmpty()) {
             throw new BusinessRuleViolationException(ORGANISATION_NAME_REQUIRED, "Organisation name is blank");
         }

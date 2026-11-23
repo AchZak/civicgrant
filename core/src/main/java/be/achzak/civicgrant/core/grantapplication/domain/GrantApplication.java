@@ -88,13 +88,6 @@ public final class GrantApplication {
             EligibilityPolicy eligibilityPolicy,
             Actor applicant,
             Instant now) {
-        Objects.requireNonNull(reference, "reference");
-        Objects.requireNonNull(fundingCall, "fundingCall");
-        Objects.requireNonNull(organisation, "organisation");
-        Objects.requireNonNull(proposal, "proposal");
-        Objects.requireNonNull(eligibilityPolicy, "eligibilityPolicy");
-        Objects.requireNonNull(applicant, "applicant");
-        Objects.requireNonNull(now, "now");
         ensureAcceptsDrafts(fundingCall, now);
         eligibilityPolicy.ensureEligible(organisation);
         ensureWithinCap(proposal, fundingCall);
@@ -119,14 +112,10 @@ public final class GrantApplication {
     }
 
     public static GrantApplication restore(GrantApplicationSnapshot snapshot) {
-        return new GrantApplication(Objects.requireNonNull(snapshot, "snapshot"));
+        return new GrantApplication(snapshot);
     }
 
     public void edit(ProjectProposal newProposal, FundingCall fundingCall, Actor actor, Instant now) {
-        Objects.requireNonNull(newProposal, "newProposal");
-        Objects.requireNonNull(fundingCall, "fundingCall");
-        Objects.requireNonNull(actor, "actor");
-        Objects.requireNonNull(now, "now");
         ensureActingApplicant(actor);
         ensureStatus(ApplicationStatus.DRAFT, APPLICATION_NOT_DRAFT);
         ensureSameCall(fundingCall);
@@ -144,12 +133,6 @@ public final class GrantApplication {
             FundingCall fundingCall,
             Actor actor,
             Instant now) {
-        Objects.requireNonNull(fileName, "fileName");
-        Objects.requireNonNull(declaredContentType, "declaredContentType");
-        Objects.requireNonNull(content, "content");
-        Objects.requireNonNull(fundingCall, "fundingCall");
-        Objects.requireNonNull(actor, "actor");
-        Objects.requireNonNull(now, "now");
         ensureActingApplicant(actor);
         ensureStatus(ApplicationStatus.DRAFT, APPLICATION_NOT_DRAFT);
         ensureSameCall(fundingCall);
@@ -163,9 +146,6 @@ public final class GrantApplication {
     }
 
     public void removeDocument(DocumentId documentId, Actor actor, Instant now) {
-        Objects.requireNonNull(documentId, "documentId");
-        Objects.requireNonNull(actor, "actor");
-        Objects.requireNonNull(now, "now");
         ensureActingApplicant(actor);
         ensureStatus(ApplicationStatus.DRAFT, APPLICATION_NOT_DRAFT);
         if (!documents.removeIf(document -> document.id().equals(documentId))) {
@@ -176,8 +156,6 @@ public final class GrantApplication {
     }
 
     public SupportingDocument document(DocumentId documentId, Actor reader) {
-        Objects.requireNonNull(documentId, "documentId");
-        Objects.requireNonNull(reader, "reader");
         ensureVisibleTo(reader);
         return documents.stream()
                 .filter(document -> document.id().equals(documentId))
@@ -186,7 +164,6 @@ public final class GrantApplication {
     }
 
     public Assessment assessmentFor(Actor reader) {
-        Objects.requireNonNull(reader, "reader");
         ensureVisibleTo(reader);
         ensureNotTheApplicant(reader);
         if (assessment == null) {
@@ -203,9 +180,6 @@ public final class GrantApplication {
     }
 
     public void submit(FundingCall fundingCall, Actor actor, Instant now) {
-        Objects.requireNonNull(fundingCall, "fundingCall");
-        Objects.requireNonNull(actor, "actor");
-        Objects.requireNonNull(now, "now");
         ensureActingApplicant(actor);
         ensureStatus(ApplicationStatus.DRAFT, APPLICATION_NOT_DRAFT);
         ensureSameCall(fundingCall);
@@ -234,10 +208,6 @@ public final class GrantApplication {
 
     public void recordAssessment(
             boolean eligible, Recommendation recommendation, String comment, Actor assessor, Instant now) {
-        Objects.requireNonNull(recommendation, "recommendation");
-        Objects.requireNonNull(comment, "comment");
-        Objects.requireNonNull(assessor, "assessor");
-        Objects.requireNonNull(now, "now");
         ensureVisibleTo(assessor);
         ensureNotTheApplicant(assessor);
         ensureStatus(ApplicationStatus.SUBMITTED, APPLICATION_NOT_SUBMITTED);
@@ -249,10 +219,6 @@ public final class GrantApplication {
     }
 
     public void approve(Money grantedAmount, String motivation, Actor decisionMaker, Instant now) {
-        Objects.requireNonNull(grantedAmount, "grantedAmount");
-        Objects.requireNonNull(motivation, "motivation");
-        Objects.requireNonNull(decisionMaker, "decisionMaker");
-        Objects.requireNonNull(now, "now");
         Assessment recorded = ensureDecidableBy(decisionMaker);
         if (!recorded.eligible()) {
             throw new BusinessRuleViolationException(
@@ -266,10 +232,6 @@ public final class GrantApplication {
     }
 
     public void reject(RejectionGround ground, String motivation, Actor decisionMaker, Instant now) {
-        Objects.requireNonNull(ground, "ground");
-        Objects.requireNonNull(motivation, "motivation");
-        Objects.requireNonNull(decisionMaker, "decisionMaker");
-        Objects.requireNonNull(now, "now");
         ensureDecidableBy(decisionMaker);
         decision = Decision.rejection(ground, decisionMaker.id(), motivation, now);
         status = ApplicationStatus.REJECTED;

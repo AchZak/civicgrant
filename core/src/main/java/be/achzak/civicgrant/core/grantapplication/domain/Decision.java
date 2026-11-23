@@ -23,8 +23,6 @@ public sealed interface Decision {
 
     static Approval approval(
             Money grantedAmount, Money requestedAmount, UserId decidedBy, String motivation, Instant decidedAt) {
-        Objects.requireNonNull(grantedAmount, "grantedAmount");
-        Objects.requireNonNull(requestedAmount, "requestedAmount");
         String validMotivation = validMotivation(motivation);
         if (!grantedAmount.isPositive()) {
             throw new BusinessRuleViolationException(
@@ -44,7 +42,6 @@ public sealed interface Decision {
     }
 
     private static String validMotivation(String motivation) {
-        Objects.requireNonNull(motivation, "motivation");
         return RequiredText.strip(motivation, MAX_MOTIVATION_LENGTH, MOTIVATION_REQUIRED, MOTIVATION_TOO_LONG);
     }
 

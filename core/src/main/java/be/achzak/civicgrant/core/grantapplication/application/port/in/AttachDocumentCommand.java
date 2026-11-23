@@ -10,14 +10,6 @@ public record AttachDocumentCommand(
         ApplicationId applicationId, String fileName, String declaredContentType, byte[] content, Actor actor)
         implements Command {
 
-    public AttachDocumentCommand {
-        Objects.requireNonNull(applicationId, "applicationId");
-        Objects.requireNonNull(fileName, "fileName");
-        Objects.requireNonNull(declaredContentType, "declaredContentType");
-        Objects.requireNonNull(content, "content");
-        Objects.requireNonNull(actor, "actor");
-    }
-
     // A record compares arrays by identity, so these compare and print the content instead.
     @Override
     public boolean equals(Object other) {

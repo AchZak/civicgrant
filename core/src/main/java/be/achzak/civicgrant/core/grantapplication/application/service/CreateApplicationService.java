@@ -18,7 +18,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.Year;
 import java.time.ZoneOffset;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,18 +38,17 @@ public class CreateApplicationService implements CreateApplicationUseCase {
             ApplicationReferenceSequence references,
             DomainEventPublisher events,
             Clock clock) {
-        this.applications = Objects.requireNonNull(applications, "applications");
-        this.fundingCalls = Objects.requireNonNull(fundingCalls, "fundingCalls");
-        this.organisations = Objects.requireNonNull(organisations, "organisations");
-        this.references = Objects.requireNonNull(references, "references");
-        this.events = Objects.requireNonNull(events, "events");
-        this.clock = Objects.requireNonNull(clock, "clock");
+        this.applications = applications;
+        this.fundingCalls = fundingCalls;
+        this.organisations = organisations;
+        this.references = references;
+        this.events = events;
+        this.clock = clock;
     }
 
     @Override
     @Transactional
     public ApplicationId create(CreateApplicationCommand command) {
-        Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.APPLICANT);
         FundingCall fundingCall = fundingCalls.getById(command.fundingCallId());
         Organisation organisation = organisations.getById(command.organisationId());

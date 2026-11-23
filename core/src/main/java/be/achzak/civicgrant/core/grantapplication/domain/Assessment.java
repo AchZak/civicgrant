@@ -31,9 +31,6 @@ public record Assessment(
             String comment,
             Money requestedAmount,
             Instant assessedAt) {
-        Objects.requireNonNull(recommendation, "recommendation");
-        Objects.requireNonNull(comment, "comment");
-        Objects.requireNonNull(requestedAmount, "requestedAmount");
         String validComment = RequiredText.strip(
                 comment, MAX_COMMENT_LENGTH, ASSESSMENT_COMMENT_REQUIRED, ASSESSMENT_COMMENT_TOO_LONG);
         if (recommendation instanceof Recommendation.Approve(Money proposedAmount)) {

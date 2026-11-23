@@ -35,7 +35,6 @@ public record AuditEntry(
     }
 
     public static AuditEntry from(OrganisationEvent event) {
-        Objects.requireNonNull(event, "event");
         AuditSubject subject = new AuditSubject.Organisation(event.organisationId());
         return switch (event) {
             case OrganisationRegistered registered ->
@@ -48,7 +47,6 @@ public record AuditEntry(
     }
 
     public static Optional<AuditEntry> from(FundingCallEvent event) {
-        Objects.requireNonNull(event, "event");
         AuditSubject subject = new AuditSubject.FundingCall(event.fundingCallId());
         return switch (event) {
             case FundingCallOpened opened ->
@@ -63,7 +61,6 @@ public record AuditEntry(
     }
 
     public static AuditEntry from(GrantApplicationEvent event) {
-        Objects.requireNonNull(event, "event");
         AuditSubject subject = new AuditSubject.Application(event.applicationId());
         return switch (event) {
             case ApplicationCreated created ->

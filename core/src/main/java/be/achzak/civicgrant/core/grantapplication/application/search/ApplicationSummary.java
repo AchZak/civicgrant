@@ -7,7 +7,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.ApplicationStatus;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 import be.achzak.civicgrant.core.sharedkernel.domain.Money;
 import java.time.Instant;
-import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 public record ApplicationSummary(
@@ -19,16 +18,4 @@ public record ApplicationSummary(
         String projectTitle,
         Money requestedAmount,
         @Nullable Instant submittedAt,
-        Instant updatedAt) {
-
-    public ApplicationSummary {
-        Objects.requireNonNull(id, "id");
-        Objects.requireNonNull(reference, "reference");
-        Objects.requireNonNull(fundingCallId, "fundingCallId");
-        Objects.requireNonNull(organisationId, "organisationId");
-        Objects.requireNonNull(status, "status");
-        Objects.requireNonNull(projectTitle, "projectTitle");
-        Objects.requireNonNull(requestedAmount, "requestedAmount");
-        Objects.requireNonNull(updatedAt, "updatedAt");
-    }
-}
+        Instant updatedAt) {}

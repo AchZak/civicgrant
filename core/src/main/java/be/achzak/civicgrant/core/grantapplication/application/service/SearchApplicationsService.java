@@ -7,7 +7,6 @@ import be.achzak.civicgrant.core.grantapplication.application.search.Application
 import be.achzak.civicgrant.core.grantapplication.application.search.ApplicationSearchCriteria;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationVisibility;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,13 +16,12 @@ public class SearchApplicationsService implements SearchApplicationsUseCase {
     private final GrantApplicationRepository applications;
 
     public SearchApplicationsService(GrantApplicationRepository applications) {
-        this.applications = Objects.requireNonNull(applications, "applications");
+        this.applications = applications;
     }
 
     @Override
     @Transactional(readOnly = true)
     public ApplicationPage search(SearchApplicationsQuery query) {
-        Objects.requireNonNull(query, "query");
         query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER);
         ApplicationSearchCriteria criteria = new ApplicationSearchCriteria(
                 ApplicationVisibility.of(query.actor()), query.statuses(), query.fundingCalls());
