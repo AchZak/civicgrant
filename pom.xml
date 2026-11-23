@@ -23,7 +23,7 @@
         <module>api</module>
         <module>persistence</module>
         <module>documentstorage</module>
-        <module>starter</module>
+        <module>app</module>
     </modules>
 
     <properties>

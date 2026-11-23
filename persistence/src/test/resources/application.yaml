@@ -1,4 +1,4 @@
-# Same schema settings as starter's application.yaml, which isn't on this module's classpath.
+# Same schema settings as the app module's application.yaml, which isn't on this module's classpath.
 # validate makes every test fail if an entity doesn't match the Flyway migrations.
 spring:
   datasource:

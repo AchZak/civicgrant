@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.starter.event;
+package be.achzak.civicgrant.app.event;
 
 import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,7 +60,7 @@ class BusinessMetricsListenerTest {
         }
 
         @ParameterizedTest(name = "{1}")
-        @MethodSource("be.achzak.civicgrant.starter.event.BusinessMetricsListenerTest#workflowSteps")
+        @MethodSource("be.achzak.civicgrant.app.event.BusinessMetricsListenerTest#workflowSteps")
         @DisplayName("counts a workflow step under its own tag only")
         void countsAWorkflowStepUnderItsOwnTagOnly(GrantApplicationEvent event, String step) {
             // given
@@ -75,7 +75,7 @@ class BusinessMetricsListenerTest {
         }
 
         @ParameterizedTest(name = "{0}")
-        @MethodSource("be.achzak.civicgrant.starter.event.BusinessMetricsListenerTest#changesWithinAStep")
+        @MethodSource("be.achzak.civicgrant.app.event.BusinessMetricsListenerTest#changesWithinAStep")
         @DisplayName("leaves changes within a step uncounted")
         void leavesChangesWithinAStepUncounted(GrantApplicationEvent event) {
             // when

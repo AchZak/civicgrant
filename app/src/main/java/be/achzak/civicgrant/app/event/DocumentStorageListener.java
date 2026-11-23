@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.starter.event;
+package be.achzak.civicgrant.app.event;
 
 import be.achzak.civicgrant.core.grantapplication.application.port.out.DocumentStorage;
 import be.achzak.civicgrant.core.grantapplication.domain.event.DocumentRemoved;

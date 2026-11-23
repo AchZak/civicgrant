@@ -9,8 +9,8 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>civicgrant-starter</artifactId>
-    <name>CivicGrant :: Starter</name>
+    <artifactId>civicgrant-app</artifactId>
+    <name>CivicGrant :: App</name>
 
     <properties>
         <sonar.coverage.exclusions>**/*</sonar.coverage.exclusions>

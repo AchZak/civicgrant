@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.starter.event;
+package be.achzak.civicgrant.app.event;
 
 import be.achzak.civicgrant.core.audit.application.port.in.RecordAuditEntryCommand;
 import be.achzak.civicgrant.core.audit.application.port.in.RecordAuditEntryUseCase;

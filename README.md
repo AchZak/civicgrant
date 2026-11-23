@@ -54,14 +54,14 @@ civicgrant/
 ├── api/               inbound adapter: OpenAPI contract, generated interfaces, REST controllers
 ├── persistence/       outbound adapter for PostgreSQL: JPA, Flyway migrations
 ├── documentstorage/   outbound adapter for Blob Storage: the supporting documents' files
-├── starter/           Spring Boot application, configuration and wiring
+├── app/               Spring Boot application, configuration and wiring
 └── infra/             Bicep templates for the Azure infrastructure
 ```
 
 ```mermaid
 flowchart LR
     client["Angular app"] -->|"HTTPS, Entra token"| api
-    subgraph app["starter: one Spring Boot application"]
+    subgraph app["app: one Spring Boot application"]
         api["api<br/>contract, controllers,<br/>security, errors"]
         subgraph core["core"]
             application["application<br/>use cases, ports, services<br/>@Service, @Transactional"]
@@ -78,7 +78,7 @@ flowchart LR
     documentstorage --> blob[("Blob Storage")]
 ```
 
-Each adapter depends on `core`, never on another adapter, and brings only its own technology: `persistence` has no Azure Storage client, `documentstorage` no JPA. `starter` puts everything together. Inside `core`, each aggregate has a domain layer (the aggregate, its rules and events) and an application layer (the use cases and outbound ports, and the services that run them), and the domain never depends on the application. The domain is plain Java, the application layer takes only `@Service` and `@Transactional` from Spring, and neither knows about JPA or Azure. ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the core only through use cases, the outbound adapters only through outbound ports, adapters never use each other, outbound ports are interfaces, each use case is an interface with one method taking one command or query, each service implements exactly one use case and runs a command in a read-write transaction and a query in a read-only one, JPA stays inside persistence and the Blob Storage client inside documentstorage, outside the core an aggregate is only ever read, and only persistence rebuilds one from storage.
+Each adapter depends on `core`, never on another adapter, and brings only its own technology: `persistence` has no Azure Storage client, `documentstorage` no JPA. `app` puts everything together. Inside `core`, each aggregate has a domain layer (the aggregate, its rules and events) and an application layer (the use cases and outbound ports, and the services that run them), and the domain never depends on the application. The domain is plain Java, the application layer takes only `@Service` and `@Transactional` from Spring, and neither knows about JPA or Azure. ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the core only through use cases, the outbound adapters only through outbound ports, adapters never use each other, outbound ports are interfaces, each use case is an interface with one method taking one command or query, each service implements exactly one use case and runs a command in a read-write transaction and a query in a read-only one, JPA stays inside persistence and the Blob Storage client inside documentstorage, outside the core an aggregate is only ever read, and only persistence rebuilds one from storage.
 
 The API is contract-first: `api/src/main/openapi/openapi.yaml` is written by hand and is the single source of truth. The Spring interfaces and the Angular client are generated from it, and the pipeline lints it with Redocly on every change. The application serves the API only, not its documentation.
 
@@ -92,7 +92,7 @@ If you only have a few minutes, these files show how the pieces fit:
 
 - [GrantApplication](core/src/main/java/be/achzak/civicgrant/core/grantapplication/domain/GrantApplication.java): the aggregate. Every step of the workflow is a method named after it, and each one checks who acts, the status and the data, or throws.
 - [ApproveApplicationService](core/src/main/java/be/achzak/civicgrant/core/grantapplication/application/service/ApproveApplicationService.java): a use case from start to end. It checks the role, changes two aggregates in one transaction so the budget can't be overspent, saves, then publishes the events.
-- [ArchitectureTest](starter/src/test/java/be/achzak/civicgrant/ArchitectureTest.java): the conventions above as rules that fail the build, including that every use case checks the actor's role.
+- [ArchitectureTest](app/src/test/java/be/achzak/civicgrant/ArchitectureTest.java): the conventions above as rules that fail the build, including that every use case checks the actor's role.
 - [GrantApplicationLifecycleTest](core/src/test/java/be/achzak/civicgrant/core/grantapplication/domain/GrantApplicationLifecycleTest.java): the workflow as one test. Every action is tried in every status: it moves the application on where the lifecycle allows it and is refused everywhere else.
 - [GrantApplicationPersistenceAdapter](persistence/src/main/java/be/achzak/civicgrant/persistence/grantapplication/GrantApplicationPersistenceAdapter.java): optimistic locking that turns a lost race into a 409, and the paged search.
 - [DomainProblemHandler](api/src/main/java/be/achzak/civicgrant/api/error/DomainProblemHandler.java): how domain exceptions become Belgif problems, in one exhaustive switch.
@@ -167,7 +167,7 @@ Requirements: JDK 25 and Docker.
 
 ```bash
 ./mvnw clean install
-./mvnw -pl starter spring-boot:run -Dspring-boot.run.profiles=local
+./mvnw -pl app spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
 The `local` profile starts PostgreSQL and Azurite through `compose.yaml`, keeps their data between runs and loads demo data from `db/seed`. Tests don't use it: they run against a throwaway PostgreSQL and Azurite started by Testcontainers.

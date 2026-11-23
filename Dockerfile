@@ -40,7 +40,7 @@ COPY core core
 COPY api api
 COPY persistence persistence
 COPY documentstorage documentstorage
-COPY starter starter
+COPY app app
 
 # 2. Build the application JAR and split it into layers.
 #
@@ -48,7 +48,7 @@ COPY starter starter
 #    so dependencies are downloaded once. It's a build cache, not part of the image.
 #    On GitHub runners it starts empty on every run.
 #
-#    -pl starter -am     build the starter module and the modules it depends on
+#    -pl app -am         build the app module and the modules it depends on
 #                        ("also make"): core, api, persistence, documentstorage.
 #    -DskipTests         the tests already ran in the Verify job.
 #
@@ -56,8 +56,8 @@ COPY starter starter
 #    "rarely changes" to "changes every commit": dependencies, spring-boot-loader,
 #    snapshot-dependencies, application. Stage 2 copies them as separate layers.
 RUN --mount=type=cache,target=/root/.m2 \
-    ./mvnw --batch-mode --no-transfer-progress package -DskipTests -pl starter -am \
-    && cp starter/target/civicgrant-starter-*.jar application.jar \
+    ./mvnw --batch-mode --no-transfer-progress package -DskipTests -pl app -am \
+    && cp app/target/civicgrant-app-*.jar application.jar \
     && java -Djarmode=tools -jar application.jar extract --layers --destination extracted
 
 
@@ -93,7 +93,7 @@ ADD --chmod=444 \
 #      dependencies           third-party libraries: Spring, the PostgreSQL driver…
 #      spring-boot-loader     the launcher that starts a Spring Boot JAR
 #      snapshot-dependencies  SNAPSHOT libraries, including this project's own modules
-#      application            the starter's own classes and resources, and application.jar
+#      application            the app module's own classes and resources, and application.jar
 COPY --from=build /workspace/extracted/dependencies/ ./
 COPY --from=build /workspace/extracted/spring-boot-loader/ ./
 COPY --from=build /workspace/extracted/snapshot-dependencies/ ./
