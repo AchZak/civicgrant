@@ -37,7 +37,7 @@ resource account 'Microsoft.Storage/storageAccounts@2026-06-01' = {
   }
 }
 
-resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2026-06-01' = {
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2026-09-01' = {
   parent: account
   name: 'default'
   properties: {
