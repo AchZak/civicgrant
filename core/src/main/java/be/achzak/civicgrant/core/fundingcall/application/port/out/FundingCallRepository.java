@@ -2,9 +2,9 @@ package be.achzak.civicgrant.core.fundingcall.application.port.out;
 
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallErrorCode.FUNDING_CALL_NOT_FOUND;
 
+import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.NotFoundException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;

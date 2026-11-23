@@ -1,8 +1,8 @@
 package be.achzak.civicgrant.core.grantapplication.domain;
 
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import java.util.Objects;
 
 public record ApplicationVisibility(UserId user, boolean staff) {

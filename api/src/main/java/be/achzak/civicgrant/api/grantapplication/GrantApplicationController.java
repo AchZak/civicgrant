@@ -7,6 +7,8 @@ import be.achzak.civicgrant.api.generated.model.ApplicationStatusDto;
 import be.achzak.civicgrant.api.generated.model.CreateApplicationRequestDto;
 import be.achzak.civicgrant.api.generated.model.ProjectProposalDto;
 import be.achzak.civicgrant.api.security.CurrentActor;
+import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallErrorCode;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.CreateApplicationUseCase;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.EditApplicationUseCase;
@@ -16,8 +18,6 @@ import be.achzak.civicgrant.core.grantapplication.application.port.in.SearchAppl
 import be.achzak.civicgrant.core.grantapplication.application.port.in.SearchApplicationsUseCase;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationErrorCode;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.NotFoundException;
 import io.github.belgif.rest.problem.BadRequestProblem;
 import io.github.belgif.rest.problem.api.InEnum;
 import io.github.belgif.rest.problem.api.InputValidationIssues;

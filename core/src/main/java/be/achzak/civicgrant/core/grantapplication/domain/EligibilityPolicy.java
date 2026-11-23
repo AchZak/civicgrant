@@ -2,9 +2,9 @@ package be.achzak.civicgrant.core.grantapplication.domain;
 
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.LEGAL_FORM_NOT_ELIGIBLE;
 
+import be.achzak.civicgrant.core.common.domain.error.BusinessRuleViolationException;
 import be.achzak.civicgrant.core.organisation.domain.LegalForm;
 import be.achzak.civicgrant.core.organisation.domain.Organisation;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolationException;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;

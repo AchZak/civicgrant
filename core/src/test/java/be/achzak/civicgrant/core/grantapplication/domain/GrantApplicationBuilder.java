@@ -1,14 +1,14 @@
 package be.achzak.civicgrant.core.grantapplication.domain;
 
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.aDecisionMaker;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anApplicant;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anAssessor;
 import static be.achzak.civicgrant.core.grantapplication.domain.ProjectProposalBuilder.aProjectProposal;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.aDecisionMaker;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anApplicant;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anAssessor;
 
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import java.time.Instant;
 import java.util.List;
 

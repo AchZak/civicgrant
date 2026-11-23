@@ -1,8 +1,8 @@
 package be.achzak.civicgrant.core.fundingcall.domain;
 
+import static be.achzak.civicgrant.core.common.domain.error.DomainExceptionAssert.assertThatDomainException;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallBuilder.CLOSES_AT;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallBuilder.OPENS_AT;
-import static be.achzak.civicgrant.core.sharedkernel.domain.error.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 

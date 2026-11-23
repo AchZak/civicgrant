@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.core.audit.application.service;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anApplicant;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anApplicant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import be.achzak.civicgrant.core.audit.application.port.in.RecordAuditEntryCommand;

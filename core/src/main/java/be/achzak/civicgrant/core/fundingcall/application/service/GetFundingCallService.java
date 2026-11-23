@@ -1,10 +1,10 @@
 package be.achzak.civicgrant.core.fundingcall.application.service;
 
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.fundingcall.application.port.in.GetFundingCallQuery;
 import be.achzak.civicgrant.core.fundingcall.application.port.in.GetFundingCallUseCase;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.FundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

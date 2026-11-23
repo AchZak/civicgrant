@@ -1,18 +1,18 @@
 package be.achzak.civicgrant.core.fundingcall.application.service;
 
+import static be.achzak.civicgrant.core.common.domain.error.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.actor;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anActorWithoutRoles;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anApplicant;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallBuilder.OPENS_AT;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallBuilder.aFundingCall;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.actor;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anActorWithoutRoles;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anApplicant;
-import static be.achzak.civicgrant.core.sharedkernel.domain.error.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.fundingcall.application.port.in.ListOpenFundingCallsQuery;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.InMemoryFundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;

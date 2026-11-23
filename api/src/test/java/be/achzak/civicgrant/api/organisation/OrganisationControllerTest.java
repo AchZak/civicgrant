@@ -8,6 +8,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
+import be.achzak.civicgrant.core.common.domain.error.ConflictException;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.organisation.application.port.in.GetOrganisationQuery;
 import be.achzak.civicgrant.core.organisation.application.port.in.GetOrganisationUseCase;
 import be.achzak.civicgrant.core.organisation.application.port.in.RegisterOrganisationCommand;
@@ -18,8 +20,6 @@ import be.achzak.civicgrant.core.organisation.domain.EnterpriseNumber;
 import be.achzak.civicgrant.core.organisation.domain.LegalForm;
 import be.achzak.civicgrant.core.organisation.domain.Organisation;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.app.event;
 
-import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPublisher;
-import be.achzak.civicgrant.core.sharedkernel.domain.event.DomainEvent;
+import be.achzak.civicgrant.core.common.application.port.out.DomainEventPublisher;
+import be.achzak.civicgrant.core.common.domain.event.DomainEvent;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

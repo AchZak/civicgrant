@@ -1,9 +1,9 @@
 package be.achzak.civicgrant.core.fundingcall.domain;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
 
-import be.achzak.civicgrant.core.sharedkernel.domain.LocalizedText;
-import be.achzak.civicgrant.core.sharedkernel.domain.Money;
+import be.achzak.civicgrant.core.common.domain.LocalizedText;
+import be.achzak.civicgrant.core.common.domain.Money;
 import java.time.Duration;
 import java.time.Instant;
 

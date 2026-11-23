@@ -2,10 +2,10 @@ package be.achzak.civicgrant.core.organisation.application.port.out;
 
 import static be.achzak.civicgrant.core.organisation.domain.OrganisationErrorCode.ORGANISATION_NOT_FOUND;
 
+import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
 import be.achzak.civicgrant.core.organisation.domain.EnterpriseNumber;
 import be.achzak.civicgrant.core.organisation.domain.Organisation;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.NotFoundException;
 import java.util.Optional;
 
 public interface OrganisationRepository {

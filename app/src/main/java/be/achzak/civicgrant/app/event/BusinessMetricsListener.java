@@ -1,5 +1,6 @@
 package be.achzak.civicgrant.app.event;
 
+import be.achzak.civicgrant.core.common.domain.Money;
 import be.achzak.civicgrant.core.grantapplication.domain.event.ApplicationApproved;
 import be.achzak.civicgrant.core.grantapplication.domain.event.ApplicationCreated;
 import be.achzak.civicgrant.core.grantapplication.domain.event.ApplicationEdited;
@@ -9,7 +10,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.event.AssessmentRecorde
 import be.achzak.civicgrant.core.grantapplication.domain.event.DocumentAttached;
 import be.achzak.civicgrant.core.grantapplication.domain.event.DocumentRemoved;
 import be.achzak.civicgrant.core.grantapplication.domain.event.GrantApplicationEvent;
-import be.achzak.civicgrant.core.sharedkernel.domain.Money;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;

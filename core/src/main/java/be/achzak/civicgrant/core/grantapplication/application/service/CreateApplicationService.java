@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.core.grantapplication.application.service;
 
+import be.achzak.civicgrant.core.common.application.port.out.DomainEventPublisher;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.FundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.CreateApplicationCommand;
@@ -12,8 +14,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.EligibilityPolicy;
 import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
 import be.achzak.civicgrant.core.organisation.application.port.out.OrganisationRepository;
 import be.achzak.civicgrant.core.organisation.domain.Organisation;
-import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPublisher;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.Year;

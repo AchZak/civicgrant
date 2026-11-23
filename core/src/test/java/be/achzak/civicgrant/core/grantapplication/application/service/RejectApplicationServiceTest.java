@@ -1,13 +1,16 @@
 package be.achzak.civicgrant.core.grantapplication.application.service;
 
+import static be.achzak.civicgrant.core.common.domain.error.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.aDecisionMaker;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.actor;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationBuilder.aSubmittedApplication;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationBuilder.anAssessedApplication;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.aDecisionMaker;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.actor;
-import static be.achzak.civicgrant.core.sharedkernel.domain.error.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.core.common.application.port.out.RecordingDomainEventPublisher;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.RejectApplicationCommand;
 import be.achzak.civicgrant.core.grantapplication.application.port.out.InMemoryGrantApplicationRepository;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
@@ -16,9 +19,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.Decision;
 import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
 import be.achzak.civicgrant.core.grantapplication.domain.RejectionGround;
 import be.achzak.civicgrant.core.grantapplication.domain.event.ApplicationRejected;
-import be.achzak.civicgrant.core.sharedkernel.application.port.out.RecordingDomainEventPublisher;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;

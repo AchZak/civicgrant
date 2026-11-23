@@ -1,13 +1,13 @@
 package be.achzak.civicgrant.core.grantapplication.application.service;
 
+import be.achzak.civicgrant.core.common.application.port.out.DomainEventPublisher;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.FundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.SubmitApplicationCommand;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.SubmitApplicationUseCase;
 import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
-import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPublisher;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

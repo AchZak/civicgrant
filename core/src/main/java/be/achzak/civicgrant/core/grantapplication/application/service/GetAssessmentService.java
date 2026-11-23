@@ -1,10 +1,10 @@
 package be.achzak.civicgrant.core.grantapplication.application.service;
 
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetAssessmentQuery;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetAssessmentUseCase;
 import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.core.grantapplication.domain.Assessment;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

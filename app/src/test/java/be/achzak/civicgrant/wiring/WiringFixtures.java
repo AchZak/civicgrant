@@ -1,7 +1,10 @@
 package be.achzak.civicgrant.wiring;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
 
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.AttachDocumentCommand;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.AttachDocumentUseCase;
@@ -20,9 +23,6 @@ import be.achzak.civicgrant.core.organisation.application.port.in.RegisterOrgani
 import be.achzak.civicgrant.core.organisation.domain.EnterpriseNumber;
 import be.achzak.civicgrant.core.organisation.domain.LegalForm;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.UUID;

@@ -2,9 +2,9 @@ package be.achzak.civicgrant.api.security;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import java.util.Arrays;
 import java.util.Set;
 import org.springframework.security.core.GrantedAuthority;

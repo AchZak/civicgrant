@@ -2,7 +2,7 @@ package be.achzak.civicgrant.core.fundingcall.domain;
 
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallErrorCode.FUNDING_CALL_REFERENCE_INVALID;
 
-import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.core.common.domain.error.BusinessRuleViolationException;
 import java.util.Objects;
 import java.util.regex.Pattern;
 

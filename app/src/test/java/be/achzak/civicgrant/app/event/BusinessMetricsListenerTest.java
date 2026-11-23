@@ -1,9 +1,10 @@
 package be.achzak.civicgrant.app.event;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
 
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.grantapplication.domain.DocumentId;
@@ -19,7 +20,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.event.DocumentAttached;
 import be.achzak.civicgrant.core.grantapplication.domain.event.DocumentRemoved;
 import be.achzak.civicgrant.core.grantapplication.domain.event.GrantApplicationEvent;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;

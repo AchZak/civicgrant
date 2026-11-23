@@ -2,12 +2,12 @@ package be.achzak.civicgrant.core.grantapplication.application.service;
 
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
 
+import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetApplicationQuery;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetApplicationUseCase;
 import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

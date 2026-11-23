@@ -1,12 +1,12 @@
 package be.achzak.civicgrant.core.grantapplication.domain;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.actor;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anActorWithoutRoles;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anApplicant;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.actor;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anActorWithoutRoles;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anApplicant;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

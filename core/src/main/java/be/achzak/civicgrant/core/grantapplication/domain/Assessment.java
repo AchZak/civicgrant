@@ -6,9 +6,9 @@ import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplication
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.PROPOSED_AMOUNT_EXCEEDS_REQUESTED;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.PROPOSED_AMOUNT_NOT_POSITIVE;
 
-import be.achzak.civicgrant.core.sharedkernel.domain.Money;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.core.common.domain.Money;
+import be.achzak.civicgrant.core.common.domain.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import java.time.Instant;
 import java.util.Objects;
 

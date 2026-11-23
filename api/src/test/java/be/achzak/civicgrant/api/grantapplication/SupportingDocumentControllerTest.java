@@ -12,6 +12,11 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
+import be.achzak.civicgrant.core.common.domain.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.core.common.domain.error.ConflictException;
+import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.AttachDocumentCommand;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.AttachDocumentUseCase;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.DocumentDownload;
@@ -23,11 +28,6 @@ import be.achzak.civicgrant.core.grantapplication.application.port.in.RemoveDocu
 import be.achzak.civicgrant.core.grantapplication.application.port.in.RemoveDocumentUseCase;
 import be.achzak.civicgrant.core.grantapplication.domain.DocumentId;
 import be.achzak.civicgrant.core.grantapplication.domain.SupportingDocument;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolationException;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.NotFoundException;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;

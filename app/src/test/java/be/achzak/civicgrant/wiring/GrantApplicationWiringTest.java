@@ -1,12 +1,15 @@
 package be.achzak.civicgrant.wiring;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
 import static be.achzak.civicgrant.wiring.WiringFixtures.DECISION_MAKER;
 import static be.achzak.civicgrant.wiring.WiringFixtures.PDF;
 import static be.achzak.civicgrant.wiring.WiringFixtures.proposalTitled;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.ApproveApplicationCommand;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.ApproveApplicationUseCase;
@@ -30,9 +33,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.DocumentId;
 import be.achzak.civicgrant.core.grantapplication.domain.Recommendation;
 import be.achzak.civicgrant.core.grantapplication.domain.RejectionGround;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import com.azure.storage.blob.models.BlobErrorCode;
 import com.azure.storage.blob.models.BlobStorageException;
 import java.util.List;

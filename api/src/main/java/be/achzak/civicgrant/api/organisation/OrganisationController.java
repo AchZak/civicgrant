@@ -5,6 +5,7 @@ import be.achzak.civicgrant.api.generated.model.OrganisationCollectionDto;
 import be.achzak.civicgrant.api.generated.model.OrganisationDto;
 import be.achzak.civicgrant.api.generated.model.RegisterOrganisationRequestDto;
 import be.achzak.civicgrant.api.security.CurrentActor;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
 import be.achzak.civicgrant.core.organisation.application.port.in.GetOrganisationQuery;
 import be.achzak.civicgrant.core.organisation.application.port.in.GetOrganisationUseCase;
 import be.achzak.civicgrant.core.organisation.application.port.in.RegisterOrganisationUseCase;
@@ -12,7 +13,6 @@ import be.achzak.civicgrant.core.organisation.application.port.in.SearchOrganisa
 import be.achzak.civicgrant.core.organisation.application.port.in.SearchOrganisationsUseCase;
 import be.achzak.civicgrant.core.organisation.domain.EnterpriseNumber;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import java.net.URI;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

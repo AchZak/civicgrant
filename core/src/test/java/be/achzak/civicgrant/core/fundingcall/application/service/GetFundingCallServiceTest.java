@@ -1,18 +1,18 @@
 package be.achzak.civicgrant.core.fundingcall.application.service;
 
+import static be.achzak.civicgrant.core.common.domain.error.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.actor;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anActorWithoutRoles;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anApplicant;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallBuilder.aFundingCall;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.actor;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anActorWithoutRoles;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anApplicant;
-import static be.achzak.civicgrant.core.sharedkernel.domain.error.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.fundingcall.application.port.in.GetFundingCallQuery;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.InMemoryFundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

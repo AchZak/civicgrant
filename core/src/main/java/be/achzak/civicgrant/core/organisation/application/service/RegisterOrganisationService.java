@@ -2,14 +2,14 @@ package be.achzak.civicgrant.core.organisation.application.service;
 
 import static be.achzak.civicgrant.core.organisation.domain.OrganisationErrorCode.ORGANISATION_ALREADY_REGISTERED;
 
+import be.achzak.civicgrant.core.common.application.port.out.DomainEventPublisher;
+import be.achzak.civicgrant.core.common.domain.error.ConflictException;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.organisation.application.port.in.RegisterOrganisationCommand;
 import be.achzak.civicgrant.core.organisation.application.port.in.RegisterOrganisationUseCase;
 import be.achzak.civicgrant.core.organisation.application.port.out.OrganisationRepository;
 import be.achzak.civicgrant.core.organisation.domain.Organisation;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
-import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPublisher;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

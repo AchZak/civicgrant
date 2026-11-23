@@ -1,8 +1,8 @@
 package be.achzak.civicgrant.core.grantapplication.domain;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
 
-import be.achzak.civicgrant.core.sharedkernel.domain.Money;
+import be.achzak.civicgrant.core.common.domain.Money;
 
 public final class ProjectProposalBuilder {
 

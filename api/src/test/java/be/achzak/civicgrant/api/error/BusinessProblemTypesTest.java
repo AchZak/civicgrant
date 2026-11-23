@@ -2,10 +2,10 @@ package be.achzak.civicgrant.api.error;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import be.achzak.civicgrant.core.common.domain.error.ErrorCode;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallErrorCode;
 import be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationErrorCode;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ErrorCode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

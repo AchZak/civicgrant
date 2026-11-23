@@ -1,20 +1,20 @@
 package be.achzak.civicgrant.persistence.fundingcall;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.core.common.domain.LocalizedText;
+import be.achzak.civicgrant.core.common.domain.error.ConflictException;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.FundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.BudgetEnvelope;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallReference;
 import be.achzak.civicgrant.core.fundingcall.domain.SubmissionPeriod;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.core.sharedkernel.domain.LocalizedText;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import be.achzak.civicgrant.persistence.PersistenceTest;
 import java.time.Duration;
 import java.time.Instant;

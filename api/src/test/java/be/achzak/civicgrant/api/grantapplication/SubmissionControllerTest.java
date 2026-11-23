@@ -14,13 +14,13 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
+import be.achzak.civicgrant.core.common.domain.error.ConflictException;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetApplicationQuery;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetApplicationUseCase;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.SubmitApplicationCommand;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.SubmitApplicationUseCase;
 import be.achzak.civicgrant.core.grantapplication.domain.Language;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import java.time.OffsetDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

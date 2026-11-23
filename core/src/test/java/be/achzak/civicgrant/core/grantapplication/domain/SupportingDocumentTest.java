@@ -1,10 +1,10 @@
 package be.achzak.civicgrant.core.grantapplication.domain;
 
+import static be.achzak.civicgrant.core.common.domain.error.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anApplicant;
 import static be.achzak.civicgrant.core.grantapplication.domain.PdfFiles.aPdf;
 import static be.achzak.civicgrant.core.grantapplication.domain.PdfFiles.aPdfOf;
 import static be.achzak.civicgrant.core.grantapplication.domain.PdfFiles.aPng;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anApplicant;
-import static be.achzak.civicgrant.core.sharedkernel.domain.error.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 

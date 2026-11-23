@@ -1,17 +1,19 @@
 package be.achzak.civicgrant.core.grantapplication.application.service;
 
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.error.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anApplicant;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anAssessor;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anotherApplicant;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallBuilder.aFundingCall;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationBuilder.aDraftApplication;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationBuilder.aSubmittedApplication;
 import static be.achzak.civicgrant.core.grantapplication.domain.ProjectProposalBuilder.aProjectProposal;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anApplicant;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anAssessor;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anotherApplicant;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
-import static be.achzak.civicgrant.core.sharedkernel.domain.error.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.core.common.application.port.out.RecordingDomainEventPublisher;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.InMemoryFundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.EditApplicationCommand;
@@ -20,8 +22,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
 import be.achzak.civicgrant.core.grantapplication.domain.ProjectProposal;
 import be.achzak.civicgrant.core.grantapplication.domain.event.ApplicationEdited;
-import be.achzak.civicgrant.core.sharedkernel.application.port.out.RecordingDomainEventPublisher;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;

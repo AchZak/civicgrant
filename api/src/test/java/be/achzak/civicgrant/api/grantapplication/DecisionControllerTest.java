@@ -7,15 +7,18 @@ import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.anAssessedApplication;
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.error.CommonErrorCode.CONCURRENT_UPDATE;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.SEPARATION_OF_DUTIES;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
-import static be.achzak.civicgrant.core.sharedkernel.domain.SharedErrorCode.CONCURRENT_UPDATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
+import be.achzak.civicgrant.core.common.domain.error.ConflictException;
+import be.achzak.civicgrant.core.common.domain.error.ForbiddenException;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.ApproveApplicationCommand;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.ApproveApplicationUseCase;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetApplicationQuery;
@@ -23,9 +26,6 @@ import be.achzak.civicgrant.core.grantapplication.application.port.in.GetApplica
 import be.achzak.civicgrant.core.grantapplication.application.port.in.RejectApplicationCommand;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.RejectApplicationUseCase;
 import be.achzak.civicgrant.core.grantapplication.domain.RejectionGround;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ForbiddenException;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import org.junit.jupiter.api.DisplayName;

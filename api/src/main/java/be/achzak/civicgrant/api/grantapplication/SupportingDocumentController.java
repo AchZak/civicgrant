@@ -3,6 +3,7 @@ package be.achzak.civicgrant.api.grantapplication;
 import be.achzak.civicgrant.api.generated.api.SupportingDocumentsApi;
 import be.achzak.civicgrant.api.generated.model.SupportingDocumentDto;
 import be.achzak.civicgrant.api.security.CurrentActor;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.AttachDocumentUseCase;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.DocumentDownload;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.DownloadDocumentQuery;
@@ -13,7 +14,6 @@ import be.achzak.civicgrant.core.grantapplication.application.port.in.RemoveDocu
 import be.achzak.civicgrant.core.grantapplication.application.port.in.RemoveDocumentUseCase;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.grantapplication.domain.DocumentId;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;

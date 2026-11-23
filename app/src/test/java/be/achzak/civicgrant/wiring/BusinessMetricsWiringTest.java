@@ -1,6 +1,6 @@
 package be.achzak.civicgrant.wiring;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
 import static be.achzak.civicgrant.wiring.WiringFixtures.DECISION_MAKER;
 import static org.assertj.core.api.Assertions.assertThat;
 

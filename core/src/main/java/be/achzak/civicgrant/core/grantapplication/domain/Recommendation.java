@@ -1,6 +1,6 @@
 package be.achzak.civicgrant.core.grantapplication.domain;
 
-import be.achzak.civicgrant.core.sharedkernel.domain.Money;
+import be.achzak.civicgrant.core.common.domain.Money;
 import java.util.Objects;
 
 public sealed interface Recommendation {

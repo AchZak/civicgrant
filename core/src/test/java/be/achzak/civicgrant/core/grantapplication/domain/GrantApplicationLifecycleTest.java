@@ -1,5 +1,9 @@
 package be.achzak.civicgrant.core.grantapplication.domain;
 
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.aDecisionMaker;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anApplicant;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anAssessor;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallBuilder.aFundingCall;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationBuilder.aDraftApplication;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationBuilder.aRejectedApplication;
@@ -9,16 +13,12 @@ import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplication
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationBuilder.anAssessedApplication;
 import static be.achzak.civicgrant.core.grantapplication.domain.PdfFiles.aPdf;
 import static be.achzak.civicgrant.core.grantapplication.domain.ProjectProposalBuilder.aProjectProposal;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.aDecisionMaker;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anApplicant;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anAssessor;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.core.common.domain.error.ConflictException;
+import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.NotFoundException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.function.Consumer;

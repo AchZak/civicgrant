@@ -1,5 +1,7 @@
 package be.achzak.civicgrant.core.grantapplication.application.service;
 
+import be.achzak.civicgrant.core.common.application.port.out.DomainEventPublisher;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.FundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.AttachDocumentCommand;
@@ -9,8 +11,6 @@ import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantAppl
 import be.achzak.civicgrant.core.grantapplication.domain.DocumentId;
 import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
 import be.achzak.civicgrant.core.grantapplication.domain.SupportingDocument;
-import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPublisher;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.io.ByteArrayInputStream;
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;

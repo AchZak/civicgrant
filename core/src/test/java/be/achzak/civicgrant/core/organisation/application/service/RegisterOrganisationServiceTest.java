@@ -1,12 +1,14 @@
 package be.achzak.civicgrant.core.organisation.application.service;
 
+import static be.achzak.civicgrant.core.common.domain.error.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anApplicant;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anAssessor;
 import static be.achzak.civicgrant.core.organisation.domain.OrganisationBuilder.anOrganisation;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anApplicant;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anAssessor;
-import static be.achzak.civicgrant.core.sharedkernel.domain.error.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.core.common.application.port.out.RecordingDomainEventPublisher;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
 import be.achzak.civicgrant.core.organisation.application.port.in.RegisterOrganisationCommand;
 import be.achzak.civicgrant.core.organisation.application.port.out.InMemoryOrganisationRepository;
 import be.achzak.civicgrant.core.organisation.domain.EnterpriseNumber;
@@ -14,8 +16,6 @@ import be.achzak.civicgrant.core.organisation.domain.LegalForm;
 import be.achzak.civicgrant.core.organisation.domain.Organisation;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 import be.achzak.civicgrant.core.organisation.domain.event.OrganisationRegistered;
-import be.achzak.civicgrant.core.sharedkernel.application.port.out.RecordingDomainEventPublisher;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;

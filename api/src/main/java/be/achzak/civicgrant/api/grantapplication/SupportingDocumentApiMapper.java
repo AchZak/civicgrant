@@ -3,10 +3,10 @@ package be.achzak.civicgrant.api.grantapplication;
 import static java.time.ZoneOffset.UTC;
 
 import be.achzak.civicgrant.api.generated.model.SupportingDocumentDto;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.AttachDocumentCommand;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.grantapplication.domain.SupportingDocument;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Objects;

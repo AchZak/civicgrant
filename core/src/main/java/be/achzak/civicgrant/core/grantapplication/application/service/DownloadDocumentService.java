@@ -1,12 +1,12 @@
 package be.achzak.civicgrant.core.grantapplication.application.service;
 
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.DocumentDownload;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.DownloadDocumentQuery;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.DownloadDocumentUseCase;
 import be.achzak.civicgrant.core.grantapplication.application.port.out.DocumentStorage;
 import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.core.grantapplication.domain.SupportingDocument;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

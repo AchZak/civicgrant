@@ -1,12 +1,16 @@
 package be.achzak.civicgrant.core.fundingcall.application.service;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.aProgrammeManager;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.actor;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
-import static be.achzak.civicgrant.core.sharedkernel.domain.error.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.error.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.aProgrammeManager;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.actor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.core.common.application.port.out.RecordingDomainEventPublisher;
+import be.achzak.civicgrant.core.common.domain.LocalizedText;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.fundingcall.application.port.in.OpenFundingCallCommand;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.InMemoryFundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
@@ -14,10 +18,6 @@ import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallReference;
 import be.achzak.civicgrant.core.fundingcall.domain.SubmissionPeriod;
 import be.achzak.civicgrant.core.fundingcall.domain.event.FundingCallOpened;
-import be.achzak.civicgrant.core.sharedkernel.application.port.out.RecordingDomainEventPublisher;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.core.sharedkernel.domain.LocalizedText;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;

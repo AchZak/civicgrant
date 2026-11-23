@@ -1,11 +1,13 @@
 package be.achzak.civicgrant.persistence.audit;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import be.achzak.civicgrant.core.audit.application.port.out.AuditTrail;
 import be.achzak.civicgrant.core.audit.domain.AuditEntry;
+import be.achzak.civicgrant.core.common.domain.LocalizedText;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.FundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.BudgetEnvelope;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
@@ -19,8 +21,6 @@ import be.achzak.civicgrant.core.organisation.domain.LegalForm;
 import be.achzak.civicgrant.core.organisation.domain.Organisation;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 import be.achzak.civicgrant.core.organisation.domain.event.OrganisationRegistered;
-import be.achzak.civicgrant.core.sharedkernel.domain.LocalizedText;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import be.achzak.civicgrant.persistence.PersistenceTest;
 import java.time.Duration;
 import java.time.Instant;

@@ -1,12 +1,12 @@
 package be.achzak.civicgrant.persistence.fundingcall;
 
+import be.achzak.civicgrant.core.common.domain.LocalizedText;
+import be.achzak.civicgrant.core.common.domain.Money;
 import be.achzak.civicgrant.core.fundingcall.domain.BudgetEnvelope;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallReference;
 import be.achzak.civicgrant.core.fundingcall.domain.SubmissionPeriod;
-import be.achzak.civicgrant.core.sharedkernel.domain.LocalizedText;
-import be.achzak.civicgrant.core.sharedkernel.domain.Money;
 
 final class FundingCallJpaMapper {
 

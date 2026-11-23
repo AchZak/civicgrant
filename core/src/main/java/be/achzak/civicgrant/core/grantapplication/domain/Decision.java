@@ -1,13 +1,13 @@
 package be.achzak.civicgrant.core.grantapplication.domain;
 
+import static be.achzak.civicgrant.core.common.domain.error.CommonErrorCode.GRANTED_AMOUNT_NOT_POSITIVE;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.GRANTED_AMOUNT_EXCEEDS_REQUESTED;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.MOTIVATION_REQUIRED;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.MOTIVATION_TOO_LONG;
-import static be.achzak.civicgrant.core.sharedkernel.domain.SharedErrorCode.GRANTED_AMOUNT_NOT_POSITIVE;
 
-import be.achzak.civicgrant.core.sharedkernel.domain.Money;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.core.common.domain.Money;
+import be.achzak.civicgrant.core.common.domain.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import java.time.Instant;
 import java.util.Objects;
 

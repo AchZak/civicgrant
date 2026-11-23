@@ -1,7 +1,7 @@
 package be.achzak.civicgrant.core.grantapplication.domain;
 
-import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolationException;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ErrorCode;
+import be.achzak.civicgrant.core.common.domain.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.core.common.domain.error.ErrorCode;
 
 final class RequiredText {
 

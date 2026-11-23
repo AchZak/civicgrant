@@ -1,5 +1,8 @@
 package be.achzak.civicgrant.core.audit.domain;
 
+import be.achzak.civicgrant.core.common.domain.Money;
+import be.achzak.civicgrant.core.common.domain.event.DomainEvent;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import be.achzak.civicgrant.core.fundingcall.domain.event.FundingCallEvent;
 import be.achzak.civicgrant.core.fundingcall.domain.event.FundingCallOpened;
 import be.achzak.civicgrant.core.fundingcall.domain.event.GrantCommitted;
@@ -15,9 +18,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.event.DocumentRemoved;
 import be.achzak.civicgrant.core.grantapplication.domain.event.GrantApplicationEvent;
 import be.achzak.civicgrant.core.organisation.domain.event.OrganisationEvent;
 import be.achzak.civicgrant.core.organisation.domain.event.OrganisationRegistered;
-import be.achzak.civicgrant.core.sharedkernel.domain.Money;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
-import be.achzak.civicgrant.core.sharedkernel.domain.event.DomainEvent;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;

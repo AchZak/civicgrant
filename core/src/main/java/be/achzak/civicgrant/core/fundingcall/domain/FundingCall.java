@@ -1,17 +1,17 @@
 package be.achzak.civicgrant.core.fundingcall.domain;
 
+import static be.achzak.civicgrant.core.common.domain.error.CommonErrorCode.GRANTED_AMOUNT_NOT_POSITIVE;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallErrorCode.FUNDING_CALL_ALREADY_CLOSED;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallErrorCode.FUNDING_CALL_TITLE_TOO_LONG;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallErrorCode.GRANT_EXCEEDS_REMAINING_BUDGET;
-import static be.achzak.civicgrant.core.sharedkernel.domain.SharedErrorCode.GRANTED_AMOUNT_NOT_POSITIVE;
 
+import be.achzak.civicgrant.core.common.domain.LocalizedText;
+import be.achzak.civicgrant.core.common.domain.Money;
+import be.achzak.civicgrant.core.common.domain.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
 import be.achzak.civicgrant.core.fundingcall.domain.event.FundingCallEvent;
 import be.achzak.civicgrant.core.fundingcall.domain.event.FundingCallOpened;
 import be.achzak.civicgrant.core.fundingcall.domain.event.GrantCommitted;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.core.sharedkernel.domain.LocalizedText;
-import be.achzak.civicgrant.core.sharedkernel.domain.Money;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolationException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;

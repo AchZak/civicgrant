@@ -6,9 +6,9 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 import be.achzak.civicgrant.core.audit.application.service.RecordAuditEntryService;
-import be.achzak.civicgrant.core.sharedkernel.application.Command;
-import be.achzak.civicgrant.core.sharedkernel.application.Query;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
+import be.achzak.civicgrant.core.common.application.cqs.Command;
+import be.achzak.civicgrant.core.common.application.cqs.Query;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -88,12 +88,12 @@ class ArchitectureTest {
             .resideInAPackage(APPLICATION);
 
     @ArchTest
-    static final ArchRule shared_kernel_depends_on_no_aggregate = classes()
+    static final ArchRule common_depends_on_no_aggregate = classes()
             .that()
-            .resideInAPackage("..civicgrant.core.sharedkernel..")
+            .resideInAPackage("..civicgrant.core.common..")
             .should()
             .onlyDependOnClassesThat()
-            .resideInAnyPackage("java..", "..civicgrant.core.sharedkernel..")
+            .resideInAnyPackage("java..", "..civicgrant.core.common..")
             .allowEmptyShould(true);
 
     @ArchTest

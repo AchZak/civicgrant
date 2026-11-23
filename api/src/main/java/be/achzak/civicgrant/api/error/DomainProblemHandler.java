@@ -1,11 +1,11 @@
 package be.achzak.civicgrant.api.error;
 
-import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolationException;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.DomainException;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ErrorCode;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ForbiddenException;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.NotFoundException;
+import be.achzak.civicgrant.core.common.domain.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.core.common.domain.error.ConflictException;
+import be.achzak.civicgrant.core.common.domain.error.DomainException;
+import be.achzak.civicgrant.core.common.domain.error.ErrorCode;
+import be.achzak.civicgrant.core.common.domain.error.ForbiddenException;
+import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
 import io.github.belgif.rest.problem.DefaultProblem;
 import io.github.belgif.rest.problem.ResourceNotFoundProblem;
 import io.github.belgif.rest.problem.api.Problem;

@@ -6,13 +6,13 @@ import be.achzak.civicgrant.api.generated.model.FundingCallCollectionDto;
 import be.achzak.civicgrant.api.generated.model.FundingCallDto;
 import be.achzak.civicgrant.api.generated.model.LocalizedTextDto;
 import be.achzak.civicgrant.api.generated.model.OpenFundingCallRequestDto;
+import be.achzak.civicgrant.core.common.domain.LocalizedText;
+import be.achzak.civicgrant.core.common.domain.Money;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
 import be.achzak.civicgrant.core.fundingcall.application.port.in.OpenFundingCallCommand;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallReference;
 import be.achzak.civicgrant.core.fundingcall.domain.SubmissionPeriod;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.core.sharedkernel.domain.LocalizedText;
-import be.achzak.civicgrant.core.sharedkernel.domain.Money;
 import java.util.List;
 
 final class FundingCallApiMapper {

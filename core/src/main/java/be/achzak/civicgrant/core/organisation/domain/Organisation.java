@@ -3,10 +3,10 @@ package be.achzak.civicgrant.core.organisation.domain;
 import static be.achzak.civicgrant.core.organisation.domain.OrganisationErrorCode.ORGANISATION_NAME_REQUIRED;
 import static be.achzak.civicgrant.core.organisation.domain.OrganisationErrorCode.ORGANISATION_NAME_TOO_LONG;
 
+import be.achzak.civicgrant.core.common.domain.error.BusinessRuleViolationException;
+import be.achzak.civicgrant.core.common.domain.identity.Actor;
 import be.achzak.civicgrant.core.organisation.domain.event.OrganisationEvent;
 import be.achzak.civicgrant.core.organisation.domain.event.OrganisationRegistered;
-import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.BusinessRuleViolationException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;

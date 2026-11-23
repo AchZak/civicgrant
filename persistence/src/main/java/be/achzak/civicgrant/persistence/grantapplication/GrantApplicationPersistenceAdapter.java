@@ -1,7 +1,8 @@
 package be.achzak.civicgrant.persistence.grantapplication;
 
-import static be.achzak.civicgrant.core.sharedkernel.domain.SharedErrorCode.CONCURRENT_UPDATE;
+import static be.achzak.civicgrant.core.common.domain.error.CommonErrorCode.CONCURRENT_UPDATE;
 
+import be.achzak.civicgrant.core.common.domain.error.ConflictException;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantApplicationRepository;
 import be.achzak.civicgrant.core.grantapplication.application.search.ApplicationPage;
@@ -11,7 +12,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationStatus;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationVisibility;
 import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.criteria.CriteriaBuilder;

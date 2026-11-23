@@ -1,18 +1,18 @@
 package be.achzak.civicgrant.core.grantapplication.application.service;
 
+import static be.achzak.civicgrant.core.common.domain.error.DomainExceptionAssert.assertThatDomainException;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.actor;
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anAssessor;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationBuilder.anAssessedApplication;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.actor;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anAssessor;
-import static be.achzak.civicgrant.core.sharedkernel.domain.error.DomainExceptionAssert.assertThatDomainException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetAssessmentQuery;
 import be.achzak.civicgrant.core.grantapplication.application.port.out.InMemoryGrantApplicationRepository;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.grantapplication.domain.Assessment;
 import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

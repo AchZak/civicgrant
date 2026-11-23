@@ -1,12 +1,12 @@
 package be.achzak.civicgrant.persistence.fundingcall;
 
+import static be.achzak.civicgrant.core.common.domain.error.CommonErrorCode.CONCURRENT_UPDATE;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallErrorCode.FUNDING_CALL_REFERENCE_TAKEN;
-import static be.achzak.civicgrant.core.sharedkernel.domain.SharedErrorCode.CONCURRENT_UPDATE;
 
+import be.achzak.civicgrant.core.common.domain.error.ConflictException;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.FundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
-import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
 import java.time.Instant;

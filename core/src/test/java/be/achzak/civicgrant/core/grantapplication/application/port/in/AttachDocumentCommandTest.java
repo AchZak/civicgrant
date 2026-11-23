@@ -1,8 +1,8 @@
 package be.achzak.civicgrant.core.grantapplication.application.port.in;
 
+import static be.achzak.civicgrant.core.common.domain.identity.Actors.anApplicant;
 import static be.achzak.civicgrant.core.grantapplication.domain.PdfFiles.aPdf;
 import static be.achzak.civicgrant.core.grantapplication.domain.PdfFiles.aPdfOf;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Actors.anApplicant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;

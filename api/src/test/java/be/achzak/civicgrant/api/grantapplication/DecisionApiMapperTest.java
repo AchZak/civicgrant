@@ -2,19 +2,19 @@ package be.achzak.civicgrant.api.grantapplication;
 
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.APPLICATION_ID;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
-import static be.achzak.civicgrant.core.sharedkernel.domain.Money.euros;
+import static be.achzak.civicgrant.core.common.domain.Money.euros;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import be.achzak.civicgrant.api.generated.model.DecisionDto;
 import be.achzak.civicgrant.api.generated.model.DecisionOutcomeDto;
 import be.achzak.civicgrant.api.generated.model.DecisionRequestDto;
 import be.achzak.civicgrant.api.generated.model.RejectionGroundDto;
+import be.achzak.civicgrant.core.common.domain.identity.Role;
+import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.ApproveApplicationCommand;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.RejectApplicationCommand;
 import be.achzak.civicgrant.core.grantapplication.domain.Decision;
 import be.achzak.civicgrant.core.grantapplication.domain.RejectionGround;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
-import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneOffset;

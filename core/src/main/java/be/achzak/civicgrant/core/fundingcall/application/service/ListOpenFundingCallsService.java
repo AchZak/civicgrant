@@ -1,10 +1,10 @@
 package be.achzak.civicgrant.core.fundingcall.application.service;
 
+import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.fundingcall.application.port.in.ListOpenFundingCallsQuery;
 import be.achzak.civicgrant.core.fundingcall.application.port.in.ListOpenFundingCallsUseCase;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.FundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
-import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.util.Comparator;
 import java.util.List;
