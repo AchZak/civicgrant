@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.documentstorage;
+package be.achzak.civicgrant.blobstorage;
 
 import be.achzak.civicgrant.core.grantapplication.application.port.out.DocumentStorage;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;

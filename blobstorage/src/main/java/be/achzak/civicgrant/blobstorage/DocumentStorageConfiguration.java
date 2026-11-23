@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.documentstorage;
+package be.achzak.civicgrant.blobstorage;
 
 import com.azure.identity.ManagedIdentityCredentialBuilder;
 import com.azure.storage.blob.BlobContainerClient;

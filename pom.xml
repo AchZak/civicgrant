@@ -22,7 +22,7 @@
         <module>core</module>
         <module>api</module>
         <module>persistence</module>
-        <module>documentstorage</module>
+        <module>blobstorage</module>
         <module>app</module>
     </modules>
 
@@ -64,7 +64,7 @@
             </dependency>
             <dependency>
                 <groupId>be.achzak</groupId>
-                <artifactId>civicgrant-documentstorage</artifactId>
+                <artifactId>civicgrant-blobstorage</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

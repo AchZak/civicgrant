@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.documentstorage;
+package be.achzak.civicgrant.blobstorage;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

@@ -9,8 +9,8 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>civicgrant-documentstorage</artifactId>
-    <name>CivicGrant :: Document storage</name>
+    <artifactId>civicgrant-blobstorage</artifactId>
+    <name>CivicGrant :: Blob storage</name>
 
     <properties>
         <sonar.coverage.exclusions>**/*</sonar.coverage.exclusions>

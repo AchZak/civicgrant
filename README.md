@@ -56,7 +56,7 @@ civicgrant/
 ├── core/              the hexagon: a plain Java domain and an application layer per aggregate
 ├── api/               inbound adapter: OpenAPI contract, generated interfaces, REST controllers
 ├── persistence/       outbound adapter for PostgreSQL: JPA, Flyway migrations
-├── documentstorage/   outbound adapter for Blob Storage: the supporting documents' files
+├── blobstorage/       outbound adapter for Blob Storage: the supporting documents' files
 ├── app/               Spring Boot application, configuration and wiring
 └── infra/             Bicep templates for the Azure infrastructure
 ```
@@ -72,16 +72,16 @@ flowchart LR
             application -->|"runs"| domain
         end
         persistence["persistence<br/>JPA, Flyway"]
-        documentstorage["documentstorage<br/>Blob Storage client"]
+        blobstorage["blobstorage<br/>Blob Storage client"]
         api -->|"calls a use case"| application
         persistence -->|"implements outbound ports"| application
-        documentstorage -->|"implements DocumentStorage"| application
+        blobstorage -->|"implements DocumentStorage"| application
     end
     persistence --> db[("PostgreSQL")]
-    documentstorage --> blob[("Blob Storage")]
+    blobstorage --> blob[("Blob Storage")]
 ```
 
-Each adapter depends on `core`, never on another adapter, and brings only its own technology: `persistence` has no Azure Storage client, `documentstorage` no JPA. `app` puts everything together. Inside `core`, each aggregate has a domain layer (the aggregate, its rules and events) and an application layer (the use cases and outbound ports, and the services that run them), and the domain never depends on the application. The domain is plain Java, the application layer takes only `@Service` and `@Transactional` from Spring, and neither knows about JPA or Azure. ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the core only through use cases, the outbound adapters only through outbound ports, adapters never use each other, outbound ports are interfaces, each use case is an interface with one method taking one command or query, each service implements exactly one use case and runs a command in a read-write transaction and a query in a read-only one, JPA stays inside persistence and the Blob Storage client inside documentstorage, outside the core an aggregate is only ever read, and only persistence rebuilds one from storage.
+Each adapter depends on `core`, never on another adapter, and brings only its own technology: `persistence` has no Azure Storage client, `blobstorage` no JPA. `app` puts everything together. Inside `core`, each aggregate has a domain layer (the aggregate, its rules and events) and an application layer (the use cases and outbound ports, and the services that run them), and the domain never depends on the application. The domain is plain Java, the application layer takes only `@Service` and `@Transactional` from Spring, and neither knows about JPA or Azure. ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the core only through use cases, the outbound adapters only through outbound ports, adapters never use each other, outbound ports are interfaces, each use case is an interface with one method taking one command or query, each service implements exactly one use case and runs a command in a read-write transaction and a query in a read-only one, JPA stays inside persistence and the Blob Storage client inside blobstorage, outside the core an aggregate is only ever read, and only persistence rebuilds one from storage.
 
 The API is contract-first: `api/src/main/openapi/openapi.yaml` is written by hand and is the single source of truth. The Spring interfaces and the Angular client are generated from it, and the pipeline lints it with Redocly on every change. The application serves the API only, not its documentation.
 

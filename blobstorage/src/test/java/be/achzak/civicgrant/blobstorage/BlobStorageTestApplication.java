@@ -1,6 +1,6 @@
-package be.achzak.civicgrant.documentstorage;
+package be.achzak.civicgrant.blobstorage;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-class DocumentStorageTestApplication {}
+class BlobStorageTestApplication {}

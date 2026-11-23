@@ -43,8 +43,8 @@ class ArchitectureTest {
     private static final String OUTBOUND_PORTS = "..civicgrant.core.*.application.port.out..";
     private static final String SERVICES = "..civicgrant.core.*.application.service..";
     private static final String PERSISTENCE = "..civicgrant.persistence..";
-    private static final String DOCUMENT_STORAGE = "..civicgrant.documentstorage..";
-    private static final Set<String> ADAPTERS = Set.of("api", "persistence", "documentstorage");
+    private static final String BLOB_STORAGE = "..civicgrant.blobstorage..";
+    private static final Set<String> ADAPTERS = Set.of("api", "persistence", "blobstorage");
 
     @ArchTest
     static final ArchRule the_domain_depends_only_on_the_jdk_and_jspecify = classes()
@@ -201,7 +201,7 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule outbound_adapters_reach_the_core_through_outbound_ports_only = noClasses()
             .that()
-            .resideInAnyPackage(PERSISTENCE, DOCUMENT_STORAGE)
+            .resideInAnyPackage(PERSISTENCE, BLOB_STORAGE)
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage(SERVICES, INBOUND_PORTS);
@@ -209,7 +209,7 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule outbound_adapter_classes_are_package_private = classes()
             .that()
-            .resideInAnyPackage(PERSISTENCE, DOCUMENT_STORAGE)
+            .resideInAnyPackage(PERSISTENCE, BLOB_STORAGE)
             .and()
             .areNotAnnotatedWith(StaticMetamodel.class)
             .should()
@@ -230,9 +230,9 @@ class ArchitectureTest {
             .resideInAnyPackage("jakarta.persistence..", "org.hibernate..");
 
     @ArchTest
-    static final ArchRule only_document_storage_uses_blob_storage = noClasses()
+    static final ArchRule only_blobstorage_uses_the_azure_storage_client = noClasses()
             .that()
-            .resideOutsideOfPackage(DOCUMENT_STORAGE)
+            .resideOutsideOfPackage(BLOB_STORAGE)
             .should()
             .dependOnClassesThat()
             .resideInAPackage("com.azure.storage..");

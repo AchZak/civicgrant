@@ -39,7 +39,7 @@ COPY pom.xml ./
 COPY core core
 COPY api api
 COPY persistence persistence
-COPY documentstorage documentstorage
+COPY blobstorage blobstorage
 COPY app app
 
 # 2. Build the application JAR and split it into layers.
@@ -49,7 +49,7 @@ COPY app app
 #    On GitHub runners it starts empty on every run.
 #
 #    -pl app -am         build the app module and the modules it depends on
-#                        ("also make"): core, api, persistence, documentstorage.
+#                        ("also make"): core, api, persistence, blobstorage.
 #    -DskipTests         the tests already ran in the Verify job.
 #
 #    jarmode=tools extract --layers splits the Spring Boot JAR into folders, from
