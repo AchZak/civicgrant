@@ -50,7 +50,7 @@ Hexagonal architecture, split into Maven modules so the dependency direction is 
 
 ```
 civicgrant/
-├── core/              the hexagon, plain Java: a domain and an application layer per aggregate
+├── core/              the hexagon: a plain Java domain and an application layer per aggregate
 ├── api/               inbound adapter: OpenAPI contract, generated interfaces, REST controllers
 ├── persistence/       outbound adapter for PostgreSQL: JPA, Flyway migrations
 ├── documentstorage/   outbound adapter for Blob Storage: the supporting documents' files
@@ -63,9 +63,9 @@ flowchart LR
     client["Angular app"] -->|"HTTPS, Entra token"| api
     subgraph app["starter: one Spring Boot application"]
         api["api<br/>contract, controllers,<br/>security, errors"]
-        subgraph core["core: plain Java"]
-            application["application<br/>use cases, ports, services"]
-            domain["domain<br/>aggregates, rules, events"]
+        subgraph core["core"]
+            application["application<br/>use cases, ports, services<br/>@Service, @Transactional"]
+            domain["domain<br/>aggregates, rules, events<br/>plain Java"]
             application -->|"runs"| domain
         end
         persistence["persistence<br/>JPA, Flyway"]
@@ -78,7 +78,7 @@ flowchart LR
     documentstorage --> blob[("Blob Storage")]
 ```
 
-Each adapter depends on `core`, never on another adapter, and brings only its own technology: `persistence` has no Azure Storage client, `documentstorage` no JPA. `starter` puts everything together. Inside `core`, each aggregate has a domain layer (the aggregate, its rules and events) and an application layer (the use cases and outbound ports, and the services that run them), and the domain never depends on the application. The core doesn't know about Spring, JPA or Azure, and ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the core only through use cases, the outbound adapters only through outbound ports, adapters never use each other, outbound ports are interfaces, each use case is an interface with one method taking one command or query, each service implements exactly one use case, JPA stays inside persistence and the Blob Storage client inside documentstorage, outside the core an aggregate is only ever read, and only persistence rebuilds one from storage.
+Each adapter depends on `core`, never on another adapter, and brings only its own technology: `persistence` has no Azure Storage client, `documentstorage` no JPA. `starter` puts everything together. Inside `core`, each aggregate has a domain layer (the aggregate, its rules and events) and an application layer (the use cases and outbound ports, and the services that run them), and the domain never depends on the application. The domain is plain Java, the application layer takes only `@Service` and `@Transactional` from Spring, and neither knows about JPA or Azure. ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the core only through use cases, the outbound adapters only through outbound ports, adapters never use each other, outbound ports are interfaces, each use case is an interface with one method taking one command or query, each service implements exactly one use case and runs a command in a read-write transaction and a query in a read-only one, JPA stays inside persistence and the Blob Storage client inside documentstorage, outside the core an aggregate is only ever read, and only persistence rebuilds one from storage.
 
 The API is contract-first: `api/src/main/openapi/openapi.yaml` is written by hand and is the single source of truth. The Spring interfaces and the Angular client are generated from it, and the pipeline lints it with Redocly on every change. The application serves the API only, not its documentation.
 
@@ -93,7 +93,7 @@ If you only have a few minutes, these files show how the pieces fit:
 - [GrantApplication](core/src/main/java/be/achzak/civicgrant/core/grantapplication/domain/GrantApplication.java): the aggregate. Every step of the workflow is a method named after it, and each one checks who acts, the status and the data, or throws.
 - [ApproveApplicationService](core/src/main/java/be/achzak/civicgrant/core/grantapplication/application/service/ApproveApplicationService.java): a use case from start to end. It checks the role, changes two aggregates in one transaction so the budget can't be overspent, saves, then publishes the events.
 - [ArchitectureTest](starter/src/test/java/be/achzak/civicgrant/ArchitectureTest.java): the conventions above as rules that fail the build, including that every use case checks the actor's role.
-- [UseCaseTransactionAttributeSource](starter/src/main/java/be/achzak/civicgrant/starter/usecase/UseCaseTransactionAttributeSource.java): how a domain without annotations still runs in transactions. A command gets a read-write one, a query a read-only one.
+- [GrantApplicationLifecycleTest](core/src/test/java/be/achzak/civicgrant/core/grantapplication/domain/GrantApplicationLifecycleTest.java): the workflow as one test. Every action is tried in every status: it moves the application on where the lifecycle allows it and is refused everywhere else.
 - [GrantApplicationPersistenceAdapter](persistence/src/main/java/be/achzak/civicgrant/persistence/grantapplication/GrantApplicationPersistenceAdapter.java): optimistic locking that turns a lost race into a 409, and the paged search.
 - [DomainProblemHandler](api/src/main/java/be/achzak/civicgrant/api/error/DomainProblemHandler.java): how domain exceptions become Belgif problems, in one exhaustive switch.
 - [openapi.yaml](api/src/main/openapi/openapi.yaml): the contract the controllers implement.
@@ -142,6 +142,8 @@ The pipeline authenticates to Azure with workload identity federation, so there 
 The choices that shape the code and the Azure setup most.
 
 **The domain doesn't depend on the application.** Each aggregate package in `core` has two layers. The domain layer holds the aggregate, its value objects, its rules and its events. The application layer holds the use cases, the ports in both directions and the services that load an aggregate, call it, save it and publish its events. A repository is something a use case needs, not something an aggregate uses, so the domain declares nothing an adapter implements. ArchUnit fails the build if the domain uses anything from the application, or if a class sits in neither layer.
+
+**The domain is plain Java; the application layer is ordinary Spring.** Aggregates, value objects and events use nothing but the JDK, so every rule is tested without a framework. Each use case is a Spring `@Service` whose one method is `@Transactional`, read-only for a query. Those two annotations are all the application layer takes from Spring, and ArchUnit fails the build if a service misses them or uses anything else from Spring.
 
 **Aggregates guard their own rules.** A grant application changes only through methods named after what happens, such as `submit`, `recordAssessment` or `approve`, never through setters. Each method checks who is acting, then the status and dates, then the data, and either succeeds completely or throws. `create` runs the creation rules; `restore` rebuilds an aggregate from storage without running any, because data that was valid when it was saved must stay readable when a rule changes later. Outside the core an aggregate is only read, and only persistence may restore one.
 

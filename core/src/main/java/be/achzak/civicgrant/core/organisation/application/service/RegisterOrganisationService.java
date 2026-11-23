@@ -12,7 +12,10 @@ import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import be.achzak.civicgrant.core.sharedkernel.domain.error.ConflictException;
 import java.time.Clock;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class RegisterOrganisationService implements RegisterOrganisationUseCase {
 
     private final OrganisationRepository organisations;
@@ -26,6 +29,7 @@ public class RegisterOrganisationService implements RegisterOrganisationUseCase 
     }
 
     @Override
+    @Transactional
     public OrganisationId register(RegisterOrganisationCommand command) {
         Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.APPLICANT);

@@ -19,7 +19,10 @@ import java.time.Instant;
 import java.time.Year;
 import java.time.ZoneOffset;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class CreateApplicationService implements CreateApplicationUseCase {
 
     private final GrantApplicationRepository applications;
@@ -45,6 +48,7 @@ public class CreateApplicationService implements CreateApplicationUseCase {
     }
 
     @Override
+    @Transactional
     public ApplicationId create(CreateApplicationCommand command) {
         Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.APPLICANT);

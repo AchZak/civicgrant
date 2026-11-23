@@ -24,7 +24,12 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import jakarta.persistence.metamodel.StaticMetamodel;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @AnalyzeClasses(packages = "be.achzak.civicgrant", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
@@ -39,13 +44,21 @@ class ArchitectureTest {
     private static final Set<String> ADAPTERS = Set.of("api", "persistence", "documentstorage");
 
     @ArchTest
-    static final ArchRule core_depends_only_on_the_jdk = classes()
+    static final ArchRule the_domain_depends_only_on_the_jdk = classes()
             .that()
-            .resideInAPackage("..civicgrant.core..")
+            .resideInAPackage(DOMAIN)
             .should()
             .onlyDependOnClassesThat()
-            .resideInAnyPackage("java..", "..civicgrant.core..")
-            .allowEmptyShould(true);
+            .resideInAnyPackage("java..", "..civicgrant.core..");
+
+    @ArchTest
+    static final ArchRule the_application_uses_spring_only_for_service_and_transactional = classes()
+            .that()
+            .resideInAPackage(APPLICATION)
+            .should()
+            .onlyDependOnClassesThat(JavaClass.Predicates.resideInAnyPackage("java..", "..civicgrant.core..")
+                    .or(JavaClass.Predicates.belongToAnyOf(
+                            Service.class, Transactional.class, Propagation.class, Isolation.class)));
 
     @ArchTest
     static final ArchRule every_core_class_belongs_to_the_domain_or_the_application =
@@ -124,6 +137,19 @@ class ArchitectureTest {
             .should()
             .haveSimpleNameEndingWith("Service")
             .andShould(implementExactlyOneUseCase());
+
+    @ArchTest
+    static final ArchRule services_are_spring_services =
+            classes().that().resideInAPackage(SERVICES).should().beAnnotatedWith(Service.class);
+
+    @ArchTest
+    static final ArchRule commands_run_read_write_and_queries_read_only = methods()
+            .that()
+            .arePublic()
+            .and()
+            .areDeclaredInClassesThat()
+            .resideInAPackage(SERVICES)
+            .should(runInATransactionThatMatchesTheirRequest());
 
     @ArchTest
     static final ArchRule commands_and_queries_are_records_next_to_their_use_case = classes()
@@ -275,6 +301,25 @@ class ArchitectureTest {
                         takesOne,
                         method.getFullName() + (takesOne ? " takes" : " doesn't take")
                                 + " exactly one command or query"));
+            }
+        };
+    }
+
+    private static ArchCondition<JavaMethod> runInATransactionThatMatchesTheirRequest() {
+        return new ArchCondition<>("run in a read-write transaction for a command and a read-only one for a query") {
+            @Override
+            public void check(JavaMethod method, ConditionEvents events) {
+                boolean takesQuery =
+                        method.getRawParameterTypes().stream().anyMatch(type -> type.isAssignableTo(Query.class));
+                Optional<Transactional> transactional = method.tryGetAnnotationOfType(Transactional.class);
+                boolean matches = transactional
+                        .map(annotation -> annotation.readOnly() == takesQuery)
+                        .orElse(false);
+                events.add(new SimpleConditionEvent(
+                        method,
+                        matches,
+                        method.getFullName() + (matches ? " runs" : " doesn't run") + " in a "
+                                + (takesQuery ? "read-only" : "read-write") + " transaction"));
             }
         };
     }

@@ -8,7 +8,10 @@ import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantAppl
 import be.achzak.civicgrant.core.grantapplication.domain.SupportingDocument;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class DownloadDocumentService implements DownloadDocumentUseCase {
 
     private final GrantApplicationRepository applications;
@@ -20,6 +23,7 @@ public class DownloadDocumentService implements DownloadDocumentUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DocumentDownload download(DownloadDocumentQuery query) {
         Objects.requireNonNull(query, "query");
         query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER);

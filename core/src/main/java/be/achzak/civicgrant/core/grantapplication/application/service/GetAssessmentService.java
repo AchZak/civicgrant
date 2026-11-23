@@ -6,7 +6,10 @@ import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantAppl
 import be.achzak.civicgrant.core.grantapplication.domain.Assessment;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class GetAssessmentService implements GetAssessmentUseCase {
 
     private final GrantApplicationRepository applications;
@@ -16,6 +19,7 @@ public class GetAssessmentService implements GetAssessmentUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Assessment get(GetAssessmentQuery query) {
         Objects.requireNonNull(query, "query");
         query.actor().requireAnyRole(Role.ASSESSOR, Role.DECISION_MAKER);

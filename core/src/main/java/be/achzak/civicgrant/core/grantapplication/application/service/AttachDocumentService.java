@@ -14,7 +14,10 @@ import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.io.ByteArrayInputStream;
 import java.time.Clock;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class AttachDocumentService implements AttachDocumentUseCase {
 
     private final GrantApplicationRepository applications;
@@ -37,6 +40,7 @@ public class AttachDocumentService implements AttachDocumentUseCase {
     }
 
     @Override
+    @Transactional
     public DocumentId attach(AttachDocumentCommand command) {
         Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.APPLICANT);

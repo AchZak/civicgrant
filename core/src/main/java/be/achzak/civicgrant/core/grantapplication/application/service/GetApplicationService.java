@@ -9,7 +9,10 @@ import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import be.achzak.civicgrant.core.sharedkernel.domain.error.NotFoundException;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class GetApplicationService implements GetApplicationUseCase {
 
     private final GrantApplicationRepository applications;
@@ -19,6 +22,7 @@ public class GetApplicationService implements GetApplicationUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GrantApplication get(GetApplicationQuery query) {
         Objects.requireNonNull(query, "query");
         query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER);

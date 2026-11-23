@@ -6,7 +6,10 @@ import be.achzak.civicgrant.core.grantapplication.application.port.out.GrantAppl
 import be.achzak.civicgrant.core.grantapplication.domain.SupportingDocument;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class GetDocumentService implements GetDocumentUseCase {
 
     private final GrantApplicationRepository applications;
@@ -16,6 +19,7 @@ public class GetDocumentService implements GetDocumentUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SupportingDocument get(GetDocumentQuery query) {
         Objects.requireNonNull(query, "query");
         query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER);

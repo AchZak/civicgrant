@@ -10,7 +10,10 @@ import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPu
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class EditApplicationService implements EditApplicationUseCase {
 
     private final GrantApplicationRepository applications;
@@ -30,6 +33,7 @@ public class EditApplicationService implements EditApplicationUseCase {
     }
 
     @Override
+    @Transactional
     public void edit(EditApplicationCommand command) {
         Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.APPLICANT);

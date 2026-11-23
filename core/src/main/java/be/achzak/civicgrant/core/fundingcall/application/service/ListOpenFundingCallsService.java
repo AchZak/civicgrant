@@ -9,7 +9,10 @@ import java.time.Clock;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class ListOpenFundingCallsService implements ListOpenFundingCallsUseCase {
 
     private static final Comparator<FundingCall> CLOSING_SOONEST_FIRST = Comparator.comparing(
@@ -25,6 +28,7 @@ public class ListOpenFundingCallsService implements ListOpenFundingCallsUseCase 
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<FundingCall> list(ListOpenFundingCallsQuery query) {
         Objects.requireNonNull(query, "query");
         query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER, Role.PROGRAMME_MANAGER);

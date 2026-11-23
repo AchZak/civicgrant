@@ -9,7 +9,10 @@ import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPu
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class OpenFundingCallService implements OpenFundingCallUseCase {
 
     private final FundingCallRepository fundingCalls;
@@ -24,6 +27,7 @@ public class OpenFundingCallService implements OpenFundingCallUseCase {
 
     // A reference that's already taken is refused by the repository's save, as FUNDING_CALL_REFERENCE_TAKEN.
     @Override
+    @Transactional
     public FundingCallId open(OpenFundingCallCommand command) {
         Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.PROGRAMME_MANAGER);

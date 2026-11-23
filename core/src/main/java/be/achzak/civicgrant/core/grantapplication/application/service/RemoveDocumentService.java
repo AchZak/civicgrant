@@ -8,7 +8,10 @@ import be.achzak.civicgrant.core.sharedkernel.application.port.out.DomainEventPu
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class RemoveDocumentService implements RemoveDocumentUseCase {
 
     private final GrantApplicationRepository applications;
@@ -22,6 +25,7 @@ public class RemoveDocumentService implements RemoveDocumentUseCase {
     }
 
     @Override
+    @Transactional
     public void remove(RemoveDocumentCommand command) {
         Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.APPLICANT);

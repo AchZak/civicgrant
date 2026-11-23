@@ -11,7 +11,10 @@ import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class ApproveApplicationService implements ApproveApplicationUseCase {
 
     private final GrantApplicationRepository applications;
@@ -31,6 +34,7 @@ public class ApproveApplicationService implements ApproveApplicationUseCase {
     }
 
     @Override
+    @Transactional
     public void approve(ApproveApplicationCommand command) {
         Objects.requireNonNull(command, "command");
         command.actor().requireAnyRole(Role.DECISION_MAKER);

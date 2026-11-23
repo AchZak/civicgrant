@@ -6,7 +6,10 @@ import be.achzak.civicgrant.core.fundingcall.application.port.out.FundingCallRep
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
 import be.achzak.civicgrant.core.sharedkernel.domain.Role;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class GetFundingCallService implements GetFundingCallUseCase {
 
     private final FundingCallRepository fundingCalls;
@@ -16,6 +19,7 @@ public class GetFundingCallService implements GetFundingCallUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public FundingCall get(GetFundingCallQuery query) {
         Objects.requireNonNull(query, "query");
         query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER, Role.PROGRAMME_MANAGER);
