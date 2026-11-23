@@ -1,7 +1,6 @@
 package be.achzak.civicgrant.app.event;
 
-import be.achzak.civicgrant.core.audit.application.port.in.RecordAuditEntryCommand;
-import be.achzak.civicgrant.core.audit.application.port.in.RecordAuditEntryUseCase;
+import be.achzak.civicgrant.core.audit.application.port.out.AuditTrail;
 import be.achzak.civicgrant.core.audit.domain.AuditEntry;
 import be.achzak.civicgrant.core.fundingcall.domain.event.FundingCallEvent;
 import be.achzak.civicgrant.core.grantapplication.domain.event.GrantApplicationEvent;
@@ -10,24 +9,25 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+// A plain @EventListener runs inside the use case's transaction, so no change commits without its entry.
 @Component
 @RequiredArgsConstructor
 class AuditTrailListener {
 
-    private final RecordAuditEntryUseCase recordAuditEntry;
+    private final AuditTrail auditTrail;
 
     @EventListener
     void on(OrganisationEvent event) {
-        recordAuditEntry.record(new RecordAuditEntryCommand(AuditEntry.from(event)));
+        auditTrail.append(AuditEntry.from(event));
     }
 
     @EventListener
     void on(GrantApplicationEvent event) {
-        recordAuditEntry.record(new RecordAuditEntryCommand(AuditEntry.from(event)));
+        auditTrail.append(AuditEntry.from(event));
     }
 
     @EventListener
     void on(FundingCallEvent event) {
-        AuditEntry.from(event).ifPresent(entry -> recordAuditEntry.record(new RecordAuditEntryCommand(entry)));
+        AuditEntry.from(event).ifPresent(auditTrail::append);
     }
 }

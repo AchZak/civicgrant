@@ -5,7 +5,6 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
-import be.achzak.civicgrant.core.audit.application.service.RecordAuditEntryService;
 import be.achzak.civicgrant.core.common.application.cqs.Command;
 import be.achzak.civicgrant.core.common.application.cqs.Query;
 import be.achzak.civicgrant.core.common.domain.identity.Actor;
@@ -117,8 +116,6 @@ class ArchitectureTest {
             .and()
             .areDeclaredInClassesThat()
             .resideInAPackage(SERVICES)
-            .and()
-            .areNotDeclaredIn(RecordAuditEntryService.class)
             .should(callActorRequireAnyRole());
 
     @ArchTest
