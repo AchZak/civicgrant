@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.persistence.documentstorage;
+package be.achzak.civicgrant.documentstorage;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

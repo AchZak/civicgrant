@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.persistence.documentstorage;
+package be.achzak.civicgrant.documentstorage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;

@@ -46,15 +46,16 @@ The rules live in the domain model and are covered by unit tests named after the
 
 ## Architecture
 
-Hexagonal architecture, split into four Maven modules so the dependency direction is enforced by the build and not just by convention.
+Hexagonal architecture, split into Maven modules so the dependency direction is enforced by the build and not just by convention: the core, one module per adapter, and the application that wires them.
 
 ```
 civicgrant/
-├── core/          the hexagon, plain Java: a domain and an application layer per aggregate
-├── api/           OpenAPI contract, generated interfaces, REST controllers
-├── persistence/   JPA and PostgreSQL, Flyway migrations, Blob Storage
-├── starter/       Spring Boot application, configuration and wiring
-└── infra/         Bicep templates for the Azure infrastructure
+├── core/              the hexagon, plain Java: a domain and an application layer per aggregate
+├── api/               inbound adapter: OpenAPI contract, generated interfaces, REST controllers
+├── persistence/       outbound adapter for PostgreSQL: JPA, Flyway migrations
+├── documentstorage/   outbound adapter for Blob Storage: the supporting documents' files
+├── starter/           Spring Boot application, configuration and wiring
+└── infra/             Bicep templates for the Azure infrastructure
 ```
 
 ```mermaid
@@ -67,15 +68,17 @@ flowchart LR
             domain["domain<br/>aggregates, rules, events"]
             application -->|"runs"| domain
         end
-        persistence["persistence<br/>JPA, Flyway, Blob Storage"]
+        persistence["persistence<br/>JPA, Flyway"]
+        documentstorage["documentstorage<br/>Blob Storage client"]
         api -->|"calls a use case"| application
-        persistence -->|"implements its outbound ports"| application
+        persistence -->|"implements outbound ports"| application
+        documentstorage -->|"implements DocumentStorage"| application
     end
     persistence --> db[("PostgreSQL")]
-    persistence --> blob[("Blob Storage")]
+    documentstorage --> blob[("Blob Storage")]
 ```
 
-`api` and `persistence` depend on `core`, never on each other. `starter` puts everything together. Inside `core`, each aggregate has a domain layer (the aggregate, its rules and events) and an application layer (the use cases and outbound ports, and the services that run them), and the domain never depends on the application. The core doesn't know about Spring, JPA or Azure, and ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the core only through use cases, persistence only through outbound ports, outbound ports are interfaces, each use case is an interface with one method taking one command or query, each service implements exactly one use case, JPA stays inside persistence, outside the core an aggregate is only ever read, and only persistence rebuilds one from storage.
+Each adapter depends on `core`, never on another adapter, and brings only its own technology: `persistence` has no Azure Storage client, `documentstorage` no JPA. `starter` puts everything together. Inside `core`, each aggregate has a domain layer (the aggregate, its rules and events) and an application layer (the use cases and outbound ports, and the services that run them), and the domain never depends on the application. The core doesn't know about Spring, JPA or Azure, and ArchUnit tests check that it stays that way. They also check the hexagon's own conventions: the API reaches the core only through use cases, the outbound adapters only through outbound ports, adapters never use each other, outbound ports are interfaces, each use case is an interface with one method taking one command or query, each service implements exactly one use case, JPA stays inside persistence and the Blob Storage client inside documentstorage, outside the core an aggregate is only ever read, and only persistence rebuilds one from storage.
 
 The API is contract-first: `api/src/main/openapi/openapi.yaml` is written by hand and is the single source of truth. The Spring interfaces and the Angular client are generated from it, and the pipeline lints it with Redocly on every change. The application serves the API only, not its documentation.
 

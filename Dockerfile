@@ -39,6 +39,7 @@ COPY pom.xml ./
 COPY core core
 COPY api api
 COPY persistence persistence
+COPY documentstorage documentstorage
 COPY starter starter
 
 # 2. Build the application JAR and split it into layers.
@@ -48,7 +49,7 @@ COPY starter starter
 #    On GitHub runners it starts empty on every run.
 #
 #    -pl starter -am     build the starter module and the modules it depends on
-#                        ("also make"): core, api, persistence.
+#                        ("also make"): core, api, persistence, documentstorage.
 #    -DskipTests         the tests already ran in the Verify job.
 #
 #    jarmode=tools extract --layers splits the Spring Boot JAR into folders, from

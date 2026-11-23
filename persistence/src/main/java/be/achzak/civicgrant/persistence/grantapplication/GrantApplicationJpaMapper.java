@@ -15,7 +15,6 @@ import be.achzak.civicgrant.core.grantapplication.domain.SupportingDocument;
 import be.achzak.civicgrant.core.organisation.domain.OrganisationId;
 import be.achzak.civicgrant.core.sharedkernel.domain.Money;
 import be.achzak.civicgrant.core.sharedkernel.domain.UserId;
-import be.achzak.civicgrant.persistence.documentstorage.DocumentBlobNames;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.UUID;
@@ -178,14 +177,13 @@ final class GrantApplicationJpaMapper {
                 .collect(Collectors.toSet());
         application.documents().stream()
                 .filter(document -> !stored.contains(document.id().value()))
-                .map(document -> toEntity(application.id(), document))
+                .map(GrantApplicationJpaMapper::toEntity)
                 .forEach(entity.getDocuments()::add);
     }
 
-    private static SupportingDocumentJpaEntity toEntity(ApplicationId applicationId, SupportingDocument document) {
+    private static SupportingDocumentJpaEntity toEntity(SupportingDocument document) {
         return new SupportingDocumentJpaEntity(
                 document.id().value(),
-                DocumentBlobNames.of(applicationId, document.id()),
                 document.fileName(),
                 SupportingDocument.CONTENT_TYPE,
                 document.sizeInBytes(),

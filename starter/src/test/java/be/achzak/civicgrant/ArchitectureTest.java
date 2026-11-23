@@ -9,7 +9,6 @@ import be.achzak.civicgrant.core.audit.application.service.RecordAuditEntryServi
 import be.achzak.civicgrant.core.sharedkernel.application.Command;
 import be.achzak.civicgrant.core.sharedkernel.application.Query;
 import be.achzak.civicgrant.core.sharedkernel.domain.Actor;
-import be.achzak.civicgrant.persistence.documentstorage.DocumentBlobNames;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -25,6 +24,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import jakarta.persistence.metamodel.StaticMetamodel;
 import java.util.List;
+import java.util.Set;
 
 @AnalyzeClasses(packages = "be.achzak.civicgrant", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
@@ -34,6 +34,9 @@ class ArchitectureTest {
     private static final String INBOUND_PORTS = "..civicgrant.core.*.application.port.in..";
     private static final String OUTBOUND_PORTS = "..civicgrant.core.*.application.port.out..";
     private static final String SERVICES = "..civicgrant.core.*.application.service..";
+    private static final String PERSISTENCE = "..civicgrant.persistence..";
+    private static final String DOCUMENT_STORAGE = "..civicgrant.documentstorage..";
+    private static final Set<String> ADAPTERS = Set.of("api", "persistence", "documentstorage");
 
     @ArchTest
     static final ArchRule core_depends_only_on_the_jdk = classes()
@@ -143,11 +146,8 @@ class ArchitectureTest {
             .callMethodWhere(aggregateBehaviour());
 
     @ArchTest
-    static final ArchRule only_persistence_restores_aggregates = noClasses()
-            .that()
-            .resideOutsideOfPackage("..civicgrant.persistence..")
-            .should()
-            .callMethodWhere(aggregateRestore());
+    static final ArchRule only_persistence_restores_aggregates =
+            noClasses().that().resideOutsideOfPackage(PERSISTENCE).should().callMethodWhere(aggregateRestore());
 
     @ArchTest
     static final ArchRule api_reaches_the_core_through_use_cases_only = noClasses()
@@ -158,31 +158,43 @@ class ArchitectureTest {
             .resideInAnyPackage(SERVICES, OUTBOUND_PORTS);
 
     @ArchTest
-    static final ArchRule persistence_reaches_the_core_through_outbound_ports_only = noClasses()
+    static final ArchRule outbound_adapters_reach_the_core_through_outbound_ports_only = noClasses()
             .that()
-            .resideInAPackage("..civicgrant.persistence..")
+            .resideInAnyPackage(PERSISTENCE, DOCUMENT_STORAGE)
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage(SERVICES, INBOUND_PORTS);
 
     @ArchTest
-    static final ArchRule persistence_classes_are_package_private = classes()
+    static final ArchRule outbound_adapter_classes_are_package_private = classes()
             .that()
-            .resideInAPackage("..civicgrant.persistence..")
+            .resideInAnyPackage(PERSISTENCE, DOCUMENT_STORAGE)
             .and()
             .areNotAnnotatedWith(StaticMetamodel.class)
-            .and()
-            .doNotBelongToAnyOf(DocumentBlobNames.class)
             .should()
             .notBePublic();
 
     @ArchTest
+    static final ArchRule adapters_do_not_depend_on_each_other = slices().matching("be.achzak.civicgrant.(*)..")
+            .that(DescribedPredicate.describe("are adapters", slice -> ADAPTERS.contains(slice.getNamePart(1))))
+            .should()
+            .notDependOnEachOther();
+
+    @ArchTest
     static final ArchRule only_persistence_uses_jpa = noClasses()
             .that()
-            .resideOutsideOfPackage("..civicgrant.persistence..")
+            .resideOutsideOfPackage(PERSISTENCE)
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage("jakarta.persistence..", "org.hibernate..");
+
+    @ArchTest
+    static final ArchRule only_document_storage_uses_blob_storage = noClasses()
+            .that()
+            .resideOutsideOfPackage(DOCUMENT_STORAGE)
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage("com.azure.storage..");
 
     @ArchTest
     static final ArchRule only_the_application_class_lives_in_the_root_package = classes()
@@ -190,24 +202,6 @@ class ArchitectureTest {
             .resideInAPackage("be.achzak.civicgrant")
             .should()
             .haveSimpleName(CivicgrantApplication.class.getSimpleName());
-
-    @ArchTest
-    static final ArchRule api_does_not_use_persistence = noClasses()
-            .that()
-            .resideInAPackage("..civicgrant.api..")
-            .should()
-            .dependOnClassesThat()
-            .resideInAPackage("..civicgrant.persistence..")
-            .allowEmptyShould(true);
-
-    @ArchTest
-    static final ArchRule persistence_does_not_use_api = noClasses()
-            .that()
-            .resideInAPackage("..civicgrant.persistence..")
-            .should()
-            .dependOnClassesThat()
-            .resideInAPackage("..civicgrant.api..")
-            .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule only_api_security_reads_the_security_context = noClasses()

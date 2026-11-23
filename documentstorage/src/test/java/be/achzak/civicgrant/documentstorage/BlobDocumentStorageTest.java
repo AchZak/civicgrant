@@ -1,4 +1,4 @@
-package be.achzak.civicgrant.persistence.documentstorage;
+package be.achzak.civicgrant.documentstorage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import be.achzak.civicgrant.core.grantapplication.application.port.out.DocumentStorage;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
 import be.achzak.civicgrant.core.grantapplication.domain.DocumentId;
-import be.achzak.civicgrant.persistence.PersistenceTest;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import java.io.ByteArrayInputStream;
@@ -16,8 +15,11 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
-@PersistenceTest
+@SpringBootTest
+@Import(TestcontainersConfiguration.class)
 @DisplayName("Document storage in Blob Storage")
 class BlobDocumentStorageTest {
 

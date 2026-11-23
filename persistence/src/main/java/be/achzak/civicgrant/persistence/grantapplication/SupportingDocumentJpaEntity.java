@@ -18,7 +18,6 @@ class SupportingDocumentJpaEntity {
     @Id
     private UUID id;
 
-    private String blobName;
     private String originalFilename;
     private String contentType;
     private long sizeBytes;
@@ -27,14 +26,12 @@ class SupportingDocumentJpaEntity {
 
     SupportingDocumentJpaEntity(
             UUID id,
-            String blobName,
             String originalFilename,
             String contentType,
             long sizeBytes,
             String uploadedByOid,
             Instant uploadedAt) {
         this.id = id;
-        this.blobName = blobName;
         this.originalFilename = originalFilename;
         this.contentType = contentType;
         this.sizeBytes = sizeBytes;

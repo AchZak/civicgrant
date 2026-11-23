@@ -220,22 +220,20 @@ class GrantApplicationPersistenceAdapterTest {
     }
 
     @Test
-    @DisplayName("stores each document under a blob name made of ids only, as a PDF")
-    void storesEachDocumentUnderABlobNameMadeOfIdsOnlyAsAPdf() {
+    @DisplayName("stores each document as a PDF")
+    void storesEachDocumentAsAPdf() {
         // when
         applications.save(draftWith(List.of(BUDGET), 0));
 
         // then
         List<String> stored = jdbc.sql("""
-                        SELECT blob_name || ' ' || content_type FROM civicgrant.supporting_document
+                        SELECT content_type FROM civicgrant.supporting_document
                         WHERE grant_application_id = :id
                         """)
                 .param("id", APPLICATION_ID.value())
                 .query(String.class)
                 .list();
-        assertThat(stored)
-                .containsExactly("applications/" + APPLICATION_ID.value() + "/"
-                        + BUDGET.id().value() + ".pdf application/pdf");
+        assertThat(stored).containsExactly("application/pdf");
     }
 
     @Test
