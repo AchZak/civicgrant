@@ -1,5 +1,8 @@
 # CivicGrant
 
+[![CI](https://github.com/AchZak/civicgrant/actions/workflows/ci.yaml/badge.svg?branch=develop)](https://github.com/AchZak/civicgrant/actions/workflows/ci.yaml?query=branch%3Adevelop)
+[![Quality gate](https://sonarcloud.io/api/project_badges/measure?project=AchZak_civicgrant&metric=alert_status)](https://sonarcloud.io/summary/overall?id=AchZak_civicgrant)
+
 A grant application portal for a (fictional) Belgian public administration. Non-profit organisations apply for funding through a call for projects, a civil servant assesses each application, and a separate decision maker approves or rejects it with a written motivation.
 
 I built this to get hands-on with Azure on a project that looks like the applications I work on day to day: a real workflow, real rules, two languages, and more than one kind of user.
