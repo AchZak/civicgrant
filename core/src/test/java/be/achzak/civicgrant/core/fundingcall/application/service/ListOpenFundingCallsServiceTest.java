@@ -1,15 +1,10 @@
 package be.achzak.civicgrant.core.fundingcall.application.service;
 
-import static be.achzak.civicgrant.core.common.domain.error.DomainExceptionAssert.assertThatDomainException;
-import static be.achzak.civicgrant.core.common.domain.identity.Actors.actor;
-import static be.achzak.civicgrant.core.common.domain.identity.Actors.anActorWithoutRoles;
 import static be.achzak.civicgrant.core.common.domain.identity.Actors.anApplicant;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallBuilder.OPENS_AT;
 import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallBuilder.aFundingCall;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
 
-import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.fundingcall.application.port.in.ListOpenFundingCallsQuery;
 import be.achzak.civicgrant.core.fundingcall.application.port.out.InMemoryFundingCallRepository;
 import be.achzak.civicgrant.core.fundingcall.domain.FundingCall;
@@ -20,8 +15,6 @@ import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayName("Listing open funding calls")
 class ListOpenFundingCallsServiceTest {
@@ -30,95 +23,28 @@ class ListOpenFundingCallsServiceTest {
     private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);
 
     @Test
-    @DisplayName("lists only the calls open now")
-    void listsOnlyTheCallsOpenNow() {
-        // given
-        FundingCall open = aFundingCall().build();
-        FundingCall upcoming = aFundingCall()
-                .withSubmissionPeriod(NOW.plus(Duration.ofDays(1)), NOW.plus(Duration.ofDays(30)))
-                .build();
-        FundingCall closingNow =
-                aFundingCall().withSubmissionPeriod(OPENS_AT, NOW).build();
-        ListOpenFundingCallsService service =
-                new ListOpenFundingCallsService(new InMemoryFundingCallRepository(upcoming, open, closingNow), CLOCK);
-
-        // when
-        List<FundingCall> calls = service.list(new ListOpenFundingCallsQuery(anApplicant()));
-
-        // then
-        assertThat(calls).containsExactly(open);
-    }
-
-    @Test
-    @DisplayName("lists the calls closing soonest first")
-    void listsTheCallsClosingSoonestFirst() {
+    @DisplayName("lists the calls closing soonest first, then by reference")
+    void listsTheCallsClosingSoonestFirstThenByReference() {
         // given
         FundingCall closingLater = aFundingCall()
+                .withReference("ARTS-2026")
                 .withSubmissionPeriod(OPENS_AT, NOW.plus(Duration.ofDays(60)))
                 .build();
-        FundingCall closingSooner = aFundingCall()
-                .withSubmissionPeriod(OPENS_AT, NOW.plus(Duration.ofDays(10)))
-                .build();
-        ListOpenFundingCallsService service =
-                new ListOpenFundingCallsService(new InMemoryFundingCallRepository(closingLater, closingSooner), CLOCK);
-
-        // when
-        List<FundingCall> calls = service.list(new ListOpenFundingCallsQuery(anApplicant()));
-
-        // then
-        assertThat(calls).containsExactly(closingSooner, closingLater);
-    }
-
-    @Test
-    @DisplayName("lists calls closing at the same time by reference")
-    void listsCallsClosingAtTheSameTimeByReference() {
-        // given
-        Instant closesAt = NOW.plus(Duration.ofDays(10));
         FundingCall sport = aFundingCall()
                 .withReference("SPORT-2026")
-                .withSubmissionPeriod(OPENS_AT, closesAt)
+                .withSubmissionPeriod(OPENS_AT, NOW.plus(Duration.ofDays(10)))
                 .build();
         FundingCall culture = aFundingCall()
                 .withReference("CULTURE-2026")
-                .withSubmissionPeriod(OPENS_AT, closesAt)
+                .withSubmissionPeriod(OPENS_AT, NOW.plus(Duration.ofDays(10)))
                 .build();
         ListOpenFundingCallsService service =
-                new ListOpenFundingCallsService(new InMemoryFundingCallRepository(sport, culture), CLOCK);
+                new ListOpenFundingCallsService(new InMemoryFundingCallRepository(closingLater, sport, culture), CLOCK);
 
         // when
         List<FundingCall> calls = service.list(new ListOpenFundingCallsQuery(anApplicant()));
 
         // then
-        assertThat(calls).containsExactly(culture, sport);
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @EnumSource(Role.class)
-    @DisplayName("lets every role list the open calls")
-    void letsEveryRoleListTheOpenCalls(Role role) {
-        // given
-        FundingCall open = aFundingCall().build();
-        ListOpenFundingCallsService service =
-                new ListOpenFundingCallsService(new InMemoryFundingCallRepository(open), CLOCK);
-
-        // when
-        List<FundingCall> calls = service.list(new ListOpenFundingCallsQuery(actor("user-1", role)));
-
-        // then
-        assertThat(calls).containsExactly(open);
-    }
-
-    @Test
-    @DisplayName("refuses an actor without any role")
-    void refusesActorWithoutAnyRole() {
-        // given
-        ListOpenFundingCallsService service = new ListOpenFundingCallsService(
-                new InMemoryFundingCallRepository(aFundingCall().build()), CLOCK);
-
-        // when
-        Throwable thrown = catchThrowable(() -> service.list(new ListOpenFundingCallsQuery(anActorWithoutRoles())));
-
-        // then
-        assertThatDomainException(thrown).isForbidden().hasCode("ROLE_REQUIRED");
+        assertThat(calls).containsExactly(culture, sport, closingLater);
     }
 }

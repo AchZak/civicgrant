@@ -1,18 +1,14 @@
 package be.achzak.civicgrant.core.grantapplication.application.port.out;
 
-import be.achzak.civicgrant.core.fundingcall.domain.FundingCallId;
 import be.achzak.civicgrant.core.grantapplication.application.search.ApplicationPage;
 import be.achzak.civicgrant.core.grantapplication.application.search.ApplicationSearchCriteria;
 import be.achzak.civicgrant.core.grantapplication.application.search.ApplicationSummary;
 import be.achzak.civicgrant.core.grantapplication.domain.ApplicationId;
-import be.achzak.civicgrant.core.grantapplication.domain.ApplicationStatus;
 import be.achzak.civicgrant.core.grantapplication.domain.GrantApplication;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 public final class InMemoryGrantApplicationRepository implements GrantApplicationRepository {
 
@@ -34,24 +30,14 @@ public final class InMemoryGrantApplicationRepository implements GrantApplicatio
         applications.put(application.id(), application);
     }
 
+    // Visibility only: the filters, the order and the paging are SQL, tested in persistence.
     @Override
     public ApplicationPage search(ApplicationSearchCriteria criteria, int page, int pageSize) {
-        Set<ApplicationStatus> statuses = criteria.statuses();
-        Set<FundingCallId> fundingCalls = criteria.fundingCalls();
-        List<ApplicationSummary> matching = applications.values().stream()
+        List<ApplicationSummary> visible = applications.values().stream()
                 .filter(application -> criteria.visibility().allows(application.applicant(), application.status()))
-                .filter(application -> statuses.isEmpty() || statuses.contains(application.status()))
-                .filter(application -> fundingCalls.isEmpty() || fundingCalls.contains(application.fundingCallId()))
-                .sorted(Comparator.comparing(GrantApplication::updatedAt)
-                        .reversed()
-                        .thenComparing(application -> application.id().value()))
                 .map(InMemoryGrantApplicationRepository::summaryOf)
                 .toList();
-        List<ApplicationSummary> items = matching.stream()
-                .skip((long) (page - 1) * pageSize)
-                .limit(pageSize)
-                .toList();
-        return new ApplicationPage(items, page, pageSize, matching.size());
+        return new ApplicationPage(visible, page, pageSize, visible.size());
     }
 
     private static ApplicationSummary summaryOf(GrantApplication application) {

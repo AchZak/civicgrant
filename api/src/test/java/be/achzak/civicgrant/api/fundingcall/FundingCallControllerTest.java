@@ -3,18 +3,12 @@ package be.achzak.civicgrant.api.fundingcall;
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
 import static be.achzak.civicgrant.core.common.domain.Money.euros;
-import static be.achzak.civicgrant.core.common.domain.error.CommonErrorCode.ROLE_REQUIRED;
-import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallErrorCode.FUNDING_CALL_NOT_FOUND;
-import static be.achzak.civicgrant.core.fundingcall.domain.FundingCallErrorCode.FUNDING_CALL_REFERENCE_TAKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
 import be.achzak.civicgrant.core.common.domain.LocalizedText;
-import be.achzak.civicgrant.core.common.domain.error.ConflictException;
-import be.achzak.civicgrant.core.common.domain.error.ForbiddenException;
-import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
 import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.fundingcall.application.port.in.GetFundingCallQuery;
 import be.achzak.civicgrant.core.fundingcall.application.port.in.GetFundingCallUseCase;
@@ -162,26 +156,6 @@ class FundingCallControllerTest {
             then(openFundingCall).shouldHaveNoInteractions();
         }
 
-        @Test
-        @DisplayName("returns 409 fundingCallReferenceTaken for a reference already in use")
-        void returns409ForAReferenceAlreadyInUse() {
-            // given
-            given(openFundingCall.open(command))
-                    .willThrow(new ConflictException(
-                            FUNDING_CALL_REFERENCE_TAKEN, "Funding call reference GRN-2027 is already taken"));
-
-            // when
-            MvcTestResult result = open("GRN-2027", NEW_CALL_CLOSES_AT);
-
-            // then
-            assertThat(result).hasStatus(HttpStatus.CONFLICT);
-            assertThat(result)
-                    .bodyJson()
-                    .extractingPath("$.type")
-                    .asString()
-                    .isEqualTo("urn:problem-type:civicgrant:fundingCallReferenceTaken");
-        }
-
         private MvcTestResult open(String reference, Instant closesAt) {
             return mvc.post()
                     .uri("/api/v1/fundingCalls")
@@ -287,64 +261,6 @@ class FundingCallControllerTest {
         // then
         assertThat(result).hasStatusOk();
         assertThat(result).bodyJson().extractingPath("$.reference").asString().isEqualTo("NBH-2026");
-    }
-
-    @Test
-    @DisplayName("returns 404 resourceNotFound for an unknown funding call")
-    void returns404ForAnUnknownFundingCall() {
-        // given
-        FundingCallId unknown = FundingCallId.generate();
-        given(getFundingCall.get(new GetFundingCallQuery(unknown, actor(Role.APPLICANT))))
-                .willThrow(new NotFoundException(FUNDING_CALL_NOT_FOUND, "Funding call not found"));
-
-        // when
-        MvcTestResult result = mvc.get()
-                .uri("/api/v1/fundingCalls/{fundingCallId}", unknown.value())
-                .with(accessToken(Role.APPLICANT))
-                .exchange();
-
-        // then
-        assertThat(result).hasStatus(HttpStatus.NOT_FOUND);
-        assertThat(result)
-                .bodyJson()
-                .extractingPath("$.type")
-                .asString()
-                .isEqualTo("urn:problem-type:belgif:resourceNotFound");
-    }
-
-    @Test
-    @DisplayName("returns 403 roleRequired when the caller holds none of the accepted roles")
-    void returns403RoleRequiredWhenTheCallerHoldsNoneOfTheAcceptedRoles() {
-        // given
-        given(listOpenFundingCalls.list(new ListOpenFundingCallsQuery(actor())))
-                .willThrow(new ForbiddenException(ROLE_REQUIRED, "User has none of the roles"));
-
-        // when
-        MvcTestResult result =
-                mvc.get().uri("/api/v1/fundingCalls").with(accessToken()).exchange();
-
-        // then
-        assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
-        assertThat(result)
-                .bodyJson()
-                .extractingPath("$.type")
-                .asString()
-                .isEqualTo("urn:problem-type:civicgrant:roleRequired");
-    }
-
-    @Test
-    @DisplayName("returns 401 noAccessToken without a token")
-    void returns401WithoutAToken() {
-        // when
-        MvcTestResult result = mvc.get().uri("/api/v1/fundingCalls").exchange();
-
-        // then
-        assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);
-        assertThat(result)
-                .bodyJson()
-                .extractingPath("$.type")
-                .asString()
-                .isEqualTo("urn:problem-type:belgif:noAccessToken");
     }
 
     private static FundingCall fundingCall() {

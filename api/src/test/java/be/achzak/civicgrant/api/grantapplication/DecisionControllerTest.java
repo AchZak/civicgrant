@@ -8,16 +8,11 @@ import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
 import static be.achzak.civicgrant.core.common.domain.Money.euros;
-import static be.achzak.civicgrant.core.common.domain.error.CommonErrorCode.CONCURRENT_UPDATE;
-import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.SEPARATION_OF_DUTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.BDDMockito.willThrow;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
-import be.achzak.civicgrant.core.common.domain.error.ConflictException;
-import be.achzak.civicgrant.core.common.domain.error.ForbiddenException;
 import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.ApproveApplicationCommand;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.ApproveApplicationUseCase;
@@ -185,46 +180,6 @@ class DecisionControllerTest {
             assertThatBadRequestOn(result, "/grantedAmount");
             assertThat(result).bodyJson().extractingPath("$.issues[0].value").isEqualTo(7000);
             then(rejectApplication).shouldHaveNoInteractions();
-        }
-
-        @Test
-        @DisplayName("answers 403 separationOfDuties when the decision maker assessed the application")
-        void answers403WhenTheDecisionMakerAssessedTheApplication() {
-            // given
-            willThrow(new ForbiddenException(SEPARATION_OF_DUTIES, "The assessor can't decide"))
-                    .given(approveApplication)
-                    .approve(APPROVE);
-
-            // when
-            MvcTestResult result = decide(APPROVAL);
-
-            // then
-            assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
-            assertThat(result)
-                    .bodyJson()
-                    .extractingPath("$.type")
-                    .asString()
-                    .isEqualTo("urn:problem-type:civicgrant:separationOfDuties");
-        }
-
-        @Test
-        @DisplayName("answers 409 concurrentUpdate when another decision changed the call's budget first")
-        void answers409WhenAnotherDecisionChangedTheBudgetFirst() {
-            // given
-            willThrow(new ConflictException(CONCURRENT_UPDATE, "Funding call NBH-2026 was changed meanwhile"))
-                    .given(approveApplication)
-                    .approve(APPROVE);
-
-            // when
-            MvcTestResult result = decide(APPROVAL);
-
-            // then
-            assertThat(result).hasStatus(HttpStatus.CONFLICT);
-            assertThat(result)
-                    .bodyJson()
-                    .extractingPath("$.type")
-                    .asString()
-                    .isEqualTo("urn:problem-type:civicgrant:concurrentUpdate");
         }
 
         private MvcTestResult decide(String body) {

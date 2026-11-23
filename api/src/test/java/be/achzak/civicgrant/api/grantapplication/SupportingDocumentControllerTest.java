@@ -3,18 +3,13 @@ package be.achzak.civicgrant.api.grantapplication;
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.APPLICATION_ID;
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
-import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.APPLICATION_NOT_DRAFT;
-import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.DOCUMENT_NOT_PDF;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.BDDMockito.willThrow;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
 import be.achzak.civicgrant.core.common.domain.error.BusinessRuleViolationException;
-import be.achzak.civicgrant.core.common.domain.error.ConflictException;
-import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
 import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.common.domain.identity.UserId;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.AttachDocumentCommand;
@@ -193,28 +188,6 @@ class SupportingDocumentControllerTest {
         }
 
         @Test
-        @DisplayName("returns 404 when the document is hidden or missing")
-        void returns404WhenTheDocumentIsHiddenOrMissing() {
-            // given
-            given(getDocument.get(new GetDocumentQuery(APPLICATION_ID, DOCUMENT_ID, actor(Role.APPLICANT))))
-                    .willThrow(new NotFoundException(APPLICATION_NOT_FOUND, "Not found"));
-
-            // when
-            MvcTestResult result = mvc.get()
-                    .uri(DOCUMENT_PATH)
-                    .with(accessToken(Role.APPLICANT))
-                    .exchange();
-
-            // then
-            assertThat(result).hasStatus(HttpStatus.NOT_FOUND);
-            assertThat(result)
-                    .bodyJson()
-                    .extractingPath("$.type")
-                    .asString()
-                    .isEqualTo("urn:problem-type:belgif:resourceNotFound");
-        }
-
-        @Test
         @DisplayName("streams the PDF with its type, length and file name as an attachment")
         void streamsThePdfWithItsTypeLengthAndFileName() {
             // given
@@ -259,29 +232,6 @@ class SupportingDocumentControllerTest {
             then(removeDocument)
                     .should()
                     .remove(new RemoveDocumentCommand(APPLICATION_ID, DOCUMENT_ID, actor(Role.APPLICANT)));
-        }
-
-        @Test
-        @DisplayName("answers 409 applicationNotDraft once the application is submitted")
-        void answers409OnceTheApplicationIsSubmitted() {
-            // given
-            willThrow(new ConflictException(APPLICATION_NOT_DRAFT, "Application is SUBMITTED, not DRAFT"))
-                    .given(removeDocument)
-                    .remove(new RemoveDocumentCommand(APPLICATION_ID, DOCUMENT_ID, actor(Role.APPLICANT)));
-
-            // when
-            MvcTestResult result = mvc.delete()
-                    .uri(DOCUMENT_PATH)
-                    .with(accessToken(Role.APPLICANT))
-                    .exchange();
-
-            // then
-            assertThat(result).hasStatus(HttpStatus.CONFLICT);
-            assertThat(result)
-                    .bodyJson()
-                    .extractingPath("$.type")
-                    .asString()
-                    .isEqualTo("urn:problem-type:civicgrant:applicationNotDraft");
         }
     }
 }

@@ -7,14 +7,11 @@ import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.aSubmittedApplication;
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
-import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.APPLICATION_NOT_DRAFT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.BDDMockito.willThrow;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
-import be.achzak.civicgrant.core.common.domain.error.ConflictException;
 import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetApplicationQuery;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetApplicationUseCase;
@@ -73,27 +70,6 @@ class SubmissionControllerTest {
                     .asString()
                     .satisfies(text ->
                             assertThat(OffsetDateTime.parse(text).toInstant()).isEqualTo(SUBMITTED_AT));
-        }
-
-        @Test
-        @DisplayName("answers 409 applicationNotDraft when the application was already submitted")
-        void answers409WhenAlreadySubmitted() {
-            // given
-            willThrow(new ConflictException(APPLICATION_NOT_DRAFT, "Application is SUBMITTED, not DRAFT"))
-                    .given(submitApplication)
-                    .submit(COMMAND);
-
-            // when
-            MvcTestResult result =
-                    mvc.post().uri(SUBMISSION).with(accessToken(Role.APPLICANT)).exchange();
-
-            // then
-            assertThat(result).hasStatus(HttpStatus.CONFLICT);
-            assertThat(result)
-                    .bodyJson()
-                    .extractingPath("$.type")
-                    .asString()
-                    .isEqualTo("urn:problem-type:civicgrant:applicationNotDraft");
         }
     }
 

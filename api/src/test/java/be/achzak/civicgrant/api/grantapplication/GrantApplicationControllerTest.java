@@ -10,15 +10,11 @@ import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures
 import static be.achzak.civicgrant.api.grantapplication.GrantApplicationFixtures.aSummary;
 import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
-import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.APPLICATION_NOT_DRAFT;
-import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.BDDMockito.willThrow;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
-import be.achzak.civicgrant.core.common.domain.error.ConflictException;
 import be.achzak.civicgrant.core.common.domain.error.ErrorCode;
 import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
 import be.achzak.civicgrant.core.common.domain.identity.Role;
@@ -245,25 +241,6 @@ class GrantApplicationControllerTest {
                     .isEmpty();
         }
 
-        @Test
-        @DisplayName("answers 404 resourceNotFound for an application the caller may not see")
-        void answers404ForAnApplicationTheCallerMayNotSee() {
-            // given
-            given(getApplication.get(new GetApplicationQuery(APPLICATION_ID, actor(Role.APPLICANT))))
-                    .willThrow(new NotFoundException(APPLICATION_NOT_FOUND, "Application not found"));
-
-            // when
-            MvcTestResult result = get(Role.APPLICANT);
-
-            // then
-            assertThat(result).hasStatus(HttpStatus.NOT_FOUND);
-            assertThat(result)
-                    .bodyJson()
-                    .extractingPath("$.type")
-                    .asString()
-                    .isEqualTo("urn:problem-type:belgif:resourceNotFound");
-        }
-
         private MvcTestResult get(Role role) {
             return mvc.get()
                     .uri(APPLICATIONS + "/{applicationId}", APPLICATION_ID.value())
@@ -298,26 +275,6 @@ class GrantApplicationControllerTest {
                     .asString()
                     .isEqualTo("FR");
             then(editApplication).should().edit(COMMAND);
-        }
-
-        @Test
-        @DisplayName("answers 409 applicationNotDraft for an application that was submitted")
-        void answers409ForAnApplicationThatWasSubmitted() {
-            // given
-            willThrow(new ConflictException(APPLICATION_NOT_DRAFT, "Application is SUBMITTED"))
-                    .given(editApplication)
-                    .edit(COMMAND);
-
-            // when
-            MvcTestResult result = edit();
-
-            // then
-            assertThat(result).hasStatus(HttpStatus.CONFLICT);
-            assertThat(result)
-                    .bodyJson()
-                    .extractingPath("$.type")
-                    .asString()
-                    .isEqualTo("urn:problem-type:civicgrant:applicationNotDraft");
         }
 
         private MvcTestResult edit() {

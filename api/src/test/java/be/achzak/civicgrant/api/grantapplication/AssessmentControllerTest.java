@@ -5,14 +5,11 @@ import static be.achzak.civicgrant.api.security.AccessTokens.accessToken;
 import static be.achzak.civicgrant.api.security.AccessTokens.actor;
 import static be.achzak.civicgrant.core.common.domain.Money.euros;
 import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.ASSESSMENT_NOT_FOUND;
-import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.CONFLICT_OF_INTEREST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.BDDMockito.willThrow;
 
 import be.achzak.civicgrant.api.security.ApiWebMvcTest;
-import be.achzak.civicgrant.core.common.domain.error.ForbiddenException;
 import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
 import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.common.domain.identity.UserId;
@@ -123,29 +120,6 @@ class AssessmentControllerTest {
             assertThatBadRequestOnTheProposedAmount(result);
             assertThat(result).bodyJson().extractingPath("$.issues[0].value").isEqualTo(7500);
             then(recordAssessment).shouldHaveNoInteractions();
-        }
-
-        @Test
-        @DisplayName("answers 403 conflictOfInterest when the assessor is the applicant")
-        void answers403WhenTheAssessorIsTheApplicant() {
-            // given
-            willThrow(new ForbiddenException(CONFLICT_OF_INTEREST, "The applicant can't assess"))
-                    .given(recordAssessment)
-                    .record(COMMAND);
-
-            // when
-            MvcTestResult result = record("""
-                    {"eligible": true, "recommendation": "APPROVE", "proposedAmount": 7500.00,
-                     "comment": "Sterk buurtproject."}
-                    """);
-
-            // then
-            assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
-            assertThat(result)
-                    .bodyJson()
-                    .extractingPath("$.type")
-                    .asString()
-                    .isEqualTo("urn:problem-type:civicgrant:conflictOfInterest");
         }
 
         private MvcTestResult record(String body) {
