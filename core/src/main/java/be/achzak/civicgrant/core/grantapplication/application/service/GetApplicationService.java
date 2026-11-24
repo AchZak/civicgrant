@@ -1,8 +1,5 @@
 package be.achzak.civicgrant.core.grantapplication.application.service;
 
-import static be.achzak.civicgrant.core.grantapplication.domain.GrantApplicationErrorCode.APPLICATION_NOT_FOUND;
-
-import be.achzak.civicgrant.core.common.domain.error.NotFoundException;
 import be.achzak.civicgrant.core.common.domain.identity.Role;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetApplicationQuery;
 import be.achzak.civicgrant.core.grantapplication.application.port.in.GetApplicationUseCase;
@@ -22,11 +19,8 @@ public class GetApplicationService implements GetApplicationUseCase {
     @Transactional(readOnly = true)
     public GrantApplication get(GetApplicationQuery query) {
         query.actor().requireAnyRole(Role.APPLICANT, Role.ASSESSOR, Role.DECISION_MAKER);
-        return applications
-                .findById(query.applicationId())
-                .filter(application -> application.isVisibleTo(query.actor()))
-                .orElseThrow(() -> new NotFoundException(
-                        APPLICATION_NOT_FOUND,
-                        "Application " + query.applicationId().value() + " not found"));
+        GrantApplication application = applications.getById(query.applicationId());
+        application.ensureVisibleTo(query.actor());
+        return application;
     }
 }

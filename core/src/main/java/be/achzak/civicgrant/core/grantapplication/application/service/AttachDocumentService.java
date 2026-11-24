@@ -32,9 +32,7 @@ public class AttachDocumentService implements AttachDocumentUseCase {
     public DocumentId attach(AttachDocumentCommand command) {
         command.actor().requireAnyRole(Role.APPLICANT);
         GrantApplication application = applications.getById(command.applicationId());
-        // The foreign key guarantees the call exists, so a missing one is a bug.
-        FundingCall fundingCall =
-                fundingCalls.findById(application.fundingCallId()).orElseThrow();
+        FundingCall fundingCall = fundingCalls.getById(application.fundingCallId());
         SupportingDocument document = application.attachDocument(
                 command.fileName(),
                 command.declaredContentType(),

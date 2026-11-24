@@ -28,9 +28,7 @@ public class ApproveApplicationService implements ApproveApplicationUseCase {
     public void approve(ApproveApplicationCommand command) {
         command.actor().requireAnyRole(Role.DECISION_MAKER);
         GrantApplication application = applications.getById(command.applicationId());
-        // The foreign key guarantees the call exists, so a missing one is a bug.
-        FundingCall fundingCall =
-                fundingCalls.findById(application.fundingCallId()).orElseThrow();
+        FundingCall fundingCall = fundingCalls.getById(application.fundingCallId());
         Instant now = clock.instant();
         application.approve(command.grantedAmount(), command.motivation(), command.actor(), now);
         fundingCall.commitGrant(command.grantedAmount(), command.actor(), now);

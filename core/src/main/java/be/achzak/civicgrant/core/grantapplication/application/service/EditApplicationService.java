@@ -27,9 +27,7 @@ public class EditApplicationService implements EditApplicationUseCase {
     public void edit(EditApplicationCommand command) {
         command.actor().requireAnyRole(Role.APPLICANT);
         GrantApplication application = applications.getById(command.applicationId());
-        // The foreign key guarantees the call exists, so a missing one is a bug.
-        FundingCall fundingCall =
-                fundingCalls.findById(application.fundingCallId()).orElseThrow();
+        FundingCall fundingCall = fundingCalls.getById(application.fundingCallId());
         application.edit(command.proposal(), fundingCall, command.actor(), clock.instant());
         applications.save(application);
         events.publish(application.pullEvents());

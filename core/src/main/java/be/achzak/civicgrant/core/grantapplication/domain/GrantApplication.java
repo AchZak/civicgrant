@@ -255,6 +255,12 @@ public final class GrantApplication {
         return ApplicationVisibility.of(actor).allows(applicant, status);
     }
 
+    public void ensureVisibleTo(Actor actor) {
+        if (!isVisibleTo(actor)) {
+            throw notFound();
+        }
+    }
+
     private void ensureActingApplicant(Actor actor) {
         if (applicant.equals(actor.id())) {
             return;
@@ -264,12 +270,6 @@ public final class GrantApplication {
                     NOT_THE_APPLICANT, "Only the applicant may change application " + reference.value());
         }
         throw notFound();
-    }
-
-    private void ensureVisibleTo(Actor actor) {
-        if (!isVisibleTo(actor)) {
-            throw notFound();
-        }
     }
 
     private void ensureNotTheApplicant(Actor actor) {
