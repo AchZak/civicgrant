@@ -1,75 +1,37 @@
-# ============================================================
-# PR SOURCE: ONLY DEVELOP MAY BE MERGED INTO MAIN
-# ============================================================
-#
-# Pull request to main:  fail unless it comes from develop, in this repository.
-#
-# The main ruleset requires a pull request, but GitHub rulesets can't say which
-# branch that pull request must come from. This workflow fills the gap: the main
-# ruleset lists "Source branch" as a required check, so a pull request from any
-# other branch can't be merged.
-
-name: PR source  # Name shown in the Actions tab of the repository.
-
-
-# ------------------------------------------------------------
-# TRIGGERS
-# ------------------------------------------------------------
+# Rulesets can't say which branch a pull request comes from, so the main ruleset
+# requires this check instead: only develop, from this repository, may go into main.
+name: PR source
 
 on:
   pull_request:
-    branches: [ main ]  # Only pull requests that target main.
-
-    # The default types are opened, synchronize and reopened. "edited" is added
-    # because changing a pull request's target branch is an edit: without it, a pull
-    # request opened against develop and then retargeted to main would never be checked.
+    branches: [ main ]
+    # "edited" catches a pull request retargeted to main after it was opened.
     types: [ opened, synchronize, reopened, edited ]
 
-
-# ------------------------------------------------------------
-# DEFAULTS FOR EVERY JOB
-# ------------------------------------------------------------
-
-# No rights at all for the GITHUB_TOKEN. The check only reads the event that
-# triggered it, so it doesn't even need to check out the code.
 permissions: {}
 
-# A newer event for the same pull request cancels the run still going.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Every run script runs as bash --noprofile --norc -eo pipefail, as in ci.yaml.
-# Without a shell named here, GitHub runs plain bash -e, where a failing command
-# inside a pipeline doesn't fail the step.
+# Runs scripts with pipefail; GitHub's default bash -e ignores failures inside a pipeline.
 defaults:
   run:
     shell: bash
 
-
 jobs:
 
-  # ============================================================
-  # JOB 1: SOURCE BRANCH
-  # Compare the pull request's source branch with develop.
-  # ============================================================
-
   source-branch:
-    name: Source branch     # The check name the main ruleset requires. Renaming it breaks the ruleset.
-    runs-on: ubuntu-latest  # Linux virtual machine hosted by GitHub.
-    timeout-minutes: 2      # The check takes seconds; anything longer is a hang.
-
+    # Required by the main ruleset under this name.
+    name: Source branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
-
-      # 1. Fail unless the source is develop in this repository.
-      #    The repository check matters: a fork can also have a branch called develop.
-      #    Branch names are chosen by whoever opens the pull request, so they're passed
-      #    as environment variables, never pasted into the script with ${{ }}: a branch
-      #    named like a shell command would otherwise run as one (script injection).
+      # A fork can have a develop branch too, hence the repository check.
       - name: Check source branch
         env:
-          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}  # owner/name of the source repository.
-          HEAD_BRANCH: ${{ github.head_ref }}                              # The source branch.
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_BRANCH: ${{ github.head_ref }}
         run: |
           if [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ] || [ "$HEAD_BRANCH" != "develop" ]; then
             echo "::error::Only develop may be merged into main. This pull request comes from $HEAD_REPO:$HEAD_BRANCH."
