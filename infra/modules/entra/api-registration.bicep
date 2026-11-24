@@ -107,3 +107,4 @@ resource servicePrincipal 'Microsoft.Graph/servicePrincipals@v1.0' = {
 output clientId string = application.appId
 output identifierUri string = application.identifierUris[0]
 output servicePrincipalId string = servicePrincipal.id
+output scopeId string = scopeId

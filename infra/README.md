@@ -1,6 +1,6 @@
 # Infrastructure
 
-Every Azure resource CivicGrant uses is defined here in Bicep, and so are the API's app registrations in Microsoft Entra ID. Nothing exists only in the portal.
+Every Azure resource CivicGrant uses is defined here in Bicep, and so are the app registrations in Microsoft Entra ID. Nothing exists only in the portal.
 
 The templates are split by who deploys them, because each deployer holds different rights: an Owner of the subscription, a tenant administrator, or the pipeline.
 
@@ -10,7 +10,7 @@ The templates are split by who deploys them, because each deployer holds differe
 infra/
 ├── shared.bicep                  what every environment shares, deployed by hand
 ├── shared.bicepparam
-├── entra.bicep                   the API's app registrations, deployed by hand
+├── entra.bicep                   the app registrations, deployed by hand
 ├── entra.bicepparam
 ├── environment.bicep             one environment, deployed by the pipeline
 ├── environment.tst.bicepparam    its values for the test environment
@@ -30,7 +30,7 @@ A parameter file starts with the name of its template, so acc and prd will sit n
 | Template | Deployed into | By | Creates |
 |---|---|---|---|
 | `shared.bicep` | the subscription | an Owner, by hand | `rg-civicgrant-shared`, holding the container registry, the pipeline identity, the PostgreSQL server with one database per environment, the documents storage account with one container per environment, and the alert action group. For each environment: its empty resource group, a deploy identity and an app identity, and their roles. Also the Azure Policy guardrails and the monthly budget |
-| `entra.bicep` | `rg-civicgrant-shared`, which only keeps the deployment record | a tenant administrator, by hand | one app registration per environment, `civicgrant-api-<env>`, with its scope and app roles |
+| `entra.bicep` | `rg-civicgrant-shared`, which only keeps the deployment record | a tenant administrator, by hand | per environment, the API's registration `civicgrant-api-<env>` with its scope and app roles, and the frontend's `civicgrant-spa-<env>`: a single-page app with its redirect URIs, consented for every user to call the API and sign in |
 | `environment.bicep` | `rg-civicgrant-<env>` | the pipeline, as the Deployment Stack `stack-civicgrant-<env>` | Log Analytics, Application Insights, the Container Apps environment, the Container App, the alert rule and the monitoring workbook |
 
 The pipeline's deploy identity has rights on its own environment's resource group only. Everything outside it (the shared resources, the identities, the policies, Entra ID) is deployed by hand by someone who holds those rights. The pipeline can't create the identities it signs in with, and keeping policies and identities out of its reach means a compromised pipeline can't give itself more rights or loosen the guardrails.
@@ -40,7 +40,7 @@ The pipeline's deploy identity has rights on its own environment's resource grou
 1. Deploy `shared.bicep`, with `BUDGET_ALERT_EMAIL` exported in your shell: the address the budget and the alerts write to, kept out of the repository.
 2. Deploy `entra.bicep`.
 3. Follow the runbooks in `bootstrap/`: [database-role.md](bootstrap/database-role.md) creates each environment's database role, [app-roles.md](bootstrap/app-roles.md) gives users their roles on the API.
-4. Copy the deployments' outputs into GitHub variables: shared values at repository level, each environment's identities and API client id on its GitHub Environment. None of them is a secret.
+4. Copy the deployments' outputs into GitHub variables: shared values at repository level, each environment's identities and API client id on its GitHub Environment. None of them is a secret. The SPA's client id goes into the frontend's `config.json`.
 5. Push to `develop`. The pipeline previews the stack's changes, deploys `environment.bicep` with `environment.tst.bicepparam`, and checks that the app is healthy.
 
 The Bicep deployments can run again at any time: they update what exists instead of duplicating it.
