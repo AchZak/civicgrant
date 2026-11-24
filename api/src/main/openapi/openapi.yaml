@@ -44,6 +44,8 @@ tags:
     description: The assessment of a submitted application by an assessor
   - name: Decisions
     description: The approval or rejection of an assessed application, with its motivation
+  - name: CurrentUser
+    description: The signed-in user, as their access token describes them
 
 paths:
   /fundingCalls:
@@ -669,6 +671,27 @@ paths:
         default:
           $ref: '#/components/responses/DefaultProblem'
 
+  /me:
+    get:
+      tags: [CurrentUser]
+      operationId: getCurrentUser
+      summary: Get the signed-in user
+      description: |
+        Roles: any. The caller's id and their CivicGrant roles, read from the access token,
+        so a client can show only what the user may use. Every other operation checks the
+        roles again.
+      responses:
+        '200':
+          description: The signed-in user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        default:
+          $ref: '#/components/responses/DefaultProblem'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1232,3 +1255,24 @@ components:
         decidedAt:
           type: string
           format: date-time
+
+    Role:
+      description: An app role a user holds in Microsoft Entra ID
+      type: string
+      enum: [APPLICANT, ASSESSOR, DECISION_MAKER, PROGRAMME_MANAGER]
+
+    CurrentUser:
+      description: |
+        The signed-in user. `roles` lists each role CivicGrant knows once, in the order of
+        `Role`; roles it doesn't know are left out.
+      type: object
+      required: [id, roles]
+      properties:
+        id:
+          description: The user's object id in Microsoft Entra ID
+          type: string
+          example: 3f1c2b7e-5a4d-4c3b-9e2f-1a0b9c8d7e6f
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
