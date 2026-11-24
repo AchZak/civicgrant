@@ -2,8 +2,9 @@ using 'shared.bicep'
 
 param location = 'belgiumcentral'
 
-// The ids keep the subject valid if the owner or the repository is renamed.
-param githubSubjectPrefix = 'repo:AchZak@140258958/civicgrant@1422522301'
+// The names are part of the subject too: after a rename, copy sub_claim_prefix again from
+// gh api repos/AchZak/civicgrant-backend/actions/oidc/customization/sub
+param githubSubjectPrefix = 'repo:AchZak@140258958/civicgrant-backend@1422522301'
 
 param publishBranches = [
   'develop'

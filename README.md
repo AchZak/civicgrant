@@ -1,11 +1,13 @@
 # CivicGrant
 
-[![CI](https://github.com/AchZak/civicgrant/actions/workflows/ci.yaml/badge.svg?branch=develop)](https://github.com/AchZak/civicgrant/actions/workflows/ci.yaml?query=branch%3Adevelop)
+[![CI](https://github.com/AchZak/civicgrant-backend/actions/workflows/ci.yaml/badge.svg?branch=develop)](https://github.com/AchZak/civicgrant-backend/actions/workflows/ci.yaml?query=branch%3Adevelop)
 [![Quality gate](https://sonarcloud.io/api/project_badges/measure?project=AchZak_civicgrant&metric=alert_status)](https://sonarcloud.io/summary/overall?id=AchZak_civicgrant)
 
 A grant application portal for a (fictional) Belgian public administration. Non-profit organisations apply for funding through a call for projects, a civil servant assesses each application, and a separate decision maker approves or rejects it with a written motivation.
 
 I built this to get hands-on with Azure on a project that looks like the applications I work on day to day: a real workflow, real rules, two languages, and more than one kind of user.
+
+This repository holds the backend and its Azure infrastructure. The Angular frontend gets a repository of its own, `civicgrant-frontend`.
 
 ## How it works
 
@@ -52,7 +54,7 @@ The rules live in the domain model and are covered by unit tests named after the
 Hexagonal architecture, split into Maven modules so the dependency direction is enforced by the build and not just by convention: the core, one module per adapter, and the application that wires them.
 
 ```
-civicgrant/
+civicgrant-backend/
 ├── core/              the hexagon: a plain Java domain and an application layer per aggregate
 ├── api/               inbound adapter: OpenAPI contract, generated interfaces, REST controllers
 ├── persistence/       outbound adapter for PostgreSQL: JPA, Flyway migrations
@@ -83,10 +85,10 @@ flowchart LR
 
 Each adapter depends on `core`, never on another adapter, and brings only its own technology: `persistence` has no Azure Storage client, `blobstorage` no JPA. `app` puts everything together. Inside `core`, each aggregate has a domain layer (the aggregate, its rules and events) and an application layer (the use cases, the ports and the services that run them), and the domain never depends on the application. ArchUnit tests fail the build when code crosses one of these boundaries or breaks one of the hexagon's conventions, such as a controller calling anything but a use case.
 
-The API is contract-first: `api/src/main/openapi/openapi.yaml` is written by hand and is the single source of truth. The Spring interfaces and the Angular client are generated from it, and the pipeline lints it with Redocly on every change. The application serves the API only, not its documentation.
+The API is contract-first: `api/src/main/openapi/openapi.yaml` is written by hand and is the single source of truth. It follows Belgif, the REST guidelines shared by Belgian public institutions, including their problem format for error responses. The Spring interfaces and the Angular client are generated from it, and the pipeline lints it with Redocly on every change. The application serves the API only, not its documentation.
 
 **Backend:** Java 25, Spring Boot 4, Spring Security (OAuth2 resource server), Spring Data JPA, Flyway, PostgreSQL, JSpecify with NullAway
-**Frontend:** Angular with standalone components, signals, zoneless change detection, Dutch and French
+**Frontend:** Angular with standalone components, signals, zoneless change detection, Dutch and French, in `civicgrant-frontend`
 **Testing:** JUnit, Testcontainers, ArchUnit, Playwright
 
 ### Where to look first

@@ -44,7 +44,7 @@ var azureCliClientId = '04b07795-8ddb-461a-bbee-02f9e1bf7b46'
 resource application 'Microsoft.Graph/applications@v1.0' = {
   uniqueName: name
   displayName: name
-  notes: 'Managed by infra/entra.bicep in github.com/AchZak/civicgrant. Change it there, not in the portal.'
+  notes: 'Managed by infra/entra.bicep in github.com/AchZak/civicgrant-backend. Change it there, not in the portal.'
   signInAudience: 'AzureADMyOrg'
 
   // api://<client id> would need the app to reference itself, which Bicep can't do.

@@ -56,8 +56,8 @@ The script needs psql 10 or later. Step 5 verifies the server's certificate with
 ### 3. Get the script
 
 ```bash
-git clone --depth 1 --branch develop https://github.com/AchZak/civicgrant.git
-cd civicgrant
+git clone --depth 1 --branch develop https://github.com/AchZak/civicgrant-backend.git
+cd civicgrant-backend
 git log -1 --oneline
 ```
 
