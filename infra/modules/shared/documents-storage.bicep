@@ -52,7 +52,7 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2026-09-01'
   }
 }
 
-resource documentContainers 'Microsoft.Storage/storageAccounts/blobServices/containers@2026-06-01' = [
+resource documentContainers 'Microsoft.Storage/storageAccounts/blobServices/containers@2026-09-01' = [
   for container in containers: {
     parent: blobService
     name: container.name
