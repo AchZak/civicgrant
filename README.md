@@ -122,7 +122,7 @@ If you only have a few minutes, these files show how the pieces fit:
 ```mermaid
 flowchart LR
     browser["Browser"] -->|"signs in"| entra["Entra ID"]
-    browser -->|"loads the app"| swa["Static Web Apps<br/>Angular, planned"]
+    browser -->|"loads the app"| swa["Static Web Apps<br/>Angular"]
     browser -->|"API calls with a token"| aca["Container Apps<br/>CivicGrant API"]
     aca -->|"managed identity"| pg[("PostgreSQL<br/>Flexible Server")]
     aca -->|"managed identity"| blob[("Blob Storage")]
@@ -166,7 +166,7 @@ The choices that shape the code and the Azure setup most.
 
 **Each environment has two identities, each allowed one job.** A deploy identity, trusted only by GitHub jobs running in that environment, may deploy into the environment's resource group and nowhere else. An app identity runs the application and may pull images from one repository only. Both, like the other shared resources, are deployed by hand by an Owner, so a compromised pipeline can't give itself more rights.
 
-**Azure refuses what breaks the project's rules, through Azure Policy.** The templates keep resources in the two chosen regions, storage without shared keys or public access, the registry without an admin user or anonymous pull, Container Apps on HTTPS with a managed identity, and monitoring that only accepts data sent with an Entra sign-in. A template can't stop a change made from the CLI or the portal, so one Azure Policy initiative, built from Microsoft's own definitions and assigned to each CivicGrant resource group, refuses anything that breaks these rules, wherever the request comes from. A resource without the project's tags inherits them from its resource group. Azure Policy costs nothing for Azure resources.
+**Azure refuses what breaks the project's rules, through Azure Policy.** The templates keep resources in the two chosen regions, storage without shared keys or public access, the registry without an admin user or anonymous pull, Container Apps on HTTPS with a managed identity, and monitoring that only accepts data sent with an Entra sign-in. A template can't stop a change made from the CLI or the portal, so one Azure Policy initiative, built from Microsoft's own definitions and assigned to each CivicGrant resource group, refuses anything that breaks these rules, wherever the request comes from. One exemption, written in the templates like the rules, lets the frontend's Static Web App sit in East US 2: Static Web Apps aren't offered in either region, and it only holds static files. A resource without the project's tags inherits them from its resource group. Azure Policy costs nothing for Azure resources.
 
 ## Running it locally
 
