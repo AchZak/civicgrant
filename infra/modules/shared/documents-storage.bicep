@@ -17,7 +17,7 @@ param deleteRetentionDays int = 7
 
 var blobDataContributorRoleId = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 
-resource account 'Microsoft.Storage/storageAccounts@2026-06-01' = {
+resource account 'Microsoft.Storage/storageAccounts@2026-09-01' = {
   name: name
   location: location
   tags: tags
