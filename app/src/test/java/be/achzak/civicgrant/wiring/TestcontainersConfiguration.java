@@ -19,11 +19,11 @@ class TestcontainersConfiguration {
 
     @Bean
     AzuriteContainer azuriteContainer() {
-        return new AzuriteContainer(DockerImageName.parse("mcr.microsoft.com/azure-storage/azurite:3.37.0")) {
+        return new AzuriteContainer(DockerImageName.parse("mcr.microsoft.com/azure-storage/azurite:3.38.0")) {
             @Override
             protected void configure() {
                 super.configure();
-                // The SDK speaks Blob API 2026-10-06, newer than the newest Azurite release knows.
+                // Azurite often learns a Blob API version after the SDK speaks it: SDK updates shouldn't wait.
                 withCommand(String.join(" ", getCommandParts()) + " --skipApiVersionCheck");
             }
         };
