@@ -1,6 +1,9 @@
 package be.achzak.civicgrant.api.security;
 
+import java.time.Duration;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +16,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.StringUtils;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
@@ -33,14 +39,16 @@ class SecurityConfiguration {
 
     @Bean
     SecurityFilterChain securityFilterChain(
-            HttpSecurity http, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver)
+            HttpSecurity http,
+            @Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver,
+            @Value("${civicgrant.cors.allowed-origins:}") List<String> frontendOrigins)
             throws Exception {
         ProblemAuthenticationEntryPoint entryPoint = new ProblemAuthenticationEntryPoint(handlerExceptionResolver);
-        return http.authorizeHttpRequests(
-                        requests -> requests.requestMatchers("/actuator/health", "/actuator/health/**")
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated())
+        return http.cors(cors -> cors.configurationSource(frontendCors(frontendOrigins)))
+                .authorizeHttpRequests(requests -> requests.requestMatchers("/actuator/health", "/actuator/health/**")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
                 .oauth2ResourceServer(resourceServer -> resourceServer
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(entraConverter()))
                         .authenticationEntryPoint(entryPoint))
@@ -57,6 +65,19 @@ class SecurityConfiguration {
     @Bean
     OAuth2TokenValidator<Jwt> userAccessTokenValidator() {
         return new UserAccessTokenValidator();
+    }
+
+    // Bearer tokens only, no cookies: the browser never sends credentials by itself.
+    private static CorsConfigurationSource frontendCors(List<String> frontendOrigins) {
+        CorsConfiguration frontend = new CorsConfiguration();
+        frontend.setAllowedOrigins(frontendOrigins);
+        frontend.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        frontend.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        frontend.setMaxAge(Duration.ofHours(1));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", frontend);
+        return source;
     }
 
     private static JwtAuthenticationConverter entraConverter() {

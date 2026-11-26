@@ -108,6 +108,10 @@ var appSettings = [
     value: apiClientId
   }
   {
+    name: 'CIVICGRANT_CORS_ALLOWEDORIGINS'
+    value: 'https://${frontend.properties.defaultHostname}'
+  }
+  {
     name: 'CIVICGRANT_DOCUMENTS_ENDPOINT'
     value: documentsEndpoint
   }
@@ -120,6 +124,10 @@ var appSettings = [
     value: appIdentityClientId
   }
 ]
+
+resource frontend 'Microsoft.Web/staticSites@2025-03-01' existing = {
+  name: 'stapp-civicgrant-${environmentName}'
+}
 
 module monitoring 'modules/environment/monitoring.bicep' = {
   params: {

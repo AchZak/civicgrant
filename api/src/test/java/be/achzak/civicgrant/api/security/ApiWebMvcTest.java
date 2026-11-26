@@ -19,11 +19,14 @@ import org.springframework.core.annotation.AliasFor;
 @WebMvcTest(
         properties = {
             "spring.security.oauth2.resourceserver.jwt.issuer-uri=https://issuer.test/v2.0",
-            "spring.security.oauth2.resourceserver.jwt.audiences=civicgrant-api-test"
+            "spring.security.oauth2.resourceserver.jwt.audiences=civicgrant-api-test",
+            "civicgrant.cors.allowed-origins=" + ApiWebMvcTest.FRONTEND_ORIGIN
         })
 @Import({SecurityConfiguration.class, CurrentActor.class})
 @ImportAutoConfiguration(ServerProblemAutoConfiguration.class)
 public @interface ApiWebMvcTest {
+
+    String FRONTEND_ORIGIN = "https://frontend.test";
 
     @AliasFor(annotation = WebMvcTest.class, attribute = "controllers")
     Class<?>[] value() default {};
