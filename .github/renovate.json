@@ -38,6 +38,29 @@
       "matchPackageNames": ["postgres"],
       "matchUpdateTypes": ["major"],
       "enabled": false
+    },
+    {
+      "description": "One pull request for the Azure API versions in the Bicep templates",
+      "matchManagers": ["bicep"],
+      "groupName": "azure api versions"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Testcontainers images in the tests, so they move with compose.yaml",
+      "managerFilePatterns": ["/src/test/java/.+\\.java$/"],
+      "matchStrings": ["DockerImageName\\.parse\\(\"(?<depName>[^\"]+):(?<currentValue>[^\"]+)\"\\)"],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "The Bicep CLI that ci.yaml installs",
+      "managerFilePatterns": ["/^\\.github/workflows/.+\\.ya?ml$/"],
+      "matchStrings": ["az bicep install --version v(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "Azure/bicep",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
     }
   ]
 }

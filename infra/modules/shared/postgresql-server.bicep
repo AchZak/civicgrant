@@ -25,7 +25,6 @@ param skuName string = 'Standard_B1ms'
 @description('Provisioned storage in GiB.')
 param storageSizeGB int = 32
 
-// Not 2026-10-01: Bicep 0.48.1 has no types for it yet.
 resource server 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
   name: name
   location: location

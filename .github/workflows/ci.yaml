@@ -155,7 +155,7 @@ jobs:
 
       # Pinned, so a newer Bicep on the runner never changes a deployment by surprise.
       - name: Install Bicep
-        run: az bicep install --version v0.48.1
+        run: az bicep install --version v0.49.2
 
       # Same flags as Deploy, or the preview describes another deployment.
       - name: Preview changes
