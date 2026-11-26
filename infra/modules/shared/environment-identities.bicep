@@ -7,6 +7,9 @@ param deployIdentityName string
 @description('Name of the identity the application runs with.')
 param appIdentityName string
 
+@description('Name of the identity the frontend\'s workflow deploys the Static Web App with.')
+param frontendDeployIdentityName string
+
 @description('Azure region of the identities: the environment\'s region.')
 param location string
 
@@ -15,6 +18,9 @@ param tags object
 
 @description('Start of the GitHub OIDC subject claim for the repository, without the trailing colon.')
 param githubSubjectPrefix string
+
+@description('Start of the GitHub OIDC subject claim for the frontend\'s repository, without the trailing colon.')
+param frontendGithubSubjectPrefix string
 
 @description('Name of the shared container registry.')
 param registryName string
@@ -48,6 +54,27 @@ resource deployCredential 'Microsoft.ManagedIdentity/userAssignedIdentities/fede
   properties: {
     issuer: 'https://token.actions.githubusercontent.com'
     subject: '${githubSubjectPrefix}:environment:${environmentName}'
+    audiences: [
+      'api://AzureADTokenExchange'
+    ]
+  }
+}
+
+resource frontendDeployIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
+  name: frontendDeployIdentityName
+  location: location
+  tags: tags
+  properties: {
+    isolationScope: 'None'
+  }
+}
+
+resource frontendDeployCredential 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2024-11-30' = {
+  parent: frontendDeployIdentity
+  name: 'github-environment-${environmentName}'
+  properties: {
+    issuer: 'https://token.actions.githubusercontent.com'
+    subject: '${frontendGithubSubjectPrefix}:environment:${environmentName}'
     audiences: [
       'api://AzureADTokenExchange'
     ]
@@ -107,6 +134,8 @@ resource deployReadsActionGroup 'Microsoft.Authorization/roleAssignments@2022-04
 
 output deployPrincipalId string = deployIdentity.properties.principalId
 output deployClientId string = deployIdentity.properties.clientId
+output frontendDeployPrincipalId string = frontendDeployIdentity.properties.principalId
+output frontendDeployClientId string = frontendDeployIdentity.properties.clientId
 output appClientId string = appIdentity.properties.clientId
 output appPrincipalId string = appIdentity.properties.principalId
 output appIdentityId string = appIdentity.id

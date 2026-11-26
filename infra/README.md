@@ -29,7 +29,7 @@ A parameter file starts with the name of its template, so acc and prd will sit n
 
 | Template | Deployed into | By | Creates |
 |---|---|---|---|
-| `shared.bicep` | the subscription | an Owner, by hand | `rg-civicgrant-shared`, holding the container registry, the pipeline identity, the PostgreSQL server with one database per environment, the documents storage account with one container per environment, and the alert action group. For each environment: its empty resource group, a deploy identity and an app identity, and their roles. Also the Azure Policy guardrails and the monthly budget |
+| `shared.bicep` | the subscription | an Owner, by hand | `rg-civicgrant-shared`, holding the container registry, the pipeline identity, the PostgreSQL server with one database per environment, the documents storage account with one container per environment, and the alert action group. For each environment: its empty resource group, a deploy identity and an app identity, and their roles, and the Static Web App that hosts the frontend, with the identity the frontend's workflow deploys it with. Also the Azure Policy guardrails and the monthly budget |
 | `entra.bicep` | `rg-civicgrant-shared`, which only keeps the deployment record | a tenant administrator, by hand | per environment, the API's registration `civicgrant-api-<env>` with its scope and app roles, and the frontend's `civicgrant-spa-<env>`: a single-page app with its redirect URIs, consented for every user to call the API and sign in |
 | `environment.bicep` | `rg-civicgrant-<env>` | the pipeline, as the Deployment Stack `stack-civicgrant-<env>` | Log Analytics, Application Insights, the Container Apps environment, the Container App, the alert rule and the monitoring workbook |
 
@@ -62,5 +62,5 @@ Lint each entry point the same way. The tst what-if needs the variables `environ
 - Names follow the Cloud Adoption Framework abbreviations: `rg-civicgrant-tst`, `ca-civicgrant-tst`. Names that must be globally unique get a `uniqueString` suffix.
 - Every resource carries the tags `project`, `environment` and `managedBy`. The guardrails copy them from the resource group when one is missing.
 - No keys, passwords or connection strings. The app signs in to PostgreSQL, Blob Storage and Application Insights with its managed identity, and the pipeline signs in to Azure with GitHub's OIDC token. Azure Policy refuses a resource that turns shared keys, admin users or anonymous access back on ([Decisions](../README.md#decisions)).
-- Shared resources live in Belgium Central; PostgreSQL, the documents storage and the environments in France Central.
+- Shared resources live in Belgium Central; PostgreSQL, the documents storage and the environments in France Central. Static Web Apps exist in neither, and West Europe refused this subscription, so the frontend's sits in East US 2 under a policy exemption. Only its metadata lives there: the files are served from Microsoft's edge, and every piece of data stays in France Central.
 - Costs stay at a few euros a month: one PostgreSQL server for every environment, Container Apps that scale to zero, and a €5 budget that alerts from the first euro.

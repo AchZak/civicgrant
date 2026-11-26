@@ -6,6 +6,12 @@ param location string
 @description('GitHub OIDC subject prefix of the repository, as shown under Settings > Actions > OIDC: repo:owner/name, or repo:owner@id/name@id for repositories created or renamed since July 2026.')
 param githubSubjectPrefix string
 
+@description('GitHub OIDC subject prefix of the frontend\'s repository, in the same form.')
+param frontendGithubSubjectPrefix string
+
+@description('Azure region of the Static Web Apps that host the frontend.')
+param frontendLocation string
+
 @description('Branches whose workflow runs may push images.')
 param publishBranches array
 
@@ -136,6 +142,8 @@ module environments 'modules/shared/environment-foundations.bicep' = [
       tags: union(tags, { environment: environmentName })
       sharedResourceGroupName: resourceGroup.name
       githubSubjectPrefix: githubSubjectPrefix
+      frontendGithubSubjectPrefix: frontendGithubSubjectPrefix
+      frontendLocation: frontendLocation
       registryName: registry.outputs.name
       imageRepository: imageRepository
       guardrailsId: guardrails.outputs.id
@@ -189,5 +197,8 @@ output environments array = [
     appClientId: environments[i].outputs.appClientId
     appPrincipalId: environments[i].outputs.appPrincipalId
     appIdentityId: environments[i].outputs.appIdentityId
+    frontendDeployClientId: environments[i].outputs.frontendDeployClientId
+    frontendName: environments[i].outputs.frontendName
+    frontendHostname: environments[i].outputs.frontendHostname
   }
 ]

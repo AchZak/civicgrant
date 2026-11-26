@@ -15,6 +15,12 @@ param sharedResourceGroupName string
 @description('Start of the GitHub OIDC subject claim for the repository, without the trailing colon.')
 param githubSubjectPrefix string
 
+@description('Start of the GitHub OIDC subject claim for the frontend\'s repository, without the trailing colon.')
+param frontendGithubSubjectPrefix string
+
+@description('Azure region of the environment\'s Static Web App.')
+param frontendLocation string
+
 @description('Name of the shared container registry.')
 param registryName string
 
@@ -36,10 +42,12 @@ param alertActionGroupName string
 
 var deployIdentityName = 'id-civicgrant-deploy-${environmentName}'
 var appIdentityName = 'id-civicgrant-app-${environmentName}'
+var frontendDeployIdentityName = 'id-civicgrant-frontend-${environmentName}'
 
 // Computed from the name so what-if can preview the role assignments seeded with it.
 // Subscription id first: at this scope resourceId() reads a lone first argument as one.
 var deployIdentityId = resourceId(subscription().subscriptionId, sharedResourceGroupName, 'Microsoft.ManagedIdentity/userAssignedIdentities', deployIdentityName)
+var frontendDeployIdentityId = resourceId(subscription().subscriptionId, sharedResourceGroupName, 'Microsoft.ManagedIdentity/userAssignedIdentities', frontendDeployIdentityName)
 
 resource environmentGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: 'rg-civicgrant-${environmentName}'
@@ -53,9 +61,11 @@ module identities 'environment-identities.bicep' = {
     environmentName: environmentName
     deployIdentityName: deployIdentityName
     appIdentityName: appIdentityName
+    frontendDeployIdentityName: frontendDeployIdentityName
     location: location
     tags: tags
     githubSubjectPrefix: githubSubjectPrefix
+    frontendGithubSubjectPrefix: frontendGithubSubjectPrefix
     registryName: registryName
     imageRepository: imageRepository
     alertActionGroupName: alertActionGroupName
@@ -79,8 +89,33 @@ module guardrails 'guardrails-assignment.bicep' = {
   }
 }
 
+module staticWebAppsExemption 'static-web-apps-exemption.bicep' = {
+  scope: environmentGroup
+  dependsOn: [
+    guardrails
+  ]
+}
+
+// Policy is checked before a deployment starts, so the exemption must exist by then.
+module frontendHosting 'frontend-hosting.bicep' = {
+  scope: environmentGroup
+  params: {
+    name: 'stapp-civicgrant-${environmentName}'
+    location: frontendLocation
+    tags: tags
+    deployIdentityId: frontendDeployIdentityId
+    deployPrincipalId: identities.outputs.frontendDeployPrincipalId
+  }
+  dependsOn: [
+    staticWebAppsExemption
+  ]
+}
+
 output resourceGroupName string = environmentGroup.name
 output deployClientId string = identities.outputs.deployClientId
+output frontendDeployClientId string = identities.outputs.frontendDeployClientId
+output frontendName string = frontendHosting.outputs.name
+output frontendHostname string = frontendHosting.outputs.hostname
 output appClientId string = identities.outputs.appClientId
 output appPrincipalId string = identities.outputs.appPrincipalId
 output appIdentityId string = identities.outputs.appIdentityId

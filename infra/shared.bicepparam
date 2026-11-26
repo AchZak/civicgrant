@@ -6,6 +6,13 @@ param location = 'belgiumcentral'
 // gh api repos/AchZak/civicgrant-backend/actions/oidc/customization/sub
 param githubSubjectPrefix = 'repo:AchZak@140258958/civicgrant-backend@1422522301'
 
+// Copied the same way, from gh api repos/AchZak/civicgrant-frontend/actions/oidc/customization/sub
+param frontendGithubSubjectPrefix = 'repo:AchZak@140258958/civicgrant-frontend@1469912800'
+
+// Static Web Apps aren't offered in Belgium or France Central, and West Europe refused this
+// subscription in November 2026. Only the site's metadata lives there.
+param frontendLocation = 'eastus2'
+
 param publishBranches = [
   'develop'
   'main'
